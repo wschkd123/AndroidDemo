@@ -42,7 +42,8 @@ public class EndlessViewPager extends ViewPager {
 
     static final String TAG = EndlessViewPager.class.getSimpleName();
 
-    private static final int ENDLESS_INITIALIZE_FACTOR = 250;
+    private static final int ENDLESS_LARGE_COUNT = 100000;
+    private static final int ENDLESS_START_COUNT = 10000;
 
 
     public EndlessViewPager(Context context) {
@@ -170,6 +171,9 @@ public class EndlessViewPager extends ViewPager {
 
         private EndlessViewPager mViewPager;
 
+        /**
+         * Notify current fragment for data changed
+         */
         private Handler mHandler = new Handler() {
 
             @Override
@@ -206,7 +210,7 @@ public class EndlessViewPager extends ViewPager {
             if (getCountActually() <= 0) {
                 return 0;
             }
-            return 10000;
+            return ENDLESS_LARGE_COUNT;
         }
 
         /**
@@ -223,7 +227,6 @@ public class EndlessViewPager extends ViewPager {
          * @return
          */
         public abstract Object getData(int actualPosition);
-
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
@@ -251,7 +254,6 @@ public class EndlessViewPager extends ViewPager {
         @Override
         public void notifyDataSetChanged() {
             Log.v(TAG, "notifyDataSetChanged getCountActually -> " + getCountActually());
-
             if (getCountActually() <= 0) {
                 Log.v(TAG, "\t no data ,we do nothing");
                 super.notifyDataSetChanged();
@@ -265,55 +267,54 @@ public class EndlessViewPager extends ViewPager {
             if (currentItem <= getCountActually()) {
                 super.notifyDataSetChanged();
                 Log.v(TAG, "\t currentItem is " + currentItem + ", viewpager has not initialize to endless");
-                int target = 2000;
+                int target = ENDLESS_START_COUNT;
                 Log.v(TAG, " target position -> " + target);
                 initEndlessPositionConverter(currentItem, target, getCountActually());
                 mViewPager.setCurrentItem(target);
             } else {
                 int actualPosition = mViewPager.getActualCurrentItem();
                 Log.v(TAG, "actualPosition -> " + actualPosition);
+
                 initEndlessPositionConverter(actualPosition, currentItem, getCountActually());
 
-//                //update currentItems
-//                for (IEndlessFragmentCallback fragment : mFragments) {
-//                    fragment.onDataChanged(getData(convertPositionToActual(fragment.getPosition())));
-//                }
                 mHandler.sendEmptyMessage(0);
-
             }
         }
 
         private int mEndlessConverterOffset = 0;
+        private int mEndlessConverterActualCount = 0;
 
         /**
          * Initialize the offset for conversation between actual-position and endless-position
          */
+
         public final void initEndlessPositionConverter(int actualPosition, int endlessPosition, int actualCount) {
             Log.v(TAG, "initEndlessPositionConverter actualPosition -> " + actualPosition + " endlessPosition -> " + endlessPosition + " actualCount -> " + actualCount);
-
             if (endlessPosition == 0 || actualCount == 0) {
                 Log.v(TAG, " 0 ,just set convertParams to 0 and return");
                 mEndlessConverterOffset = 0;
+                mEndlessConverterActualCount = 0;
                 return;
             }
 
-            final int noOffsetPosition = endlessPosition % actualCount;
-            Log.v(TAG, " noOffsetPosition -> " + noOffsetPosition);
+            final int offsetPosition = endlessPosition % actualCount;
+            Log.v(TAG, " noOffsetPosition -> " + offsetPosition);
 
-            final int offsetPosition = actualPosition;
-            Log.v(TAG, " offsetPosition -> " + offsetPosition);
+            final int noOffsetPosition = actualPosition;
+            Log.v(TAG, " offsetPosition -> " + noOffsetPosition);
 
             final int offset = offsetPosition - noOffsetPosition;
             Log.v(TAG, " offset -> " + offset);
 
             mEndlessConverterOffset = offset;
+            mEndlessConverterActualCount = actualCount;
         }
 
         /**
-         * Convert the position from endless-position to actual-position
+         * Convert endless-position to actual-position.
          *
-         * @param endlessPosition The endless-position ,ie the large number of the current position
-         * @return Actual position
+         * @param endlessPosition
+         * @return actual-position, -1 means empty-fragment
          */
         public final int convertPositionToActual(int endlessPosition) {
             Log.v(TAG, "convertPositionToActual -> " + endlessPosition);
@@ -322,14 +323,33 @@ public class EndlessViewPager extends ViewPager {
                 return endlessPosition;
             }
 
-            final int offsetPosition = endlessPosition % getCountActually();
+            if (!isCanSwipe() && endlessPosition != mViewPager.getCurrentItem()) {
+                Log.v(TAG, "Set this Fragment to be empty-fragment");
+                return -1;
+            }
+
+            if (mEndlessConverterActualCount == 0) {
+                Log.e(TAG, "\t mEndlessConverterActualCount == 0 ,this should not happen ! return original value -> " + endlessPosition);
+                return endlessPosition;
+            }
+
+            final int offsetPosition = endlessPosition % mEndlessConverterActualCount;
             Log.v(TAG, " offsetPosition -> " + offsetPosition);
 
-            final int actualPosition = offsetPosition - mEndlessConverterOffset;
+            Log.v(TAG, " mEndlessConverterOffset -> " + mEndlessConverterOffset);
+            int actualPosition = offsetPosition - mEndlessConverterOffset;
+
+            if (actualPosition < 0) {
+                actualPosition += mEndlessConverterActualCount;
+            } else if (actualPosition >= mEndlessConverterActualCount) {
+                actualPosition -= mEndlessConverterActualCount;
+            }
+
             Log.v(TAG, " return value actualPosition -> " + actualPosition);
 
             return actualPosition;
         }
 
     }
+
 }

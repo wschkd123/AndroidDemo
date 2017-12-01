@@ -39,7 +39,6 @@ public class MainActivity extends FragmentActivity {
         mViewPager = findViewById(R.id.viewpager);
         final MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), mViewPager);
         mViewPager.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
 
         mViewPager.post(new Runnable() {
             @Override
@@ -58,7 +57,6 @@ public class MainActivity extends FragmentActivity {
                 adapter.mList.add("1");
                 adapter.mList.add("A");
                 adapter.mList.add("B");
-                adapter.mList.add("C");
                 adapter.notifyDataSetChanged();
 
                 int curentItem = mViewPager.getCurrentItem();
@@ -195,6 +193,9 @@ public class MainActivity extends FragmentActivity {
 
         @Override
         public Object getData(int actualPosition) {
+            if (actualPosition == -1) {
+                return "EMPTY";
+            }
             return mList.get(actualPosition);
         }
 
@@ -204,12 +205,6 @@ public class MainActivity extends FragmentActivity {
             int position = convertPositionToActual(p);
             Fragment fragment = new MyFragment(getData(position), p);
             return fragment;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            super.destroyItem(container, position, object);
-            Log.v(TAG, "destroyItem  position -> " + position + " object -> " + object);
         }
 
     }
