@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +48,7 @@ public class MainActivity extends FragmentActivity {
         adapter.mList.add("6");
         adapter.notifyDataSetChanged();
 
-        mViewPager.setActualCurrentItem(2);
+        mViewPager.setCurrentItem(4);
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,10 +84,13 @@ public class MainActivity extends FragmentActivity {
 
         private Object mObject;
 
-        public MyFragment(Object object, int position) {
+        private EndlessViewPager mViewPager;
+
+        public MyFragment(Object object, int position, EndlessViewPager viewPager) {
             mObject = object;
             TAG1 = MyFragment.class.getSimpleName() + " position:" + position + " mObject -> " + mObject;
             TAG = toString();
+            mViewPager = viewPager;
         }
 
         @Override
@@ -135,7 +137,18 @@ public class MainActivity extends FragmentActivity {
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getContext(), "TextView -> " + textView.getText(), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getContext(), "TextView -> " + textView.getText(), Toast.LENGTH_SHORT).show();
+
+                    int currentItem = mViewPager.getCurrentItem();
+                    Log.v(TAG, "currentItem -> " + currentItem);
+
+                    //using actual-position
+//                    mViewPager.setCurrentItem((mViewPager.getCurrentItem() + 1) % mViewPager.getEndlessAdapter().getCountActually());
+
+                    //using endless-position
+
+                    mViewPager.setCurrentItem(mViewPager.getCurrentItem(false) + 1);
+
                 }
             });
             textView.append(String.valueOf(mPosition) + "\n");
@@ -144,11 +157,9 @@ public class MainActivity extends FragmentActivity {
             return textView;
         }
 
-
         public void updateView() {
             mTextView.append(mObject.getClass().getSimpleName() + "   " + mObject + "\n");
         }
-
 
         @Override
         public String toString() {
@@ -204,7 +215,7 @@ public class MainActivity extends FragmentActivity {
         public Fragment getItem(final int p) {
             Log.v(TAG, "getItem -> " + p);
             int position = convertPositionToActual(p);
-            Fragment fragment = new MyFragment(getData(position), p);
+            Fragment fragment = new MyFragment(getData(position), p, mViewPager);
             return fragment;
         }
 
