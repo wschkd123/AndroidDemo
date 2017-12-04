@@ -40,15 +40,16 @@ public class MainActivity extends FragmentActivity {
         final MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), mViewPager);
         mViewPager.setAdapter(adapter);
 
-        mViewPager.post(new Runnable() {
-            @Override
-            public void run() {
-                adapter.mList.clear();
-                adapter.mList.add("1");
-                adapter.notifyDataSetChanged();
-            }
-        });
+        adapter.mList.clear();
+        adapter.mList.add("1");
+        adapter.mList.add("2");
+        adapter.mList.add("3");
+        adapter.mList.add("4");
+        adapter.mList.add("5");
+        adapter.mList.add("6");
+        adapter.notifyDataSetChanged();
 
+        mViewPager.setActualCurrentItem(2);
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override

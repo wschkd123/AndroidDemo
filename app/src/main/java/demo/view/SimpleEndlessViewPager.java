@@ -17,7 +17,7 @@ public class SimpleEndlessViewPager extends ViewPager {
     static final String TAG = EndlessViewPager.class.getSimpleName();
 
     /**
-     * The ViewPager is a 250 fucker !!!
+     * The ViewPager
      */
     private static final int ENDLESS_INITIALIZE_FACTOR = 250;
 
