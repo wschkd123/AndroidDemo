@@ -1,11 +1,14 @@
-apply plugin: 'com.android.application'
-
+plugins {
+    id 'com.android.application'
+}
 android {
-    compileSdkVersion 26
+    compileSdkVersion 33
+    buildToolsVersion "31.0.0"
+
     defaultConfig {
-        applicationId "com.example.fishyu.fishdemo"
-        minSdkVersion 15
-        targetSdkVersion 26
+        applicationId "com.example.beyond.demo"
+        minSdkVersion 22
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
     }

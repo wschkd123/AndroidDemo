@@ -1,4 +1,4 @@
-package demo.view;
+package com.example.beyond.demo.view.viewpager;
 
 import android.content.Context;
 import android.support.v4.app.FragmentManager;
