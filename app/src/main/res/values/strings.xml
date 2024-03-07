@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">AndroidDemo</string>
     <string name="grocery_list">Grocery list</string>
-    <string name="app_widget_grocery_list_description">Todo list for groceries</string>
+    <string name="app_widget_grocery_list_description">小组件</string>
 </resources>
