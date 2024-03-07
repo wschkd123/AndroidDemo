@@ -19,6 +19,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".appwidget.CharacterAppWidget"
+            android:label="单个人物"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_character" />
+        </receiver>
+
+        <receiver
+            android:name=".appwidget.MultiCharacterAppWidget"
+            android:label="多个人物"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_multi_character" />
+        </receiver>
+
     </application>
 
 </manifest>
