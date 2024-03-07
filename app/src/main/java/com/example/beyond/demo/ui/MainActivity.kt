@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
             setContentView(root)
         }
 
-        binding.btnClick.setOnClickListener {
+        binding.tvClick.setOnClickListener {
             fetchData().observe(this) {
                 Log.i(TAG, "fetchData $it")
             }

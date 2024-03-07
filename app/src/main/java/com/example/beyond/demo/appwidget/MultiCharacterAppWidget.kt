@@ -30,7 +30,7 @@ class MultiCharacterAppWidget : AppWidgetProvider() {
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         // When the user deletes the widget, delete the preference associated with it.
         for (appWidgetId in appWidgetIds) {
-            ListSharedPrefsUtil.deleteWidgetLayoutIdPref(context, appWidgetId)
+//            ListSharedPrefsUtil.deleteWidgetLayoutIdPref(context, appWidgetId)
         }
     }
 
@@ -57,17 +57,14 @@ class MultiCharacterAppWidget : AppWidgetProvider() {
             fun constructRemoteViews(
                 @LayoutRes widgetLayoutId: Int
             ) = RemoteViews(context.packageName, widgetLayoutId).apply {
-                if (widgetLayoutId == R.layout.view_character) {
-                    setTextViewText(
-                        R.id.checkbox_list_title,
-                        context.resources.getText(R.string.grocery_list)
-                    )
-                }
-                setOnClickPendingIntent(R.id.checkbox_list_title, appOpenIntent)
+//                setTextViewText(
+//                    R.id.tv_title,
+//                    context.resources.getText(R.string.grocery_list)
+//                )
+//                setOnClickPendingIntent(R.id.tv_title, appOpenIntent)
             }
 
-            val layoutId = ListSharedPrefsUtil.loadWidgetLayoutIdPref(context, appWidgetId)
-            val remoteViews = constructRemoteViews(layoutId)
+            val remoteViews = constructRemoteViews(R.layout.view_multi_character)
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
         }
     }

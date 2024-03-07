@@ -11,13 +11,13 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <View
+        <TextView
             android:layout_width="34dp"
             android:layout_height="34dp"
-            android:background="#004533"/>
+            android:background="@drawable/ic_launcher"/>
 
         <TextView
-            android:id="@+id/checkbox_list_title"
+            android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -26,10 +26,10 @@
             android:text="启动逐梦岛以获取数据"
             android:textColor="#FFFFFF" />
 
-        <View
+        <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:background="#FFF02F"/>
+            android:background="@drawable/ic_launcher"/>
     </LinearLayout>
 
     <LinearLayout
@@ -40,32 +40,32 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <View
+        <ImageView
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_weight="1"
-            android:background="#000000"/>
+            android:background="@drawable/ic_launcher"/>
 
-        <View
+        <ImageView
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_weight="1"
             android:layout_marginStart="13dp"
-            android:background="#000000"/>
+            android:background="@drawable/ic_launcher"/>
 
-        <View
+        <ImageView
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_marginStart="13dp"
             android:layout_weight="1"
-            android:background="#000000"/>
+            android:background="@drawable/ic_launcher"/>
 
-        <View
+        <ImageView
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_marginStart="13dp"
             android:layout_weight="1"
-            android:background="#000000"/>
+            android:background="@drawable/ic_launcher"/>
 
     </LinearLayout>
 </LinearLayout>
