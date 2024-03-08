@@ -24,26 +24,6 @@ class MainActivity : AppCompatActivity() {
             setContentView(root)
         }
 
-        binding.tvClick.setOnClickListener {
-            fetchData().observe(this) {
-                Log.i(TAG, "fetchData $it")
-            }
-        }
-    }
-
-    private fun fetchData(): MutableLiveData<NetResult<Any>> {
-        val liveData = MutableLiveData<NetResult<Any>>()
-        lifecycleScope.launch {
-            try {
-                val result = RetrofitFactory.getRetrofit().create(WanAndroidService::class.java)
-                        .getBannerInfo()
-                liveData.postValue(result)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                liveData.postValue(NetResult.badResult())
-            }
-        }
-        return liveData
     }
 
 }

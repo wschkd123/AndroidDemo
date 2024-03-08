@@ -22,8 +22,8 @@
 
         <receiver
             android:name=".appwidget.CharacterAppWidget"
-            android:label="单个人物"
-            android:exported="false">
+            android:exported="true"
+            android:label="单个人物">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -35,8 +35,8 @@
 
         <receiver
             android:name=".appwidget.MultiCharacterAppWidget"
-            android:label="多个人物"
-            android:exported="false">
+            android:exported="true"
+            android:label="多个人物">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -44,6 +44,35 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_multi_character" />
+        </receiver>
+
+        <receiver
+            android:name=".appwidget.CharacterWidgetProviderTest"
+            android:exported="true"
+            android:label="测试刷新">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.REFRESH" />
+                <!-- MIUI展现刷新 -->
+                <action android:name="miui.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_provider_demo" />
+
+
+            <!-- MIUI小部件 -->
+            <meta-data
+                android:name="miuiWidget"
+                android:value="true" />
+            <!-- 是否需要曝光刷新 -->
+            <meta-data
+                android:name="miuiWidgetRefresh"
+                android:value="exposure" />
+            <!-- 曝光刷新的时间间隔，时间单位为毫秒 -->
+            <meta-data
+                android:name="miuiWidgetRefreshMinInterval"
+                android:value="10000" />
         </receiver>
 
     </application>
