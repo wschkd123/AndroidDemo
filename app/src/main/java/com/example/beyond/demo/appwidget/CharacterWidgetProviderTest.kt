@@ -2,6 +2,7 @@ package com.example.beyond.demo.appwidget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
@@ -38,13 +39,16 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
          */
         private const val WORKER_NAME = "CharacterWorker"
     }
+
     override fun onReceive(context: Context, intent: Intent) {
         Log.i("AppWidget", "$TAG onReceive: ${intent.action}")
         super.onReceive(context, intent)
         when (intent.action) {
+            // 系统刷新广播
+            ACTION_APPWIDGET_UPDATE,
             // 接收刷新广播
             REFRESH_ACTION,
-                // MIUI展现刷新广播
+            // MIUI展现刷新广播
             MIUI_REFRESH_ACTION -> {
 //                val extras = intent.extras
 //                if (extras != null) {
@@ -54,6 +58,7 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
 //                    }
 //                }
                 // 执行一次任务
+                Log.i("AppWidget", "$TAG onReceive, start oneTime workRequest")
                 WorkManager.getInstance(context)
                     .enqueue(OneTimeWorkRequest.from(CharacterWorker::class.java))
             }
@@ -72,7 +77,7 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        Log.i("AppWidget", "$TAG onUpdate appWidgetIds: $appWidgetIds")
+        Log.i("AppWidget", "$TAG onUpdate appWidgetIds: $appWidgetIds ${appWidgetIds.toList()}")
         // There may be multiple widgets active, so update all of them
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
@@ -85,6 +90,7 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
+        Log.i("AppWidget", "$TAG updateAppWidget appWidgetId: $appWidgetId")
         //点击事件
         val intent = Intent()
         intent.setClass(context, CharacterWidgetProviderTest::class.java)
@@ -100,13 +106,12 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
         val remoteViews = RemoteViews(context.packageName, R.layout.widget_layout).apply {
             setOnClickPendingIntent(R.id.tv_refresh, pendingIntent)
         }
-        Log.i("AppWidget", "$TAG onUpdate appWidgetId: $appWidgetId")
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        Log.i("AppWidget", "$TAG onDeleted appWidgetIds: $appWidgetIds")
+        Log.i("AppWidget", "$TAG onDeleted appWidgetIds: $appWidgetIds ${appWidgetIds.toList()}}")
     }
 
     /**
@@ -114,7 +119,7 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
      */
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        Log.i("AppWidget", "$TAG onEnabled")
+        Log.i("AppWidget", "$TAG onEnabled，start workManager")
         //开始定时工作,间隔15分钟刷新一次
         val workRequest = PeriodicWorkRequest.Builder(
             CharacterWorker::class.java,

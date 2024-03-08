@@ -24,6 +24,11 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) : Worker
     companion object {
         private const val TAG = "CharacterWorker"
     }
+
+    init {
+        Log.i("AppWidget", "$TAG init")
+    }
+
     @WorkerThread
     override fun doWork(): Result {
         //模拟耗时/网络请求操作
@@ -72,9 +77,9 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) : Worker
         val appWidgetManager = AppWidgetManager.getInstance(context)
         //获得所有本程序创建的appwidget
         val componentName = ComponentName(context, CharacterWidgetProviderTest::class.java)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
         //更新appwidget
-        //TODO 改为更新 updateAppWidget(appWidgetId, remoteViews)
-        Log.i("AppWidget", "$TAG updateWidget")
+        Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
         appWidgetManager.updateAppWidget(componentName, remoteViews)
     }
 
