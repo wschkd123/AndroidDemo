@@ -69,7 +69,7 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) : Worker
     private fun updateWidget(context: Context) {
         val data = long2String(System.currentTimeMillis())
         //只能通过远程对象来设置appwidget中的控件状态
-        val remoteViews = RemoteViews(context.packageName, R.layout.widget_layout)
+        val remoteViews = RemoteViews(context.packageName, R.layout.widget_test)
         //通过远程对象修改textview
         remoteViews.setTextViewText(R.id.tv_text, data)
 

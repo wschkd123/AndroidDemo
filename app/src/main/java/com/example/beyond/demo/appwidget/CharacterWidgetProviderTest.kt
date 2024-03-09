@@ -103,7 +103,7 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
             PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_ONE_SHOT)
         }
         //Retrieve a PendingIntent that will perform a broadcast
-        val remoteViews = RemoteViews(context.packageName, R.layout.widget_layout).apply {
+        val remoteViews = RemoteViews(context.packageName, R.layout.widget_test).apply {
             setOnClickPendingIntent(R.id.tv_refresh, pendingIntent)
         }
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews)

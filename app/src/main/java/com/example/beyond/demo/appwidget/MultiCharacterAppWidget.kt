@@ -7,7 +7,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import androidx.annotation.LayoutRes
 import com.example.beyond.demo.R
 import com.example.beyond.demo.ui.MainActivity
 
@@ -54,17 +53,9 @@ class MultiCharacterAppWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            fun constructRemoteViews(
-                @LayoutRes widgetLayoutId: Int
-            ) = RemoteViews(context.packageName, widgetLayoutId).apply {
-//                setTextViewText(
-//                    R.id.tv_title,
-//                    context.resources.getText(R.string.grocery_list)
-//                )
-//                setOnClickPendingIntent(R.id.tv_title, appOpenIntent)
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
+                setOnClickPendingIntent(R.id.ll_top, appOpenIntent)
             }
-
-            val remoteViews = constructRemoteViews(R.layout.view_multi_character)
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
         }
     }

@@ -7,7 +7,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import androidx.annotation.LayoutRes
 import com.example.beyond.demo.R
 import com.example.beyond.demo.ui.MainActivity
 
@@ -54,13 +53,9 @@ class CharacterAppWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            fun constructRemoteViews(
-                @LayoutRes widgetLayoutId: Int
-            ) = RemoteViews(context.packageName, widgetLayoutId).apply {
-
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
+                setOnClickPendingIntent(R.id.rl_root, appOpenIntent)
             }
-
-            val remoteViews = constructRemoteViews(R.layout.view_character)
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
         }
     }
