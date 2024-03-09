@@ -1,15 +1,12 @@
 package com.example.beyond.demo.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.lifecycleScope
+import com.example.beyond.demo.appwidget.CharacterWidgetProviderTest
+import com.example.beyond.demo.appwidget.CharacterWidgetProviderTest.Companion.REFRESH_ACTION
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.net.WanAndroidService
-import com.example.beyond.demo.net.NetResult
-import com.example.beyond.demo.net.RetrofitFactory
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -20,8 +17,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.i("AppWidget", "$TAG onCreate")
         binding = ActivityMainBinding.inflate(layoutInflater).apply {
             setContentView(root)
+            tvClick.setOnClickListener {
+                val intent = Intent(this@MainActivity, CharacterWidgetProviderTest::class.java)
+                intent.setAction(REFRESH_ACTION)
+                sendBroadcast(intent)
+            }
         }
 
     }

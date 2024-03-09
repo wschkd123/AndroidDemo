@@ -1,8 +1,10 @@
 package com.example.beyond.demo.appwidget
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
@@ -68,19 +70,25 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) : Worker
      */
     private fun updateWidget(context: Context) {
         val data = long2String(System.currentTimeMillis())
-        //只能通过远程对象来设置appwidget中的控件状态
-        val remoteViews = RemoteViews(context.packageName, R.layout.widget_test)
-        //通过远程对象修改textview
-        remoteViews.setTextViewText(R.id.tv_text, data)
 
-        //获得appwidget管理实例，用于管理appwidget以便进行更新操作
+        val intent = Intent()
+        intent.setClass(context, CharacterWidgetProviderTest::class.java)
+        intent.setAction(CharacterWidgetProviderTest.REFRESH_ACTION)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val remoteViews = RemoteViews(context.packageName, R.layout.widget_test).apply {
+            setTextViewText(R.id.tv_text, data)
+            setOnClickPendingIntent(R.id.tv_refresh, pendingIntent)
+        }
+
         val appWidgetManager = AppWidgetManager.getInstance(context)
-        //获得所有本程序创建的appwidget
-        val componentName = ComponentName(context, CharacterWidgetProviderTest::class.java)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
-        //更新appwidget
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, CharacterWidgetProviderTest::class.java))
         Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
-        appWidgetManager.updateAppWidget(componentName, remoteViews)
+        appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
     }
 
     private fun long2String(time: Long): String {
