@@ -1,13 +1,42 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rl_root"
     android:layout_width="155dp"
     android:layout_height="155dp"
-    android:id="@+id/rl_root"
     android:background="#2D2D2D">
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0.7"
-        android:src="@drawable/widget_avatar" />
+        android:src="@drawable/widget_avatar"
+        android:alpha="0.7" />
+
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginBottom="58dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="#FFFFFF"
+        android:textSize="14dp"
+        android:text="梦屋名称名称名称名称梦屋名称名称名称名称" />
+<!--
+
+    <com.example.beyond.demo.view.OverlapAvatarView
+        android:id="@+id/avatar_view"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="14dp"
+        android:layout_marginBottom="84dp"
+        android:background="@drawable/widget_avatar_bg"
+        app:avatar_border_color="#131517"
+        app:avatar_border_width="4dp"
+        app:avatar_overlap_size="32dp"
+        app:avatar_round_width="18dp"
+        app:avatar_size="36dp" />
+-->
 
 </RelativeLayout>

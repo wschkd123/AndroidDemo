@@ -1,4 +1,4 @@
-package com.example.beyond.demo.appwidget
+package com.example.beyond.demo.appwidget.test
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -12,7 +12,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.beyond.demo.R
-import com.example.beyond.demo.appwidget.test.TestWidgetReceiver
 import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.net.RetrofitFactory
 import com.example.beyond.demo.net.WanAndroidService
@@ -22,7 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class CharacterWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
+class TestWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
 
     companion object {
         private const val TAG = "TestWorker"
@@ -81,9 +80,9 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) : Worker
             intent,
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
-        val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-//            setTextViewText(R.id.tv_text, data)
-//            setOnClickPendingIntent(R.id.tv_refresh, pendingIntent)
+        val remoteViews = RemoteViews(context.packageName, R.layout.widget_test).apply {
+            setTextViewText(R.id.tv_text, data)
+            setOnClickPendingIntent(R.id.tv_refresh, pendingIntent)
         }
 
         val appWidgetManager = AppWidgetManager.getInstance(context)

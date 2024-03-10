@@ -21,7 +21,7 @@
         </activity>
 
         <receiver
-            android:name=".appwidget.CharacterAppWidget"
+            android:name=".appwidget.CharacterWidgetReceiver"
             android:exported="true"
             android:label="单个人物">
             <intent-filter>
@@ -34,7 +34,7 @@
         </receiver>
 
         <receiver
-            android:name=".appwidget.MultiCharacterAppWidget"
+            android:name=".appwidget.MultiCharacterWidgetReceiver"
             android:exported="true"
             android:label="多个人物">
             <intent-filter>
@@ -47,7 +47,7 @@
         </receiver>
 
         <receiver
-            android:name=".appwidget.CharacterWidgetProviderTest"
+            android:name=".appwidget.test.TestWidgetReceiver"
             android:exported="true"
             android:label="测试刷新">
             <intent-filter>

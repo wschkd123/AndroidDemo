@@ -13,7 +13,7 @@ import com.example.beyond.demo.ui.MainActivity
 /**
  * 多个人物
  */
-class MultiCharacterAppWidget : AppWidgetProvider() {
+class MultiCharacterWidgetReceiver : AppWidgetProvider() {
 
     override fun onUpdate(
         context: Context,

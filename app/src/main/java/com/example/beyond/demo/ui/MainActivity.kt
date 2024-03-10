@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.example.beyond.demo.appwidget.CharacterWidgetProviderTest
-import com.example.beyond.demo.appwidget.CharacterWidgetProviderTest.Companion.REFRESH_ACTION
+import com.example.beyond.demo.appwidget.test.TestWidgetReceiver
+import com.example.beyond.demo.appwidget.test.TestWidgetReceiver.Companion.REFRESH_ACTION
 import com.example.beyond.demo.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater).apply {
             setContentView(root)
             tvClick.setOnClickListener {
-                val intent = Intent(this@MainActivity, CharacterWidgetProviderTest::class.java)
+                val intent = Intent(this@MainActivity, TestWidgetReceiver::class.java)
                 intent.setAction(REFRESH_ACTION)
                 sendBroadcast(intent)
             }

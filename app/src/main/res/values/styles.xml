@@ -1,4 +1,34 @@
 <resources>
+    <declare-styleable name="RoundedImageView">
+        <attr name="round_corner_radius" format="dimension|reference" />   <!--圆角半径-->
+        <attr name="round_border_width" format="dimension" />
+        <attr name="round_border_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="RoundImageView">
+        <attr name="round_width" format="dimension" />
+        <attr name="width_height_ratio" format="float" />
+        <attr name="need_night_mode" format="boolean" />
+        <attr name="round_left_top" format="dimension" />
+        <attr name="round_right_top" format="dimension" />
+        <attr name="round_left_bottom" format="dimension" />
+        <attr name="round_right_bottom" format="dimension" />
+        <attr name="border_width" format="dimension" />
+        <attr name="border_color" format="color" />
+    </declare-styleable>
+
+
+    <declare-styleable name="OverlapAvatarView">
+        <attr name="avatar_size" format="dimension" />
+        <attr name="avatar_overlap_size" format="dimension" />
+        <attr name="avatar_overlap_type">
+            <flag name="rtl" value="0" />
+            <flag name="ltr" value="1" />
+        </attr>
+        <attr name="avatar_round_width" format="dimension" />
+        <attr name="avatar_border_width" format="dimension" />
+        <attr name="avatar_border_color" format="color" />
+    </declare-styleable>
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
