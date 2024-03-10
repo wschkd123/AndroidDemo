@@ -1,12 +1,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="144dp"
-    android:layout_height="144dp"
+    android:layout_width="155dp"
+    android:layout_height="155dp"
     android:id="@+id/rl_root"
-    android:background="#00ff00">
+    android:background="#2D2D2D">
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#673AB7" />
+        android:alpha="0.7"
+        android:src="@drawable/widget_avatar" />
 
 </RelativeLayout>

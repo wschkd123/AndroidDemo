@@ -107,14 +107,14 @@ class CharacterWidgetProviderTest : AppWidgetProvider() {
      */
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        Log.i("AppWidget", "$TAG onEnabled，start periodic workManager")
+//        Log.i("AppWidget", "$TAG onEnabled，start periodic workManager")
         // 开始定时工作,间隔15分钟刷新一次
-        val workRequest = PeriodicWorkRequest.Builder(
-            CharacterWorker::class.java,
-            PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS
-        ).setConstraints(Constraints.Builder().build()).build()
-        WorkManager.getInstance(context)
-            .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, workRequest)
+//        val workRequest = PeriodicWorkRequest.Builder(
+//            CharacterWorker::class.java,
+//            PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS
+//        ).setConstraints(Constraints.Builder().build()).build()
+//        WorkManager.getInstance(context)
+//            .enqueueUniquePeriodicWork(PERIODIC_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, workRequest)
     }
 
     /**

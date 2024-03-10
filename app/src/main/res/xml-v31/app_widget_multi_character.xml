@@ -7,4 +7,4 @@
     android:previewImage="@drawable/view_multi_character_preview"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
-    android:updatePeriodMillis="3600000" />
+    android:updatePeriodMillis="1800000" />

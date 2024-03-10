@@ -2,9 +2,9 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/app_widget_grocery_list_description"
     android:initialLayout="@layout/widget_character"
-    android:minWidth="144dp"
-    android:minHeight="144dp"
+    android:minWidth="155dp"
+    android:minHeight="155dp"
     android:previewImage="@drawable/view_multi_character_preview"
     android:targetCellWidth="2"
     android:targetCellHeight="2"
-    android:updatePeriodMillis="3600000" />
+    android:updatePeriodMillis="1800000" />

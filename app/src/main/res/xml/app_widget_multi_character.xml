@@ -4,4 +4,4 @@
     android:minWidth="316dp"
     android:minHeight="144dp"
     android:previewImage="@drawable/view_multi_character_preview"
-    android:updatePeriodMillis="3600000" />
+    android:updatePeriodMillis="1800000" />
