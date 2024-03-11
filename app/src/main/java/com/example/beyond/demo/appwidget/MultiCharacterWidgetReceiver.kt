@@ -19,6 +19,12 @@ import com.example.beyond.demo.ui.MainActivity
  */
 class MultiCharacterWidgetReceiver : AppWidgetProvider() {
 
+    companion object {
+        private const val TAG = "MultiCharacterWidgetReceiver"
+        private const val ONE_TIME_WORK_NAME = "one_time"
+        const val ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH = "yuewen.appwidget.action.MULTI_CHARACTER_REFRESH"
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         Log.i("AppWidget", "${TAG} onReceive: ${intent.action}")
         super.onReceive(context, intent)
@@ -38,48 +44,10 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
 
     }
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        Log.i("AppWidget", "$TAG onUpdate appWidgetIds: $appWidgetIds ${appWidgetIds.toList()}")
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
-        }
-    }
-
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         Log.i("AppWidget", "$TAG onDisabled")
         WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_WORK_NAME)
     }
 
-    companion object {
-        private const val TAG = "MultiCharacterWidgetReceiver"
-        private const val ONE_TIME_WORK_NAME = "one_time"
-        const val ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH = "yuewen.appwidget.action.MULTI_CHARACTER_REFRESH"
-
-        @SuppressLint("RemoteViewLayout")
-        internal fun updateAppWidget(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetId: Int
-        ) {
-            val activityIntent = Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            val appOpenIntent = PendingIntent.getActivity(
-                context,
-                0,
-                activityIntent,
-                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            val remoteViews = RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
-                setOnClickPendingIntent(R.id.ll_top, appOpenIntent)
-            }
-            appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
-        }
-    }
 }

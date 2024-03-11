@@ -45,7 +45,9 @@ class TestWorker(context: Context, workerParams: WorkerParameters) : Worker(cont
             e.printStackTrace()
         }
         //刷新widget
-        updateWidget(applicationContext)
+        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(applicationContext, TestWidgetReceiver::class.java))
+        updateAppWidget(applicationContext, appWidgetManager, appWidgetIds)
 
         return Result.success()
     }
@@ -66,9 +68,13 @@ class TestWorker(context: Context, workerParams: WorkerParameters) : Worker(cont
     }
 
     /**
-     * 刷新widget
+     * 更新widget
      */
-    private fun updateWidget(context: Context) {
+    private fun updateAppWidget(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
         val data = long2String(System.currentTimeMillis())
 
         val intent = Intent()
@@ -85,8 +91,6 @@ class TestWorker(context: Context, workerParams: WorkerParameters) : Worker(cont
             setOnClickPendingIntent(R.id.tv_refresh, pendingIntent)
         }
 
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(context, TestWidgetReceiver::class.java))
         Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
         appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
     }

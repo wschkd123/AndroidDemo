@@ -53,7 +53,6 @@
             android:label="测试刷新">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.REFRESH" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

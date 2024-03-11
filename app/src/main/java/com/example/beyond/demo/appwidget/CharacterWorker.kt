@@ -14,7 +14,6 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
-import android.os.Build.VERSION_CODES.N
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
@@ -27,10 +26,10 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.beyond.demo.R
 import com.example.beyond.demo.appwidget.CharacterWidgetReceiver.Companion.ACTION_APPWIDGET_CHARACTER_REFRESH
-import com.example.beyond.demo.common.Init.applicationContext
 import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.net.RetrofitFactory
 import com.example.beyond.demo.net.WanAndroidService
+import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -43,6 +42,15 @@ import kotlinx.coroutines.launch
  */
 class CharacterWorker(context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
+
+    private val appOpenIntent = PendingIntent.getActivity(
+        context,
+        0,
+        Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        },
+        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 
     companion object {
         private const val TAG = "CharacterWorker"
@@ -60,14 +68,10 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
 //            updateWidget(applicationContext)
 //        }
         Log.i("AppWidget", "$TAG doWork")
-        //模拟耗时/网络请求操作
-        try {
-            Thread.sleep(1000)
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
         //刷新widget
-        updateWidget(applicationContext)
+        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(applicationContext, CharacterWidgetReceiver::class.java))
+        updateAppWidget(applicationContext, appWidgetManager, appWidgetIds)
 //        updateListView(applicationContext)
         return Result.success()
     }
@@ -88,9 +92,13 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     /**
-     * 刷新widget
+     * 更新widget
      */
-    private fun updateWidget(context: Context) {
+    private fun updateAppWidget(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
         val intent = Intent()
         intent.setClass(context, CharacterWidgetReceiver::class.java)
         intent.setAction(ACTION_APPWIDGET_CHARACTER_REFRESH)
@@ -101,22 +109,18 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
         val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
+            setOnClickPendingIntent(R.id.rl_root, appOpenIntent)
             setTextViewText(R.id.tv_name, "梦屋名称名称名称名称梦屋名称名称名称名称")
             setOnClickPendingIntent(R.id.tv_name, pendingIntent)
         }
 
         getMemberAvatarBitmap {
             remoteViews.setImageViewBitmap(R.id.iv_member, it)
-            updateAppWidget(remoteViews)
+            Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
         }
     }
 
-    private fun updateAppWidget(remoteViews: RemoteViews) {
-        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(applicationContext, CharacterWidgetReceiver::class.java))
-        Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
-        appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
-    }
 
     /**
      * 将成员多个头像绘制到一个Bitmap上
@@ -145,7 +149,7 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
             .centerCrop()
 
         var loadedImages = 0 // 已加载的图片数量
-        for (i in 0 until N) {
+        for (i in 0 until memberCount) {
             val index = i
             Glide.with(applicationContext)
                 .asBitmap()

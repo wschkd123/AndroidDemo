@@ -23,6 +23,7 @@ import com.example.beyond.demo.appwidget.CharacterWidgetReceiver.Companion.ACTIO
 import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.net.RetrofitFactory
 import com.example.beyond.demo.net.WanAndroidService
+import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -35,6 +36,15 @@ import kotlinx.coroutines.launch
  */
 class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
+
+    private val appOpenIntent = PendingIntent.getActivity(
+        context,
+        0,
+        Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        },
+        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
 
     companion object {
         private const val TAG = "MultiCharacterWorker"
@@ -93,6 +103,7 @@ class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
             PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
         )
         val remoteViews = RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
+            setOnClickPendingIntent(R.id.rl_root, appOpenIntent)
             setTextViewText(R.id.tv_title, "跟梦中人聊聊")
             setOnClickPendingIntent(R.id.tv_title, pendingIntent)
             val urlList = mutableListOf(
