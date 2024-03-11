@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:initialLayout="@layout/widget_multi_character"
-    android:minWidth="316dp"
-    android:minHeight="155dp"
-    android:previewImage="@drawable/view_multi_character_preview"
-    android:targetCellWidth="4"
-    android:targetCellHeight="2"
-    android:updatePeriodMillis="1800000" />

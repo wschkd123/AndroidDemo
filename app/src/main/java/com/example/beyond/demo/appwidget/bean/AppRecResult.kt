@@ -11,11 +11,26 @@ data class AppRecResult(
     val recList: List<Rec>? = null
 ) : Serializable {
     data class Rec(
-        val characterList: List<Character?>? = null,
+        /**
+         * 单聊一个人物信息 群聊多个人物信息
+         */
+        val characterList: List<Character>? = null,
+        /**
+         * 用户信息
+         */
         val recUser: RecUser? = null,
-        val roomId: Any? = null,
-        val roomName: Any? = null,
+        /**
+         * 存在房间会返回 房间id，无房间 值为空
+         */
+        val roomId: String? = null,
+        /**
+         * 存在房间 会返回房间名称  无房间值为空
+         */
+        val roomName: String? = null,
         val sort: Int = 0,
+        /**
+         * 1:单聊 2:群聊
+         */
         val type: Int = 0
     ) : Serializable {
         data class Character(
@@ -28,6 +43,29 @@ data class AppRecResult(
             val userAvatar: String? = null,
             val userName: String? = null
         ) : Serializable
+
+        /**
+         * 单聊，人物昵称；群聊，房间名称
+         */
+        fun getName(): String {
+            return if (type == 1) {
+                characterList?.get(0)?.characterName ?: ""
+            } else {
+                roomName ?: ""
+            }
+        }
+
+        fun getAvatarUrl(): String {
+            return characterList?.get(0)?.characterAvatar ?: ""
+        }
+
+        fun getGroupMemberUrlList(): List<String> {
+            return characterList?.map { it.characterAvatar ?: "" } ?: emptyList()
+        }
+
+        fun getCharacterName(): String {
+            return characterList?.get(0)?.characterName ?: ""
+        }
     }
 
     companion object {

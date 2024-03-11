@@ -29,6 +29,8 @@ import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx
 import com.google.gson.reflect.TypeToken
 import com.example.beyond.demo.appwidget.bean.AppRecResult
+import com.example.beyond.demo.appwidget.test.TestWorker
+import com.google.gson.Gson
 
 /**
  * 单个人物 WorkerManager
@@ -39,6 +41,9 @@ import com.example.beyond.demo.appwidget.bean.AppRecResult
 class CharacterWorker(context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
 
+    companion object {
+        private const val TAG = "CharacterWorker"
+    }
     private val appOpenIntent = PendingIntent.getActivity(
         context,
         0,
@@ -48,21 +53,16 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
         PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    companion object {
-        private const val TAG = "CharacterWorker"
-
-    }
-
-    init {
-        Log.i("AppWidget", "$TAG init context:$context workerParams:$workerParams")
-    }
-
     @WorkerThread
     override fun doWork(): Result {
         // 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
-//        val recList = Gson().fromJson<NetResult<AppRecResult>>(TestWorker.MOCK_DATA, type).data?.recList
-        val recList = null
+        val recList = Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
+        try {
+            Thread.sleep(6000)
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
 
         Log.i("AppWidget", "$TAG doWork")
         //刷新widget
@@ -83,19 +83,31 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
     ) {
         if (recList.isNullOrEmpty()) {
             RemoteViews(context.packageName, R.layout.widget_character_empty).apply {
-                setOnClickPendingIntent(R.id.root_view, appOpenIntent)
+                setOnClickPendingIntent(R.id.root_view_character_empty, appOpenIntent)
                 appWidgetManager.updateAppWidget(appWidgetIds, this)
             }
             Log.i("AppWidget", "$TAG updateWidget empty appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
-        } else  {
+        } else {
+            val recCharacter = recList[0]
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-                setOnClickPendingIntent(R.id.root_view, appOpenIntent)
-                setTextViewText(R.id.tv_name, "梦屋名称名称名称名称梦屋名称名称名称名称")
+                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
             }
-            getMemberAvatarBitmap {
-                remoteViews.setImageViewBitmap(R.id.iv_member, it)
-                Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+            // 名称
+            remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
+
+            // 背景头像
+            AppWidgetUtils.loadBitmap(recCharacter.getAvatarUrl(), 480, 480, 22.dpToPx()) {
+                remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
                 appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+            }
+
+            // 群聊头像
+            if (!recCharacter.characterList.isNullOrEmpty()) {
+                getMemberAvatarBitmap(recCharacter.getGroupMemberUrlList()) {
+                    remoteViews.setImageViewBitmap(R.id.iv_group_member, it)
+                    Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+                    appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+                }
             }
         }
     }
@@ -104,12 +116,7 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
     /**
      * 将成员多个头像绘制到一个Bitmap上
      */
-    private fun getMemberAvatarBitmap(invoke: (Bitmap) -> Unit) {
-        val urlList = mutableListOf(
-            "https://www.wanandroid.com/blogimgs/62c1bd68-b5f3-4a3c-a649-7ca8c7dfabe6.png",
-            "https://www.wanandroid.com/blogimgs/50c115c2-cf6c-4802-aa7b-a4334de444cd.png",
-            "https://www.wanandroid.com/blogimgs/42da12d8-de56-4439-b40c-eab66c227a4b.png"
-        )
+    private fun getMemberAvatarBitmap(urlList: List<String>, invoke: (Bitmap) -> Unit) {
         val rectSize = 36.dpToPx() // 圆形图片的宽度
         val imageSize = 28.dpToPx()
         val borderWidth = 4.dpToPx() // 边框宽度

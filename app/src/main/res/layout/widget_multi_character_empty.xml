@@ -1,5 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/root_view"
+    android:id="@+id/root_view_multi_character_empty"
     android:layout_width="match_parent"
     android:layout_height="155dp"
     android:background="@drawable/widget_empty_bg"
@@ -35,7 +35,7 @@
         android:layout_height="100dp"
         android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:background="@drawable/widget_multi_empty_bg"
+        android:background="@drawable/widget_multi_bottom_bg"
         android:orientation="horizontal">
 
         <ImageView

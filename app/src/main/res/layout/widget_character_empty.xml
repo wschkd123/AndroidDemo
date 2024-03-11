@@ -1,5 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/root_view"
+    android:id="@+id/root_view_character_empty"
     android:layout_width="155dp"
     android:layout_height="155dp"
     android:orientation="vertical"
