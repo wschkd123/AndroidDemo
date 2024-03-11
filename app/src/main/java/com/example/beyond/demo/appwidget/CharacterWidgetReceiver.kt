@@ -1,5 +1,6 @@
 package com.example.beyond.demo.appwidget
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -11,7 +12,6 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.example.beyond.demo.R
-import com.example.beyond.demo.appwidget.test.TestWidgetReceiver
 import com.example.beyond.demo.ui.MainActivity
 
 /**
@@ -19,12 +19,6 @@ import com.example.beyond.demo.ui.MainActivity
  */
 class CharacterWidgetReceiver : AppWidgetProvider() {
 
-    companion object {
-        private const val TAG = "CharacterWidgetReceiver"
-        private const val ONE_TIME_WORK_NAME = "one_time"
-        private const val REQUEST_CODE_OPEN_ACTIVITY = 1
-        const val ACTION_APPWIDGET_CHARACTER_REFRESH = "yuewen.appwidget.action.CHARACTER_REFRESH"
-    }
     override fun onReceive(context: Context, intent: Intent) {
         Log.i("AppWidget", "$TAG onReceive: ${intent.action}")
         super.onReceive(context, intent)
@@ -50,42 +44,43 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         Log.i("AppWidget", "$TAG onUpdate appWidgetIds: $appWidgetIds ${appWidgetIds.toList()}")
-        // There may be multiple widgets active, so update all of them
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
 
-    private fun updateAppWidget(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int
-    ) {
-        val activityIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        val appOpenIntent = PendingIntent.getActivity(
-            context,
-            REQUEST_CODE_OPEN_ACTIVITY,
-            activityIntent,
-            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-            setOnClickPendingIntent(R.id.rl_root, appOpenIntent)
-        }
-        appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
-    }
-
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        super.onDeleted(context, appWidgetIds)
-        Log.i("AppWidget", "$TAG onDeleted appWidgetIds: $appWidgetIds ${appWidgetIds.toList()}}")
-    }
-    
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         Log.i("AppWidget", "$TAG onDisabled")
         WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_WORK_NAME)
+    }
+
+    companion object {
+        private const val TAG = "CharacterWidgetReceiver"
+        private const val ONE_TIME_WORK_NAME = "one_time"
+        const val ACTION_APPWIDGET_CHARACTER_REFRESH = "yuewen.appwidget.action.CHARACTER_REFRESH"
+
+        @SuppressLint("RemoteViewLayout")
+        internal fun updateAppWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int
+        ) {
+            val activityIntent = Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val appOpenIntent = PendingIntent.getActivity(
+                context,
+                0,
+                activityIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
+                setOnClickPendingIntent(R.id.rl_root, appOpenIntent)
+            }
+            appWidgetManager.updateAppWidget(appWidgetId, remoteViews)
+        }
     }
 
 }

@@ -1,80 +1,153 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="144dp"
+    android:layout_height="155dp"
+    android:background="@drawable/widget_bg"
     android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/ll_top"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
+        android:layout_height="42dp"
         android:layout_marginHorizontal="16dp"
-        android:background="#00ddff"
         android:gravity="center_vertical"
         android:orientation="horizontal">
-
-        <TextView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:background="@drawable/widget_default" />
 
         <TextView
             android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:layout_gravity="center_vertical"
-            android:text="启动逐梦岛以获取数据"
+            android:layout_centerVertical="true"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_marginEnd="36dp"
+            android:text="跟"
+            android:textSize="14dp"
             android:textColor="#FFFFFF" />
 
         <ImageView
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:background="@drawable/widget_default" />
-    </LinearLayout>
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_launcher" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="113dp"
         android:layout_marginHorizontal="16dp"
-        android:background="#006893"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
+        <RelativeLayout
             android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/widget_default" />
+            android:layout_height="86dp">
+
+            <ImageView
+                android:id="@+id/iv_character_first"
+                android:layout_width="64dp"
+                android:layout_height="86dp"
+                android:background="@drawable/widget_default" />
+
+            <TextView
+                android:id="@+id/tv_character_first"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="须梦如一须梦如一须梦如一须梦如一"
+                android:textColor="#FFFFFF"
+                android:textSize="10dp" />
+
+        </RelativeLayout>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <ImageView
+        <RelativeLayout
             android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/widget_default" />
+            android:layout_height="86dp">
+
+            <ImageView
+                android:id="@+id/iv_character_second"
+                android:layout_width="64dp"
+                android:layout_height="86dp"
+                android:background="@drawable/widget_default" />
+
+            <TextView
+                android:id="@+id/tv_character_second"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="须梦如一须梦如一须梦如一须梦如一"
+                android:textColor="#FFFFFF"
+                android:textSize="10dp" />
+
+        </RelativeLayout>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <ImageView
+        <RelativeLayout
             android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/widget_default" />
+            android:layout_height="86dp">
 
+            <ImageView
+                android:id="@+id/iv_character_third"
+                android:layout_width="64dp"
+                android:layout_height="86dp"
+                android:background="@drawable/widget_default" />
+
+            <TextView
+                android:id="@+id/tv_character_third"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="须梦如一须梦如一须梦如一须梦如一"
+                android:textColor="#FFFFFF"
+                android:textSize="10dp" />
+
+        </RelativeLayout>
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <ImageView
+        <RelativeLayout
             android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/widget_default" />
+            android:layout_height="86dp">
+
+            <ImageView
+                android:id="@+id/iv_character_fourth"
+                android:layout_width="64dp"
+                android:layout_height="86dp"
+                android:background="@drawable/widget_default" />
+
+            <TextView
+                android:id="@+id/tv_character_fourth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="须梦如一须梦如一须梦如一须梦如一"
+                android:textColor="#FFFFFF"
+                android:textSize="10dp" />
+
+        </RelativeLayout>
 
     </LinearLayout>
 </LinearLayout>

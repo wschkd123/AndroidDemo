@@ -22,6 +22,6 @@
         android:id="@+id/tv_multi_character_refresh"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="character refresh"/>
+        android:text="multi character refresh"/>
 
 </LinearLayout>

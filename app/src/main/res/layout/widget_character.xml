@@ -2,12 +2,18 @@
     android:id="@+id/rl_root"
     android:layout_width="155dp"
     android:layout_height="155dp"
-    android:background="#2D2D2D">
+    android:background="@drawable/widget_bg">
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0.7" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_margin="14dp"
+        android:src="@drawable/ic_launcher" />
 
     <TextView
         android:id="@+id/tv_name"
@@ -18,53 +24,16 @@
         android:layout_marginBottom="58dp"
         android:ellipsize="end"
         android:maxLines="1"
+        android:text="启动筑梦岛以获取数据"
         android:textColor="#FFFFFF"
-        android:textSize="14dp"
-        android:text="启动筑梦岛以获取数据" />
-<!--
-
-    <com.example.beyond.demo.view.OverlapAvatarView
-        android:id="@+id/avatar_view"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginBottom="84dp"
-        android:background="@drawable/widget_avatar_bg"
-        app:avatar_border_color="#131517"
-        app:avatar_border_width="4dp"
-        app:avatar_overlap_size="32dp"
-        app:avatar_round_width="18dp"
-        app:avatar_size="36dp" />
--->
-    <!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/ll_avatar"
-        android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginBottom="84dp"
-        android:background="@drawable/widget_avatar_bg"
-        android:orientation="horizontal"/>-->
-
-    <ListView
-        android:id="@+id/lv_demo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginBottom="84dp"
-        android:overScrollMode="never"
-        android:scrollbars="none"
-        android:visibility="gone"
-        />
+        android:textSize="14dp" />
 
     <ImageView
-        android:id="@+id/iv_group_member"
+        android:id="@+id/iv_member"
         android:layout_width="match_parent"
         android:layout_height="36dp"
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="14dp"
-        android:layout_marginBottom="84dp"
-        />
+        android:layout_marginBottom="14dp" />
+
 </RelativeLayout>

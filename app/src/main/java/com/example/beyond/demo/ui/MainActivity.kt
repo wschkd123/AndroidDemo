@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.beyond.demo.appwidget.CharacterWidgetReceiver
 import com.example.beyond.demo.appwidget.CharacterWidgetReceiver.Companion.ACTION_APPWIDGET_CHARACTER_REFRESH
+import com.example.beyond.demo.appwidget.MultiCharacterWidgetReceiver.Companion.ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH
 import com.example.beyond.demo.appwidget.MultiCharacterWidgetReceiver
 import com.example.beyond.demo.appwidget.test.TestWidgetReceiver
 import com.example.beyond.demo.appwidget.test.TestWidgetReceiver.Companion.REFRESH_ACTION
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
             tvMultiCharacterRefresh.setOnClickListener {
                 val intent = Intent(this@MainActivity, MultiCharacterWidgetReceiver::class.java)
-                intent.setAction(REFRESH_ACTION)
+                intent.setAction(ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH)
                 sendBroadcast(intent)
             }
         }

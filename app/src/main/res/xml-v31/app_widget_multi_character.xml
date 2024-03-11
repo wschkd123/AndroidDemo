@@ -3,7 +3,7 @@
     android:description="@string/app_widget_grocery_list_description"
     android:initialLayout="@layout/widget_multi_character"
     android:minWidth="316dp"
-    android:minHeight="144dp"
+    android:minHeight="155dp"
     android:previewImage="@drawable/view_multi_character_preview"
     android:targetCellWidth="4"
     android:targetCellHeight="2"
