@@ -1,8 +1,9 @@
 package com.example.beyond.demo.net
 
-import retrofit2.http.POST
+import retrofit2.Call
+import retrofit2.http.GET
 
 interface WanAndroidService {
-    @POST("banner/json")
-    suspend fun getBannerInfo(): NetResult<Any>
+    @GET("banner/json")
+    fun getBannerInfo(): Call<NetResult<Any>>
 }

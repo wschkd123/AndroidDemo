@@ -1,0 +1,37 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_view"
+    android:layout_width="155dp"
+    android:layout_height="155dp"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/widget_empty_bg">
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="46dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="启动筑梦岛以获取数据"
+        android:textColor="#99FFFFFF"
+        android:textSize="14dp" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:layout_marginTop="71dp"
+        android:background="@drawable/widget_empty_piece_bg"/>
+
+    <FrameLayout
+        android:layout_width="88dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="95dp"
+        android:background="@drawable/widget_empty_piece_bg"/>
+
+</FrameLayout>

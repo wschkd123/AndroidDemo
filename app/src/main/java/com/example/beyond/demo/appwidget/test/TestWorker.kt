@@ -33,38 +33,43 @@ class TestWorker(context: Context, workerParams: WorkerParameters) : Worker(cont
 
     @WorkerThread
     override fun doWork(): Result {
-        //模拟耗时/网络请求操作
-//        fetchData().observeForever {
-//            updateWidget(applicationContext)
-//        }
+//        val result = fetchExposedAppRec()
         Log.i("AppWidget", "$TAG doWork")
-        //模拟耗时/网络请求操作
-        try {
-            Thread.sleep(1000)
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
+
         //刷新widget
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(applicationContext, TestWidgetReceiver::class.java))
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(
+            ComponentName(
+                applicationContext,
+                TestWidgetReceiver::class.java
+            )
+        )
         updateAppWidget(applicationContext, appWidgetManager, appWidgetIds)
 
         return Result.success()
     }
 
-    private fun fetchData(): MutableLiveData<NetResult<Any>> {
-        val liveData = MutableLiveData<NetResult<Any>>()
-        GlobalScope.launch {
-            try {
-                val result = RetrofitFactory.getRetrofit().create(WanAndroidService::class.java)
-                    .getBannerInfo()
-                liveData.postValue(result)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                liveData.postValue(NetResult.badResult())
+    @WorkerThread
+    private fun fetchExposedAppRec() : Any? {
+//        if (!LoginManager.isLogin()) {
+//            Log.w("AppWidget", "$TAG fetchData not login")
+//            return null
+//        }
+        try {
+            val call = RetrofitFactory.getRetrofit().create(WanAndroidService::class.java)
+                .getBannerInfo()
+            val response = call.execute()
+            val result = response.body()?.data
+            Log.i("AppWidget", "$TAG fetchExposedAppRec result: $result")
+            // 处理网络请求结果
+            if (response.isSuccessful && result != null) {
+                return result
             }
+        } catch (e: Exception) {
+            Log.w("AppWidget", "$TAG fetchExposedAppRec error: ${e.message}")
+            e.printStackTrace()
         }
-        return liveData
+        return null
     }
 
     /**
@@ -97,7 +102,7 @@ class TestWorker(context: Context, workerParams: WorkerParameters) : Worker(cont
 
     private fun long2String(time: Long): String {
         return try {
-            val simpleDateFormat = SimpleDateFormat( "HH:mm:ss", Locale.getDefault())
+            val simpleDateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
             simpleDateFormat.format(Date(time))
         } catch (e: Exception) {
             ""

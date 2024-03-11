@@ -8,7 +8,7 @@ object RetrofitFactory {
 
     private val TAG = "RetrofitFactory"
 
-    private const val BASE_URL = "https://www.wanandroid.com"
+    private const val BASE_URL = "http://www.wanandroid.com"
 
     private var mRetrofit: Retrofit? = null
 

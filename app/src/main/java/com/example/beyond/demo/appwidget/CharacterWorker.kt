@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.MutableLiveData
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.bumptech.glide.Glide
@@ -25,14 +24,11 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.beyond.demo.R
-import com.example.beyond.demo.appwidget.CharacterWidgetReceiver.Companion.ACTION_APPWIDGET_CHARACTER_REFRESH
 import com.example.beyond.demo.net.NetResult
-import com.example.beyond.demo.net.RetrofitFactory
-import com.example.beyond.demo.net.WanAndroidService
 import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.google.gson.reflect.TypeToken
+import com.example.beyond.demo.appwidget.bean.AppRecResult
 
 /**
  * 单个人物 WorkerManager
@@ -63,32 +59,17 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
 
     @WorkerThread
     override fun doWork(): Result {
-        //模拟耗时/网络请求操作
-//        fetchData().observeForever {
-//            updateWidget(applicationContext)
-//        }
+        // 网络请求
+        val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
+//        val recList = Gson().fromJson<NetResult<AppRecResult>>(TestWorker.MOCK_DATA, type).data?.recList
+        val recList = null
+
         Log.i("AppWidget", "$TAG doWork")
         //刷新widget
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
         val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(applicationContext, CharacterWidgetReceiver::class.java))
-        updateAppWidget(applicationContext, appWidgetManager, appWidgetIds)
-//        updateListView(applicationContext)
+        updateAppWidget(applicationContext, appWidgetManager, appWidgetIds, recList)
         return Result.success()
-    }
-
-    private fun fetchData(): MutableLiveData<NetResult<Any>> {
-        val liveData = MutableLiveData<NetResult<Any>>()
-        GlobalScope.launch {
-            try {
-                val result = RetrofitFactory.getRetrofit().create(WanAndroidService::class.java)
-                    .getBannerInfo()
-                liveData.postValue(result)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                liveData.postValue(NetResult.badResult())
-            }
-        }
-        return liveData
     }
 
     /**
@@ -97,27 +78,25 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
     private fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
+        appWidgetIds: IntArray,
+        recList: List<AppRecResult.Rec>? = null
     ) {
-        val intent = Intent()
-        intent.setClass(context, CharacterWidgetReceiver::class.java)
-        intent.setAction(ACTION_APPWIDGET_CHARACTER_REFRESH)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-            setOnClickPendingIntent(R.id.rl_root, appOpenIntent)
-            setTextViewText(R.id.tv_name, "梦屋名称名称名称名称梦屋名称名称名称名称")
-            setOnClickPendingIntent(R.id.tv_name, pendingIntent)
-        }
-
-        getMemberAvatarBitmap {
-            remoteViews.setImageViewBitmap(R.id.iv_member, it)
-            Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
-            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+        if (recList.isNullOrEmpty()) {
+            RemoteViews(context.packageName, R.layout.widget_character_empty).apply {
+                setOnClickPendingIntent(R.id.root_view, appOpenIntent)
+                appWidgetManager.updateAppWidget(appWidgetIds, this)
+            }
+            Log.i("AppWidget", "$TAG updateWidget empty appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+        } else  {
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
+                setOnClickPendingIntent(R.id.root_view, appOpenIntent)
+                setTextViewText(R.id.tv_name, "梦屋名称名称名称名称梦屋名称名称名称名称")
+            }
+            getMemberAvatarBitmap {
+                remoteViews.setImageViewBitmap(R.id.iv_member, it)
+                Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+                appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+            }
         }
     }
 
