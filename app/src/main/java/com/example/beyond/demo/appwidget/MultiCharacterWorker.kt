@@ -5,24 +5,18 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.SimpleTarget
-import com.bumptech.glide.request.transition.Transition
 import com.example.beyond.demo.R
+import com.example.beyond.demo.appwidget.bean.AppRecResult
 import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx
+import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.example.beyond.demo.appwidget.bean.AppRecResult
 
 /**
  * 多个人物 WorkerManager
@@ -33,6 +27,9 @@ import com.example.beyond.demo.appwidget.bean.AppRecResult
 class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
 
+    companion object {
+        private const val TAG = "MultiCharacterWorker"
+    }
     private val appOpenIntent = PendingIntent.getActivity(
         context,
         0,
@@ -42,21 +39,16 @@ class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
         PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    companion object {
-        private const val TAG = "MultiCharacterWorker"
-
-    }
-
-    init {
-        Log.i("AppWidget", "$TAG init context:$context workerParams:$workerParams")
-    }
-
     @WorkerThread
     override fun doWork(): Result {
         // 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
-//        val recList = Gson().fromJson<NetResult<AppRecResult>>(TestWorker.MOCK_DATA, type).data?.recList
-        val recList = null
+        val recList = Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
+        try {
+            Thread.sleep(6000)
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        }
 
         Log.i("AppWidget", "$TAG doWork")
 
@@ -83,54 +75,24 @@ class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
             }
             Log.i("AppWidget", "$TAG updateWidget empty appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
         } else {
-            RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
                 setOnClickPendingIntent(R.id.root_view, appOpenIntent)
-                setTextViewText(R.id.tv_title, "跟梦中人聊聊")
-                val urlList = mutableListOf(
-                    "https://www.wanandroid.com/blogimgs/62c1bd68-b5f3-4a3c-a649-7ca8c7dfabe6.png",
-                    "https://www.wanandroid.com/blogimgs/50c115c2-cf6c-4802-aa7b-a4334de444cd.png",
-                    "https://www.wanandroid.com/blogimgs/42da12d8-de56-4439-b40c-eab66c227a4b.png",
-                    "https://www.wanandroid.com/blogimgs/62c1bd68-b5f3-4a3c-a649-7ca8c7dfabe6.png"
-                )
-                val imageViewIds = listOf(R.id.iv_character_first, R.id.iv_character_second, R.id.iv_character_third, R.id.iv_character_fourth)
-                val textViewIds = listOf(R.id.tv_character_first, R.id.tv_character_second, R.id.tv_character_third, R.id.tv_character_fourth)
-                urlList.forEachIndexed { index, url ->
-                    loadBitmap(url) { bitmap ->
-                        setTextViewText(textViewIds[index], "梦屋名称$index")
-                        setImageViewBitmap(imageViewIds[index], bitmap)
-                        Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
-                        appWidgetManager.updateAppWidget(appWidgetIds, this)
-                    }
-                }
+            }
 
+            val imageViewIds = listOf(R.id.iv_character_first, R.id.iv_character_second, R.id.iv_character_third, R.id.iv_character_fourth)
+            val textViewIds = listOf(R.id.tv_character_first, R.id.tv_character_second, R.id.tv_character_third, R.id.tv_character_fourth)
+            recList.subList(0, 4).forEachIndexed { index, rec ->
+                // 人物昵称
+                remoteViews.setTextViewText(textViewIds[index], rec.getCharacterName())
+
+                // 人物形象
+                AppWidgetUtils.loadBitmap(rec.getAvatarUrl(), 480, 645, 10.dpToPx()) { bitmap ->
+                    remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
+                    Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+                    appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+                }
             }
         }
-
-    }
-
-    private fun loadBitmap(url: String, invoke: (Bitmap) -> Unit) {
-        val requestOptions = RequestOptions()
-            .transform(RoundedCorners(10.dpToPx()))
-            .override(480, 645)
-            .centerCrop()
-
-        Glide.with(applicationContext)
-            .asBitmap()
-            .load(url)
-            .apply(requestOptions)
-            .into(object : SimpleTarget<Bitmap>() {
-                override fun onResourceReady(
-                    resource: Bitmap,
-                    transition: Transition<in Bitmap>?
-                ) {
-                    invoke.invoke(resource)
-                }
-
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    super.onLoadFailed(errorDrawable)
-                    Log.e("AppWidget", "$TAG onLoadFailed url:$url")
-                }
-            })
 
     }
 

@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="155dp"
@@ -9,7 +10,7 @@
         android:id="@+id/ll_top"
         android:layout_width="match_parent"
         android:layout_height="42dp"
-        android:layout_marginHorizontal="16dp"
+        android:paddingHorizontal="16dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -21,7 +22,7 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:layout_marginEnd="36dp"
-            android:text="跟"
+            android:text="跟梦中人聊聊"
             android:textSize="14dp"
             android:textColor="#FFFFFF" />
 
@@ -36,8 +37,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="113dp"
-        android:layout_marginHorizontal="16dp"
+        android:paddingHorizontal="16dp"
         android:gravity="center_vertical"
+        android:background="@drawable/widget_multi_bottom_bg"
         android:orientation="horizontal">
 
         <RelativeLayout
@@ -48,6 +50,8 @@
                 android:id="@+id/iv_character_first"
                 android:layout_width="64dp"
                 android:layout_height="86dp"
+                android:scaleType="centerCrop"
+                android:alpha="0.7"
                 android:background="@drawable/widget_default" />
 
             <TextView
@@ -55,12 +59,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_margin="6dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginBottom="6dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="须梦如一须梦如一须梦如一须梦如一"
                 android:textColor="#FFFFFF"
-                android:textSize="10dp" />
+                android:textSize="10dp"
+                tools:text="须梦如一须梦如一须梦如一须梦如一" />
 
         </RelativeLayout>
 
@@ -77,6 +84,8 @@
                 android:id="@+id/iv_character_second"
                 android:layout_width="64dp"
                 android:layout_height="86dp"
+                android:scaleType="centerCrop"
+                android:alpha="0.7"
                 android:background="@drawable/widget_default" />
 
             <TextView
@@ -84,10 +93,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_margin="6dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginBottom="6dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="须梦如一须梦如一须梦如一须梦如一"
+                tools:text="须梦如一须梦如一须梦如一须梦如一"
                 android:textColor="#FFFFFF"
                 android:textSize="10dp" />
 
@@ -106,6 +118,8 @@
                 android:id="@+id/iv_character_third"
                 android:layout_width="64dp"
                 android:layout_height="86dp"
+                android:scaleType="centerCrop"
+                android:alpha="0.7"
                 android:background="@drawable/widget_default" />
 
             <TextView
@@ -113,10 +127,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_margin="6dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginBottom="6dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="须梦如一须梦如一须梦如一须梦如一"
+                tools:text="须梦如一须梦如一须梦如一须梦如一"
                 android:textColor="#FFFFFF"
                 android:textSize="10dp" />
 
@@ -134,6 +151,8 @@
                 android:id="@+id/iv_character_fourth"
                 android:layout_width="64dp"
                 android:layout_height="86dp"
+                android:scaleType="centerCrop"
+                android:alpha="0.7"
                 android:background="@drawable/widget_default" />
 
             <TextView
@@ -141,10 +160,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:layout_margin="6dp"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="6dp"
+                android:layout_marginBottom="6dp"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:text="须梦如一须梦如一须梦如一须梦如一"
+                tools:text="须梦如一须梦如一须梦如一须梦如一"
                 android:textColor="#FFFFFF"
                 android:textSize="10dp" />
 
