@@ -23,6 +23,7 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
         private const val TAG = "CharacterWidgetReceiver"
         private const val ONE_TIME_WORK_NAME = "one_time"
         private const val REQUEST_CODE_OPEN_ACTIVITY = 1
+        const val ACTION_APPWIDGET_CHARACTER_REFRESH = "yuewen.appwidget.action.CHARACTER_REFRESH"
     }
     override fun onReceive(context: Context, intent: Intent) {
         Log.i("AppWidget", "$TAG onReceive: ${intent.action}")
@@ -31,7 +32,7 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
             // 系统刷新广播
             AppWidgetManager.ACTION_APPWIDGET_UPDATE,
                 // 接收刷新广播
-            TestWidgetReceiver.REFRESH_ACTION -> {
+            ACTION_APPWIDGET_CHARACTER_REFRESH -> {
                 // 执行一次任务
                 Log.i("AppWidget", "$TAG onReceive, start oneTime workManager")
                 WorkManager.getInstance(context)

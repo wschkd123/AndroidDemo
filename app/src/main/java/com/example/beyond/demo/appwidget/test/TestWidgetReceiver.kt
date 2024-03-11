@@ -27,7 +27,6 @@ class TestWidgetReceiver : AppWidgetProvider() {
          */
         const val REFRESH_ACTION = "android.appwidget.action.REFRESH"
 
-
         private const val ONE_TIME_WORK_NAME = "one_time"
         /**
          * 定期任务名称
