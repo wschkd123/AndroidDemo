@@ -24,8 +24,8 @@
 
         <receiver
             android:name=".appwidget.CharacterWidgetReceiver"
-            android:exported="true"
-            android:label="单个人物">
+            android:exported="false"
+            android:label="快速查看赛博爱人">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -37,11 +37,9 @@
 
         <receiver
             android:name=".appwidget.MultiCharacterWidgetReceiver"
-            android:exported="true"
-            android:label="多个人物">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
+            android:exported="false"
+            android:label="快速查看赛博爱人">
+
 
             <meta-data
                 android:name="android.appwidget.provider"

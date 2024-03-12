@@ -30,6 +30,11 @@ class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
     companion object {
         private const val TAG = "MultiCharacterWorker"
     }
+
+    init {
+        Log.i("AppWidget", "$TAG init workerParams:${workerParams.id}")
+    }
+
     private val appOpenIntent = PendingIntent.getActivity(
         context,
         0,
@@ -41,28 +46,36 @@ class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
 
     @WorkerThread
     override fun doWork(): Result {
+        Log.i("AppWidget", "$TAG doWork start")
+
         // 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
-        val recList = Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
-        try {
-            Thread.sleep(6000)
-        } catch (e: InterruptedException) {
-            e.printStackTrace()
-        }
-
+        val recList =
+            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
         Log.i("AppWidget", "$TAG doWork")
 
         //刷新widget
         val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(ComponentName(applicationContext, MultiCharacterWidgetReceiver::class.java))
-        updateAppWidget(applicationContext, appWidgetManager, appWidgetIds, recList)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(
+            ComponentName(
+                applicationContext,
+                MultiCharacterWidgetReceiver::class.java
+            )
+        )
+        if (appWidgetIds.isEmpty() || appWidgetIds[0] == 0) {
+            Log.w("AppWidget", "$TAG appWidgetIds is empty, return")
+            return Result.success()
+        }
+        updateAppWidgetFromServer(applicationContext, appWidgetManager, appWidgetIds, recList)
+
+        Log.i("AppWidget", "$TAG doWork end, appWidgetIds: ${appWidgetIds.toList()}")
         return Result.success()
     }
 
     /**
      * 刷新widget
      */
-    private fun updateAppWidget(
+    private fun updateAppWidgetFromServer(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
@@ -73,25 +86,37 @@ class MultiCharacterWorker(context: Context, workerParams: WorkerParameters) :
                 setOnClickPendingIntent(R.id.root_view_multi_character_empty, appOpenIntent)
                 appWidgetManager.updateAppWidget(appWidgetIds, this)
             }
-            Log.i("AppWidget", "$TAG updateWidget empty appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
+            Log.i("AppWidget", "$TAG updateWidget empty}")
         } else {
-            val remoteViews = RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
-                setOnClickPendingIntent(R.id.root_view_multi_character, appOpenIntent)
-            }
-
-            val imageViewIds = listOf(R.id.iv_character_first, R.id.iv_character_second, R.id.iv_character_third, R.id.iv_character_fourth)
-            val textViewIds = listOf(R.id.tv_character_first, R.id.tv_character_second, R.id.tv_character_third, R.id.tv_character_fourth)
-            recList.subList(0, 4).forEachIndexed { index, rec ->
+            val remoteViews =
+                RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
+                    setOnClickPendingIntent(R.id.root_view_multi_character, appOpenIntent)
+                }
+            val imageViewIds = listOf(
+                R.id.iv_character_first,
+                R.id.iv_character_second,
+                R.id.iv_character_third,
+                R.id.iv_character_fourth
+            )
+            val textViewIds = listOf(
+                R.id.tv_character_first,
+                R.id.tv_character_second,
+                R.id.tv_character_third,
+                R.id.tv_character_fourth
+            )
+            recList.take(4).forEachIndexed { index, rec ->
                 // 人物昵称
                 remoteViews.setTextViewText(textViewIds[index], rec.getCharacterName())
 
                 // 人物形象
-                AppWidgetUtils.loadBitmap(rec.getAvatarUrl(), 480, 645, 10.dpToPx()) { bitmap ->
-                    remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
-                    Log.i("AppWidget", "$TAG updateWidget appWidgetId: $appWidgetIds ${appWidgetIds.toList()}")
-                    appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
-                }
+                AppWidgetUtils.loadBitmapSync(TAG, rec.getAvatarUrl(), 480, 645, 10.dpToPx())
+                    ?.let { bitmap ->
+                        remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
+                    }
             }
+
+            Log.i("AppWidget", "$TAG updateWidget}")
+            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
         }
 
     }

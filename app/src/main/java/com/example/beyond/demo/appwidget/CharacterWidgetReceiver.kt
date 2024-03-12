@@ -38,6 +38,7 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
                     .enqueueUniqueWork(
                         ONE_TIME_WORK_NAME, ExistingWorkPolicy.KEEP, OneTimeWorkRequest.from(
                             CharacterWorker::class.java))
+
             }
         }
 
