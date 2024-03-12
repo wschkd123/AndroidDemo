@@ -5,17 +5,11 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
-import android.graphics.Path
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
-import android.graphics.Shader
-import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
@@ -132,138 +126,42 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         }
     }
 
-    private fun createWidgetBgBitmap(): Bitmap {
-        val drawable = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = 22.dpToPxFloat() // 设置为您想要的圆角半径
-//            setColor(ContextCompat.getColor(applicationContext, R.color.widget_bg))
-        }
-        val bitmap = Bitmap.createBitmap(
-            drawable.intrinsicWidth,
-            drawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas)
-        return bitmap
-    }
-
-    private fun roundedCornersBitmap(originBitmap: Bitmap, radius: Float): Bitmap {
-        val rectSize = 36.dpToPx() // 圆形图片的宽度
-        val imageSize = 28.dpToPx()
-        val borderWidth = 4.dpToPx() // 边框宽度
-        val overlapOffset = 8.dpToPx() // 第 n-1 张图片压在第 n 张图片上方的偏移量
-        val result = Bitmap.createBitmap(imageSize, imageSize, Bitmap.Config.ARGB_8888)
-        result.setHasAlpha(true)
-
-        val shader = BitmapShader(
-            originBitmap, Shader.TileMode.CLAMP,
-            Shader.TileMode.CLAMP
-        )
-        val paint = Paint(ANTI_ALIAS_FLAG)
-        paint.setShader(shader)
-        val rect = RectF(0f, 0f, result.width.toFloat(), result.height.toFloat())
-        val canvas = Canvas(result)
-        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        canvas.drawRoundRect(rect, radius, radius, paint)
-        canvas.setBitmap(null)
-        return result
-    }
-
-
     /**
      * 将成员多个头像绘制到一个Bitmap上
      */
     private fun getMemberAvatarBitmapSync(urlList: List<String>): Bitmap {
-        val rectSize = 36.dpToPx() // 圆形图片的宽度
-        val imageSize = 28.dpToPx()
-        val borderWidth = 4.dpToPx() // 边框宽度
+        val avatarSize = 36.dpToPx() // 圆形图片的宽度
         val overlapOffset = 8.dpToPx() // 第 n-1 张图片压在第 n 张图片上方的偏移量
-        val memberCount = urlList.size // 图片数量
-        val totalWidth = rectSize * memberCount - overlapOffset * (memberCount - 1)
-        val totalHeight = rectSize
-        //TODO 修正totalWidth
-        // 创建一个空白的Bitmap
-        val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
+
+        // 加载带边框和圆角的图片
+        val originBitmapList = mutableListOf<Bitmap>()
+        for (url in urlList) {
+            AppWidgetUtils.loadBitmapSync(
+                TAG, url, avatarSize, avatarSize, 18.dpToPx(),
+                borderWidth = 4.dpToPxFloat(), borderColor = Color.parseColor("#131517")
+            )?.let {
+                originBitmapList.add(it)
+            }
+        }
+
+        // 从右往左绘制图片
+        val canvasWidth = originBitmapList.size * avatarSize - (originBitmapList.size - 1) * overlapOffset
+        val bitmap = Bitmap.createBitmap(canvasWidth, avatarSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint(ANTI_ALIAS_FLAG)
-        val originBitmapList = mutableListOf<Bitmap>()
-        for (index in 0 until memberCount) {
-            AppWidgetUtils.loadBitmapSync(TAG, urlList[index], imageSize, imageSize, 99.dpToPx())
-                ?.let { curBitmap ->
-                    // 绘制背景
-                    paint.reset()
-//                    canvas.drawRoundRect(RectF(0f, 0f, totalWidth.toFloat(), totalHeight.toFloat()), rectSize.div(2f), rectSize.div(2f), paint)
-
-                    // 创建一个矩形用于绘制当前图片
-                    // 计算当前图片的绘制位置，考虑重叠偏移量
-                    val left = if (index == 0) 0 else (rectSize - overlapOffset) * index
-                    val top = (rectSize - imageSize).div(2f)
-                    val rectF = RectF(
-                        left.toFloat() + borderWidth,
-                        top + borderWidth.toFloat(),
-                        left.toFloat() + borderWidth + imageSize,
-                        top + borderWidth.toFloat() + imageSize.toFloat()
-                    )
-                    val layerId = canvas.saveLayer(
-                        0f,
-                        0f,
-                        rectSize.toFloat(),
-                        rectSize.toFloat(),
-                        paint,
-                        Canvas.ALL_SAVE_FLAG
-                    )
-                    canvas.drawOval(rectF, paint)
-                    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
-                    canvas.drawBitmap(curBitmap, null, rectF, paint)
-                    paint.xfermode = null
-                    canvas.restoreToCount(layerId);
-
-                    // 绘制边框
-                    paint.style = Paint.Style.STROKE
-                    paint.strokeWidth = borderWidth.toFloat()
-                    paint.color = Color.WHITE
-                    val borderRectF = RectF(
-                        rectF.left - borderWidth.div(2),
-                        rectF.top - borderWidth.div(2),
-                        rectF.right + borderWidth.div(2),
-                        rectF.bottom + borderWidth.div(2)
-                    )
-                    canvas.drawOval(borderRectF, paint)
-                }
-            originBitmapList.add(curBitmap)
+        paint.color = Color.RED
+        canvas.drawRoundRect(0f, 0f, canvasWidth.toFloat(), avatarSize.toFloat(), canvasWidth.div(2f), canvasWidth.div(2f), paint)
+        for (index in originBitmapList.size -1 downTo 0) {
+            val left = (avatarSize - overlapOffset) * index
+            val rectF = RectF(
+                left.toFloat(),
+                0f,
+                (left + avatarSize).toFloat(),
+                avatarSize.toFloat()
+            )
+            canvas.drawBitmap(originBitmapList[index], null, rectF, paint)
         }
         return bitmap
-    }
-
-    fun createRoundedCornerBitmapWithBorder(
-        canvas: Canvas,
-        sourceBitmap: Bitmap,
-        cornerRadius: Float,
-        borderWidth: Float,
-        borderColor: Int
-    ) {
-        val width = canvas.width
-        val height = canvas.height
-        val paint = Paint().apply {
-            isAntiAlias = true
-            shader = BitmapShader(sourceBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
-
-        val rectF = RectF(0f, 0f, width.toFloat(), height.toFloat())
-        val path = Path()
-        path.addRoundRect(rectF, cornerRadius, cornerRadius, Path.Direction.CW)
-
-        canvas.drawPath(path, paint)
-
-        val borderPaint = Paint().apply {
-            style = Paint.Style.STROKE
-            strokeWidth = borderWidth
-            color = borderColor
-        }
-        canvas.drawPath(path, borderPaint)
-
     }
 
 }

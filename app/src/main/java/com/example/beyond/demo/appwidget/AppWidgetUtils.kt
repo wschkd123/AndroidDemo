@@ -12,6 +12,7 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.beyond.demo.common.Init.applicationContext
+import com.example.beyond.demo.util.CircleCropTransform
 import java.util.concurrent.TimeUnit
 
 /**
@@ -44,12 +45,18 @@ internal object AppWidgetUtils {
         url: String,
         width: Int,
         height: Int,
-        radius: Int
+        radius: Int,
+        borderColor: Int? = null,
+        borderWidth: Float? = null
     ): Bitmap? {
         var bitmap: Bitmap? = null
         val requestOptions = RequestOptions()
-            .transform(CenterCrop(), RoundedCorners(radius))
-            .override(width, height)
+        if (borderColor != null && borderWidth != null) {
+            requestOptions.transform(CenterCrop(), CircleCropTransform(borderWidth, borderColor))
+        } else {
+            requestOptions.transform(CenterCrop(), RoundedCorners(radius))
+        }
+        requestOptions.override(width, height)
         try {
             val futureTarget = Glide.with(applicationContext)
                 .asBitmap()
