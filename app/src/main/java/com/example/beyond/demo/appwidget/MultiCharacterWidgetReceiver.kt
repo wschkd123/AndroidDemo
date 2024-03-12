@@ -60,8 +60,6 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
         val data = Data.Builder().putIntArray("appWidgetIds", appWidgetIds).build()
         val workRequest = OneTimeWorkRequest.Builder(MultiCharacterWorker::class.java)
             .setInputData(data)
-            .setInitialDelay(1, TimeUnit.SECONDS)
-            .addTag("character_widget")
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(ONE_TIME_WORK_NAME, ExistingWorkPolicy.REPLACE, workRequest)
     }

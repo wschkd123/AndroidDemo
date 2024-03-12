@@ -18,7 +18,7 @@ class DemoApplication: Application() {
         super.onCreate()
         Init.setApplication(this)
         // 修复WorkManager更新小部件时一直刷新 https://issuetracker.google.com/issues/241076154
-        WorkManager.getInstance(applicationContext)
+        WorkManager.getInstance(this)
             .enqueueUniqueWork(
                 "not_executed_work",
                 ExistingWorkPolicy.KEEP,

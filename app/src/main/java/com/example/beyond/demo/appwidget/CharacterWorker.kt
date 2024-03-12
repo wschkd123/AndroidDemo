@@ -5,13 +5,16 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
+import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
+import android.graphics.Shader
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
@@ -24,6 +27,7 @@ import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+
 
 /**
  * 单个人物 WorkerManager
@@ -61,10 +65,10 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             return Result.success()
         }
 
-        // 网络请求
+        //TODO 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
         val recList =
-            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
+            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_1_GROUP, type).data?.recList
 
         updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, recList)
         Log.i("AppWidget", "$TAG doWork end")

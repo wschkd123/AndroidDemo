@@ -52,10 +52,10 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
             return Result.success()
         }
 
-        // 网络请求
+        //TODO 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
         val recList =
-            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
+            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_2, type).data?.recList
         Log.i("AppWidget", "$TAG doWork")
 
         updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, recList)

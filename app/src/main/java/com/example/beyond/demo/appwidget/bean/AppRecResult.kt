@@ -69,7 +69,43 @@ data class AppRecResult(
     }
 
     companion object {
-        const val MOCK_DATA = "{\n" +
+        const val MOCK_1_GROUP = "{\n" +
+                "    \"code\": 0,\n" +
+                "    \"msg\": \"success\",\n" +
+                "    \"data\": {\n" +
+                "        \"recList\": [\n" +
+                "            {\n" +
+                "                \"roomId\": null,\n" +
+                "                \"roomName\": null,\n" +
+                "                \"type\": 1,\n" +
+                "                \"sort\": 0,\n" +
+                "                \"recUser\": {\n" +
+                "                    \"userName\": \"书友9348\",\n" +
+                "                    \"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/f86e1431.loolr2.png\"\n" +
+                "                },\n" +
+                "                \"characterList\": [\n" +
+                "                    {\n" +
+                "                        \"characterId\": \"2910868605\",\n" +
+                "                        \"characterName\": \"噗噗噗\",\n" +
+                "                        \"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/6D4A597E3E781A6DC1E8F77E6C8D849D.jpg\"\n" +
+                "                    },\n" +
+                "                    {\n" +
+                "                        \"characterId\": \"2910273255\",\n" +
+                "                        \"characterName\": \"小皮衣\",\n" +
+                "                        \"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/c318df9e17873ac866e68756e08c5b0c\"\n" +
+                "                    },\n" +
+                "                    {\n" +
+                "                        \"characterId\": \"8218676691\",\n" +
+                "                        \"characterName\": \"朱汝正\",\n" +
+                "                        \"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/DDF646BD4FD7D3D02B799DD55C33F84F.jpg\"\n" +
+                "                    }\n" +
+                "                ]\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    },\n" +
+                "    \"success\": true\n" +
+                "}"
+        const val MOCK_1 = "{\n" +
                 "\t\"code\": 0,\n" +
                 "\t\"msg\": \"success\",\n" +
                 "\t\"data\": {\n" +
@@ -79,13 +115,36 @@ data class AppRecResult(
                 "\t\t\t\"type\": 1,\n" +
                 "\t\t\t\"sort\": 0,\n" +
                 "\t\t\t\"recUser\": {\n" +
-                "\t\t\t\t\"userName\": \"书友5368\",\n" +
-                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/1dba2686.ors0vg.png\"\n" +
+                "\t\t\t\t\"userName\": \"书友9348\",\n" +
+                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/f86e1431.loolr2.png\"\n" +
                 "\t\t\t},\n" +
                 "\t\t\t\"characterList\": [{\n" +
-                "\t\t\t\t\"characterId\": \"2530643091\",\n" +
-                "\t\t\t\t\"characterName\": \"小伙伴\",\n" +
-                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/30de37f801b41aec7e949022fcbd9c6d\"\n" +
+                "\t\t\t\t\"characterId\": \"2910868605\",\n" +
+                "\t\t\t\t\"characterName\": \"噗噗噗\",\n" +
+                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/6D4A597E3E781A6DC1E8F77E6C8D849D.jpg\"\n" +
+                "\t\t\t}]\n" +
+                "\t\t}]\n" +
+                "\t},\n" +
+                "\t\"success\": true\n" +
+                "}"
+
+        const val MOCK_2 = "{\n" +
+                "\t\"code\": 0,\n" +
+                "\t\"msg\": \"success\",\n" +
+                "\t\"data\": {\n" +
+                "\t\t\"recList\": [{\n" +
+                "\t\t\t\"roomId\": null,\n" +
+                "\t\t\t\"roomName\": null,\n" +
+                "\t\t\t\"type\": 1,\n" +
+                "\t\t\t\"sort\": 0,\n" +
+                "\t\t\t\"recUser\": {\n" +
+                "\t\t\t\t\"userName\": \"书友9348\",\n" +
+                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/f86e1431.loolr2.png\"\n" +
+                "\t\t\t},\n" +
+                "\t\t\t\"characterList\": [{\n" +
+                "\t\t\t\t\"characterId\": \"2910273255\",\n" +
+                "\t\t\t\t\"characterName\": \"小皮衣\",\n" +
+                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/c318df9e17873ac866e68756e08c5b0c\"\n" +
                 "\t\t\t}]\n" +
                 "\t\t}, {\n" +
                 "\t\t\t\"roomId\": null,\n" +
@@ -93,13 +152,13 @@ data class AppRecResult(
                 "\t\t\t\"type\": 1,\n" +
                 "\t\t\t\"sort\": 0,\n" +
                 "\t\t\t\"recUser\": {\n" +
-                "\t\t\t\t\"userName\": \"书友5368\",\n" +
-                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/1dba2686.ors0vg.png\"\n" +
+                "\t\t\t\t\"userName\": \"书友9348\",\n" +
+                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/f86e1431.loolr2.png\"\n" +
                 "\t\t\t},\n" +
                 "\t\t\t\"characterList\": [{\n" +
-                "\t\t\t\t\"characterId\": \"4686135830\",\n" +
-                "\t\t\t\t\"characterName\": \"王一博\",\n" +
-                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/4a6169364e2a25f38681ac7c5329a4c7.png\"\n" +
+                "\t\t\t\t\"characterId\": \"8218676691\",\n" +
+                "\t\t\t\t\"characterName\": \"朱汝正\",\n" +
+                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/DDF646BD4FD7D3D02B799DD55C33F84F.jpg\"\n" +
                 "\t\t\t}]\n" +
                 "\t\t}, {\n" +
                 "\t\t\t\"roomId\": null,\n" +
@@ -107,27 +166,13 @@ data class AppRecResult(
                 "\t\t\t\"type\": 1,\n" +
                 "\t\t\t\"sort\": 0,\n" +
                 "\t\t\t\"recUser\": {\n" +
-                "\t\t\t\t\"userName\": \"书友5368\",\n" +
-                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/1dba2686.ors0vg.png\"\n" +
+                "\t\t\t\t\"userName\": \"书友9348\",\n" +
+                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/f86e1431.loolr2.png\"\n" +
                 "\t\t\t},\n" +
                 "\t\t\t\"characterList\": [{\n" +
-                "\t\t\t\t\"characterId\": \"2766320741\",\n" +
-                "\t\t\t\t\"characterName\": \"小苹果2\",\n" +
-                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/ddbd6081fcf9dcfd9db8cb43c2444d1c.png\"\n" +
-                "\t\t\t}]\n" +
-                "\t\t}, {\n" +
-                "\t\t\t\"roomId\": null,\n" +
-                "\t\t\t\"roomName\": null,\n" +
-                "\t\t\t\"type\": 1,\n" +
-                "\t\t\t\"sort\": 0,\n" +
-                "\t\t\t\"recUser\": {\n" +
-                "\t\t\t\t\"userName\": \"书友5368\",\n" +
-                "\t\t\t\t\"userAvatar\": \"https://imgservices-1252317822.image.myqcloud.com/coco/s11172022/1dba2686.ors0vg.png\"\n" +
-                "\t\t\t},\n" +
-                "\t\t\t\"characterList\": [{\n" +
-                "\t\t\t\t\"characterId\": \"8041069549\",\n" +
-                "\t\t\t\t\"characterName\": \"小苹果3\",\n" +
-                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/f501bd8e52f7c5c3de26f26aefc417e7.png\"\n" +
+                "\t\t\t\t\"characterId\": \"2910868605\",\n" +
+                "\t\t\t\t\"characterName\": \"噗噗噗\",\n" +
+                "\t\t\t\t\"characterAvatar\": \"https://zmdcharactercdn.zhumengdao.com/6D4A597E3E781A6DC1E8F77E6C8D849D.jpg\"\n" +
                 "\t\t\t}]\n" +
                 "\t\t}]\n" +
                 "\t},\n" +

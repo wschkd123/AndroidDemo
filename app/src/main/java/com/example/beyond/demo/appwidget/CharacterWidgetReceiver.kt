@@ -59,7 +59,6 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
         val data = Data.Builder().putIntArray("appWidgetIds", appWidgetIds).build()
         val workRequest = OneTimeWorkRequest.Builder(CharacterWorker::class.java)
             .setInputData(data)
-            .addTag("character_widget")
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(ONE_TIME_WORK_NAME, ExistingWorkPolicy.KEEP, workRequest)
 //        WorkManager.getInstance(context).getWorkInfosForUniqueWorkLiveData(ONE_TIME_WORK_NAME).observeForever { info ->
