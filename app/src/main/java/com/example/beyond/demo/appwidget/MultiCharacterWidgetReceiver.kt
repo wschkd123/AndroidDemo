@@ -19,12 +19,12 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "MultiCharacterWidgetReceiver"
-        private const val ONE_TIME_WORK_NAME = "one_time"
+        private const val WORK_TIME_MULTI_CHARACTER = "work_time_multi_character"
         const val ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH = "yuewen.appwidget.action.MULTI_CHARACTER_REFRESH"
     }
 
     init {
-        AppWidgetUtils.fixWorkManagerRefresh(MultiCharacterWorker::class.java)
+        AppWidgetUtils.fixWorkManagerRefresh(TAG, MultiCharacterWorker::class.java)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -64,13 +64,13 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
         val workRequest = OneTimeWorkRequest.Builder(MultiCharacterWorker::class.java)
             .setInputData(data)
             .build()
-        WorkManager.getInstance(context).enqueueUniqueWork(ONE_TIME_WORK_NAME, ExistingWorkPolicy.REPLACE, workRequest)
+        WorkManager.getInstance(context).enqueueUniqueWork(WORK_TIME_MULTI_CHARACTER, ExistingWorkPolicy.REPLACE, workRequest)
     }
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         Log.i("AppWidget", "$TAG onDisabled")
-        WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(WORK_TIME_MULTI_CHARACTER)
     }
 
 }

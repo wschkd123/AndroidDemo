@@ -24,10 +24,10 @@ internal object AppWidgetUtils {
      * 修复WorkManager更新小部件时一直刷新
      *  https://issuetracker.google.com/issues/241076154
      */
-    fun fixWorkManagerRefresh(workerClass: Class<out ListenableWorker>) {
+    fun fixWorkManagerRefresh(tag: String, workerClass: Class<out ListenableWorker>) {
         WorkManager.getInstance(applicationContext)
             .enqueueUniqueWork(
-                "not_executed_work",
+                "${tag}_not_executed_work",
                 ExistingWorkPolicy.KEEP,
                 OneTimeWorkRequest.Builder(workerClass)
                     .setInitialDelay(365 * 10, TimeUnit.DAYS)

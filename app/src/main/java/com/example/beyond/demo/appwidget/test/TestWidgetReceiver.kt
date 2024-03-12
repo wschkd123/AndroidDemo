@@ -37,7 +37,7 @@ class TestWidgetReceiver : AppWidgetProvider() {
                 WorkManager.getInstance(context)
                     .enqueueUniqueWork(
                         ONE_TIME_WORK_NAME,
-                        ExistingWorkPolicy.KEEP,
+                        ExistingWorkPolicy.REPLACE,
                         OneTimeWorkRequest.from(TestWorker::class.java)
                     )
             }

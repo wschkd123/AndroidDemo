@@ -19,12 +19,12 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
 
     companion object {
         private const val TAG = "CharacterWidgetReceiver"
-        private const val ONE_TIME_WORK_NAME = "one_time"
+        private const val WORK_TIME_CHARACTER = "work_time_character"
         const val ACTION_APPWIDGET_CHARACTER_REFRESH = "yuewen.appwidget.action.CHARACTER_REFRESH"
     }
 
     init {
-        AppWidgetUtils.fixWorkManagerRefresh(CharacterWorker::class.java)
+        AppWidgetUtils.fixWorkManagerRefresh(TAG, CharacterWorker::class.java)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -62,20 +62,14 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
         val workRequest = OneTimeWorkRequest.Builder(CharacterWorker::class.java)
             .setInputData(data)
             .build()
-        WorkManager.getInstance(context).enqueueUniqueWork(ONE_TIME_WORK_NAME, ExistingWorkPolicy.KEEP, workRequest)
-//        WorkManager.getInstance(context).getWorkInfosForUniqueWorkLiveData(ONE_TIME_WORK_NAME).observeForever { info ->
-//            if (info.isNotEmpty()) {
-//                val workInfo = info[0]
-//                Log.i("AppWidget", "$TAG workState ${workInfo.state.name} id:${workInfo.id}")
-//            }
-//        }
+        WorkManager.getInstance(context).enqueueUniqueWork(WORK_TIME_CHARACTER, ExistingWorkPolicy.REPLACE, workRequest)
 
     }
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         Log.i("AppWidget", "$TAG onDisabled")
-        WorkManager.getInstance(context).cancelUniqueWork(ONE_TIME_WORK_NAME)
+        WorkManager.getInstance(context).cancelUniqueWork(WORK_TIME_CHARACTER)
     }
 
 }

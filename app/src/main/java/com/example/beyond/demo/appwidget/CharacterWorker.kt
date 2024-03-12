@@ -46,14 +46,16 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         Log.i("AppWidget", "$TAG init workerParams:${workerParams.id}")
     }
 
-    private val appOpenIntent = PendingIntent.getActivity(
-        context,
-        0,
-        Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-        },
-        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
+    private val appOpenIntent by lazy {
+        PendingIntent.getActivity(
+            context,
+            0,
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            },
+            PendingIntent.FLAG_IMMUTABLE
+        )
+    }
 
     @WorkerThread
     override fun doWork(): Result {
