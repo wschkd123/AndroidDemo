@@ -100,7 +100,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
 //                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
                 //TODO 跳转个人页
-                setOnClickPendingIntent(R.id.iv_avatar, appOpenIntent)
+                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
             }
             // 名称
             remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())

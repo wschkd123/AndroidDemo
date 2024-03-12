@@ -9,10 +9,8 @@ import android.util.Log
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.example.beyond.demo.common.Init.applicationContext
-import java.util.concurrent.TimeUnit
 
 /**
  * 单个人物
@@ -23,6 +21,10 @@ class CharacterWidgetReceiver : AppWidgetProvider() {
         private const val TAG = "CharacterWidgetReceiver"
         private const val ONE_TIME_WORK_NAME = "one_time"
         const val ACTION_APPWIDGET_CHARACTER_REFRESH = "yuewen.appwidget.action.CHARACTER_REFRESH"
+    }
+
+    init {
+        AppWidgetUtils.fixWorkManagerRefresh(CharacterWorker::class.java)
     }
 
     override fun onReceive(context: Context, intent: Intent) {

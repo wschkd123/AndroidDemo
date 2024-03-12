@@ -11,7 +11,6 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.example.beyond.demo.common.Init
-import java.util.concurrent.TimeUnit
 
 /**
  * 多个人物
@@ -22,6 +21,10 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
         private const val TAG = "MultiCharacterWidgetReceiver"
         private const val ONE_TIME_WORK_NAME = "one_time"
         const val ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH = "yuewen.appwidget.action.MULTI_CHARACTER_REFRESH"
+    }
+
+    init {
+        AppWidgetUtils.fixWorkManagerRefresh(MultiCharacterWorker::class.java)
     }
 
     override fun onReceive(context: Context, intent: Intent) {

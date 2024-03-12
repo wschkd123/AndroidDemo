@@ -3,17 +3,37 @@ package com.example.beyond.demo.appwidget
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.WorkerThread
+import androidx.work.ExistingWorkPolicy
+import androidx.work.ListenableWorker
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.beyond.demo.common.Init.applicationContext
+import java.util.concurrent.TimeUnit
 
 /**
  * @author wangshichao
  * @date 2024/3/12
  */
 internal object AppWidgetUtils {
+
+    /**
+     * 修复WorkManager更新小部件时一直刷新
+     *  https://issuetracker.google.com/issues/241076154
+     */
+    fun fixWorkManagerRefresh(workerClass: Class<out ListenableWorker>) {
+        WorkManager.getInstance(applicationContext)
+            .enqueueUniqueWork(
+                "not_executed_work",
+                ExistingWorkPolicy.KEEP,
+                OneTimeWorkRequest.Builder(workerClass)
+                    .setInitialDelay(365 * 10, TimeUnit.DAYS)
+                    .build()
+            )
+    }
 
     /**
      * 同步加载图片

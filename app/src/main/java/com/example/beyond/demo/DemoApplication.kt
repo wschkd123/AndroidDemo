@@ -17,15 +17,5 @@ class DemoApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         Init.setApplication(this)
-        // 修复WorkManager更新小部件时一直刷新 https://issuetracker.google.com/issues/241076154
-        WorkManager.getInstance(this)
-            .enqueueUniqueWork(
-                "not_executed_work",
-                ExistingWorkPolicy.KEEP,
-                OneTimeWorkRequest.Builder(CharacterWorker::class.java)
-                    .setInitialDelay(365 * 10, TimeUnit.DAYS)
-                    .build()
-            )
-
     }
 }

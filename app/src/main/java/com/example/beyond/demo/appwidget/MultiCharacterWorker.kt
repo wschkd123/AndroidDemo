@@ -58,7 +58,7 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
             Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_2, type).data?.recList
         Log.i("AppWidget", "$TAG doWork")
 
-        updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, recList)
+        updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, null)
 
         Log.i("AppWidget", "$TAG doWork end")
         return Result.success()
