@@ -2,6 +2,7 @@
     android:id="@+id/root_view_multi_character_empty"
     android:layout_width="match_parent"
     android:layout_height="155dp"
+    android:minWidth="316dp"
     android:background="@drawable/widget_empty_bg"
     android:orientation="vertical">
 
