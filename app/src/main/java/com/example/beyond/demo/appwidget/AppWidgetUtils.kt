@@ -4,10 +4,10 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.beyond.demo.common.Init.applicationContext
-import com.example.beyond.demo.util.kt.dpToPx
 
 /**
  * @author wangshichao
@@ -28,9 +28,8 @@ internal object AppWidgetUtils {
     ): Bitmap? {
         var bitmap: Bitmap? = null
         val requestOptions = RequestOptions()
-            .transform(RoundedCorners(radius.dpToPx()))
+            .transform(CenterCrop(), RoundedCorners(radius))
             .override(width, height)
-            .centerCrop()
         try {
             val futureTarget = Glide.with(applicationContext)
                 .asBitmap()

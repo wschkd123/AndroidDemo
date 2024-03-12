@@ -1,6 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_view_multi_character"
     android:layout_width="match_parent"
     android:layout_height="155dp"
     android:background="@drawable/widget_bg"
@@ -50,9 +49,8 @@
                 android:id="@+id/iv_character_first"
                 android:layout_width="64dp"
                 android:layout_height="86dp"
-                android:scaleType="centerCrop"
                 android:alpha="0.7"
-                android:background="@drawable/widget_default" />
+                android:background="@drawable/widget_multi_avatar_default" />
 
             <TextView
                 android:id="@+id/tv_character_first"
@@ -86,7 +84,7 @@
                 android:layout_height="86dp"
                 android:scaleType="centerCrop"
                 android:alpha="0.7"
-                android:background="@drawable/widget_default" />
+                android:background="@drawable/widget_multi_avatar_default" />
 
             <TextView
                 android:id="@+id/tv_character_second"
@@ -120,7 +118,7 @@
                 android:layout_height="86dp"
                 android:scaleType="centerCrop"
                 android:alpha="0.7"
-                android:background="@drawable/widget_default" />
+                android:background="@drawable/widget_multi_avatar_default" />
 
             <TextView
                 android:id="@+id/tv_character_third"
@@ -153,7 +151,7 @@
                 android:layout_height="86dp"
                 android:scaleType="centerCrop"
                 android:alpha="0.7"
-                android:background="@drawable/widget_default" />
+                android:background="@drawable/widget_multi_avatar_default" />
 
             <TextView
                 android:id="@+id/tv_character_fourth"

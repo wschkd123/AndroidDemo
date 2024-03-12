@@ -2,7 +2,6 @@ package com.example.beyond.demo.appwidget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -79,11 +78,11 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
                 setOnClickPendingIntent(R.id.root_view_multi_character_empty, appOpenIntent)
                 appWidgetManager.updateAppWidget(appWidgetIds, this)
             }
-            Log.i("AppWidget", "$TAG updateWidget empty}")
+            Log.i("AppWidget", "$TAG updateWidget empty")
         } else {
             val remoteViews =
                 RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
-                    setOnClickPendingIntent(R.id.root_view_multi_character, appOpenIntent)
+                    setOnClickPendingIntent(R.id.ll_top, appOpenIntent)
                 }
             val imageViewIds = listOf(
                 R.id.iv_character_first,
@@ -102,13 +101,15 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
                 remoteViews.setTextViewText(textViewIds[index], rec.getCharacterName())
 
                 // 人物形象
-                AppWidgetUtils.loadBitmapSync(TAG, rec.getAvatarUrl(), 480, 645, 10.dpToPx())
+                AppWidgetUtils.loadBitmapSync(TAG, rec.getAvatarUrl(), 480, 645, 22.dpToPx())
                     ?.let { bitmap ->
                         remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
+                        //TODO 跳转个人页
+                        remoteViews.setOnClickPendingIntent(imageViewIds[index], appOpenIntent)
                     }
             }
 
-            Log.i("AppWidget", "$TAG updateWidget}")
+            Log.i("AppWidget", "$TAG updateWidget")
             appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
         }
 

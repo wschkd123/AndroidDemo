@@ -2,7 +2,6 @@ package com.example.beyond.demo.appwidget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -95,7 +94,9 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         } else {
             val recCharacter = recList[0]
             val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
+//                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
+                //TODO 跳转个人页
+                setOnClickPendingIntent(R.id.iv_avatar, appOpenIntent)
             }
             // 名称
             remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
