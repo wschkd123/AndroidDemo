@@ -32,7 +32,7 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
             // 系统刷新广播、自定义刷新广播
             AppWidgetManager.ACTION_APPWIDGET_UPDATE -> {
                 val appWidgetIds = intent.extras?.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS)
-                Log.i("AppWidget", "$TAG onReceive: ACTION_APPWIDGET_UPDATE appWidgetIds: ${appWidgetIds?.toList()}")
+                Log.i("AppWidget", "$TAG onReceive: ${intent.action} appWidgetIds: ${appWidgetIds?.toList()}")
                 if (appWidgetIds?.isNotEmpty() == true) {
                     onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
                     startWorker(context, appWidgetIds)
@@ -45,7 +45,7 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
                 val appWidgetIds = AppWidgetManager.getInstance(Init.applicationContext).getAppWidgetIds(
                     ComponentName(Init.applicationContext, MultiCharacterWidgetReceiver::class.java)
                 )
-                Log.i("AppWidget", "$TAG onReceive: ACTION_APPWIDGET_CHARACTER_REFRESH appWidgetIds: ${appWidgetIds?.toList()}")
+                Log.i("AppWidget", "$TAG onReceive: ${intent.action} appWidgetIds: ${appWidgetIds?.toList()}")
                 if (appWidgetIds?.isNotEmpty() == true) {
                     startWorker(context, appWidgetIds)
                 }
