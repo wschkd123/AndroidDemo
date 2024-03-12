@@ -1,18 +1,17 @@
 package com.example.beyond.demo.appwidget
 
-import android.annotation.SuppressLint
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.widget.RemoteViews
+import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import com.example.beyond.demo.R
-import com.example.beyond.demo.ui.MainActivity
+import com.example.beyond.demo.common.Init
+import java.util.concurrent.TimeUnit
 
 /**
  * 多个人物
@@ -26,22 +25,45 @@ class MultiCharacterWidgetReceiver : AppWidgetProvider() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.i("AppWidget", "${TAG} onReceive: ${intent.action}")
-        super.onReceive(context, intent)
         when (intent.action) {
-            // 系统刷新广播
-            AppWidgetManager.ACTION_APPWIDGET_UPDATE,
-                // 接收刷新广播
+            // 系统刷新广播、自定义刷新广播
+            AppWidgetManager.ACTION_APPWIDGET_UPDATE -> {
+                val appWidgetIds = intent.extras?.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS)
+                Log.i("AppWidget", "$TAG onReceive: ACTION_APPWIDGET_UPDATE appWidgetIds: ${appWidgetIds?.toList()}")
+                if (appWidgetIds?.isNotEmpty() == true) {
+                    onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
+                    startWorker(context, appWidgetIds)
+                }
+            }
+            /**
+             * 刷新所有组件
+             */
             ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH -> {
-                // 执行一次任务
-                Log.i("AppWidget", "${TAG} onReceive, start oneTime workManager")
-                WorkManager.getInstance(context)
-                    .enqueueUniqueWork(
-                        ONE_TIME_WORK_NAME, ExistingWorkPolicy.KEEP, OneTimeWorkRequest.from(
-                            MultiCharacterWorker::class.java))
+                val appWidgetIds = AppWidgetManager.getInstance(Init.applicationContext).getAppWidgetIds(
+                    ComponentName(Init.applicationContext, MultiCharacterWidgetReceiver::class.java)
+                )
+                Log.i("AppWidget", "$TAG onReceive: ACTION_APPWIDGET_CHARACTER_REFRESH appWidgetIds: ${appWidgetIds?.toList()}")
+                if (appWidgetIds?.isNotEmpty() == true) {
+                    startWorker(context, appWidgetIds)
+                }
+            }
+            else -> {
+                Log.i("AppWidget", "$TAG onReceive: ${intent.action}")
+                super.onReceive(context, intent)
             }
         }
 
+    }
+
+    private fun startWorker(context: Context, appWidgetIds: IntArray) {
+        Log.i("AppWidget", "$TAG startWorker")
+        val data = Data.Builder().putIntArray("appWidgetIds", appWidgetIds).build()
+        val workRequest = OneTimeWorkRequest.Builder(MultiCharacterWorker::class.java)
+            .setInputData(data)
+            .setInitialDelay(1, TimeUnit.SECONDS)
+            .addTag("character_widget")
+            .build()
+        WorkManager.getInstance(context).enqueueUniqueWork(ONE_TIME_WORK_NAME, ExistingWorkPolicy.REPLACE, workRequest)
     }
 
     override fun onDisabled(context: Context) {

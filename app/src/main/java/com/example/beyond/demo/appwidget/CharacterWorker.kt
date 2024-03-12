@@ -32,7 +32,7 @@ import com.google.gson.reflect.TypeToken
  * @author wangshichao
  * @date 2024/3/8
  */
-class CharacterWorker(context: Context, workerParams: WorkerParameters) :
+class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
     Worker(context, workerParams) {
 
     companion object {
@@ -54,27 +54,21 @@ class CharacterWorker(context: Context, workerParams: WorkerParameters) :
 
     @WorkerThread
     override fun doWork(): Result {
-        Log.i("AppWidget", "$TAG doWork start")
+        val appWidgetIds = workerParams.inputData.getIntArray("appWidgetIds")
+        Log.i("AppWidget", "$TAG doWork widgetIds:${appWidgetIds?.toList()}")
+        //刷新widget
+        if (appWidgetIds == null || appWidgetIds.isEmpty() || appWidgetIds[0] == 0) {
+            Log.w("AppWidget", "$TAG appWidgetIds is empty, return")
+            return Result.success()
+        }
 
         // 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
         val recList =
             Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_DATA, type).data?.recList
 
-        //刷新widget
-        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(
-            ComponentName(
-                applicationContext,
-                CharacterWidgetReceiver::class.java
-            )
-        )
-        if (appWidgetIds.isEmpty() || appWidgetIds[0] == 0) {
-            Log.w("AppWidget", "$TAG appWidgetIds is empty, return")
-            return Result.success()
-        }
-        updateAppWidgetFromServer(applicationContext, appWidgetManager, appWidgetIds, recList)
-        Log.i("AppWidget", "$TAG doWork end, appWidgetIds: ${appWidgetIds.toList()}")
+        updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, recList)
+        Log.i("AppWidget", "$TAG doWork end")
         return Result.success()
     }
 
