@@ -92,59 +92,72 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         appWidgetIds: IntArray,
         recList: List<AppRecResult.Rec>? = null
     ) {
-        if (recList.isNullOrEmpty()) {
-            RemoteViews(context.packageName, R.layout.widget_character_empty).apply {
-                setOnClickPendingIntent(R.id.root_view_character_empty, appOpenIntent)
-                appWidgetManager.updateAppWidget(appWidgetIds, this)
-            }
-            Log.i("AppWidget", "$TAG updateWidget empty")
-        } else if (recList[0].isGroupChat()) {
-            val recCharacter = recList[0]
-            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character_group).apply {
-                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
-            }
-            // 名称
-            remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
-
-            // 背景头像
-            AppWidgetUtils.loadBitmapSync(
-                TAG,
-                recCharacter.getAvatarUrl(),
-                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
-                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
-                18.dpToPx()
-            )?.let {
-                remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
+        when {
+            // 数据异常
+            recList.isNullOrEmpty() -> {
+                RemoteViews(context.packageName, R.layout.widget_character_empty).apply {
+                    setOnClickPendingIntent(R.id.root_view_character_empty, appOpenIntent)
+                    appWidgetManager.updateAppWidget(appWidgetIds, this)
+                }
+                Log.w("AppWidget", "$TAG updateWidget empty")
             }
 
-            // 群聊头像
-            getMemberAvatarBitmapSync(recCharacter.getGroupMemberUrlList()).let {
-                remoteViews.setImageViewBitmap(R.id.iv_group_member, it)
+            // 群聊
+            recList[0].isGroupChat() -> {
+                val recCharacter = recList[0]
+                val remoteViews =
+                    RemoteViews(context.packageName, R.layout.widget_character_group).apply {
+                        setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
+
+                    }
+                // 名称
+                remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
+
+                // 背景头像
+                AppWidgetUtils.loadBitmapSync(
+                    TAG,
+                    recCharacter.getAvatarUrl(),
+                    context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                    context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                    18.dpToPx()
+                )?.let {
+                    remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
+                }
+
+                // 群聊头像
+                getMemberAvatarBitmapSync(recCharacter.getGroupMemberUrlList()).let {
+                    remoteViews.setImageViewBitmap(R.id.iv_group_member, it)
+                }
+
+                Log.w("AppWidget", "$TAG updateWidget groupChat")
+                appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
             }
 
-            Log.i("AppWidget", "$TAG updateWidget groupChat")
-            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
-        } else {
-            val recCharacter = recList[0]
-            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
-            }
-            // 名称
-            remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
+            // 非群聊
+            else -> {
+                val recCharacter = recList[0]
+                val remoteViews =
+                    RemoteViews(context.packageName, R.layout.widget_character).apply {
+                        setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
 
-            // 背景头像
-            AppWidgetUtils.loadBitmapSync(
-                TAG,
-                recCharacter.getAvatarUrl(),
-                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
-                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
-                18.dpToPx()
-            )?.let {
-                remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
-            }
+                    }
+                // 名称
+                remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
 
-            Log.i("AppWidget", "$TAG updateWidget")
-            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+                // 背景头像
+                AppWidgetUtils.loadBitmapSync(
+                    TAG,
+                    recCharacter.getAvatarUrl(),
+                    context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                    context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                    18.dpToPx()
+                )?.let {
+                    remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
+                }
+
+                Log.w("AppWidget", "$TAG updateWidget")
+                appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+            }
         }
     }
 
@@ -153,7 +166,8 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
      */
     private fun getMemberAvatarBitmapSync(urlList: List<String>): Bitmap {
         // 头像的尺寸
-        val avatarSize = applicationContext.resources.getDimension(R.dimen.widget_group_avatar_size).toInt()
+        val avatarSize =
+            applicationContext.resources.getDimension(R.dimen.widget_group_avatar_size).toInt()
         // 第 n-1 张图片压在第 n 张图片上方的偏移量
         val overlapOffset = 8.dpToPx()
 
@@ -166,7 +180,10 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
                 avatarSize,
                 avatarSize,
                 borderWidth = 4.dpToPxFloat(),
-                borderColor = ContextCompat.getColor(applicationContext, R.color.widget_group_avatar_border)
+                borderColor = ContextCompat.getColor(
+                    applicationContext,
+                    R.color.widget_group_avatar_border
+                )
             )?.let {
                 originBitmapList.add(it)
             }
@@ -178,19 +195,31 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             avatarSize,
             avatarSize,
             borderWidth = 2.dpToPxFloat(),
-            borderColor = ContextCompat.getColor(applicationContext, R.color.widget_group_avatar_border)
+            borderColor = ContextCompat.getColor(
+                applicationContext,
+                R.color.widget_group_avatar_border
+            )
         )?.let {
             originBitmapList.add(it)
         }
 
         // 从右往左绘制图片
-        val canvasWidth = originBitmapList.size * avatarSize - (originBitmapList.size - 1) * overlapOffset
+        val canvasWidth =
+            originBitmapList.size * avatarSize - (originBitmapList.size - 1) * overlapOffset
         val bitmap = Bitmap.createBitmap(canvasWidth, avatarSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint(ANTI_ALIAS_FLAG)
         paint.color = ContextCompat.getColor(applicationContext, R.color.widget_group_avatar_bg)
-        canvas.drawRoundRect(0f, 0f, canvasWidth.toFloat(), avatarSize.toFloat(), canvasWidth.div(2f), canvasWidth.div(2f), paint)
-        for (index in originBitmapList.size -1 downTo 0) {
+        canvas.drawRoundRect(
+            0f,
+            0f,
+            canvasWidth.toFloat(),
+            avatarSize.toFloat(),
+            canvasWidth.div(2f),
+            canvasWidth.div(2f),
+            paint
+        )
+        for (index in originBitmapList.size - 1 downTo 0) {
             val left = (avatarSize - overlapOffset) * index
             val rectF = RectF(
                 left.toFloat(),

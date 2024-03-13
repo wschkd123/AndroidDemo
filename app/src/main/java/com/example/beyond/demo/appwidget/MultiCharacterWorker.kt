@@ -61,7 +61,6 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
         Log.i("AppWidget", "$TAG doWork")
 
         updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, recList)
-
         Log.i("AppWidget", "$TAG doWork end")
         return Result.success()
     }
@@ -75,13 +74,13 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
         appWidgetIds: IntArray,
         recList: List<AppRecResult.Rec>? = null
     ) {
-        if (recList.isNullOrEmpty()) {
+        if (recList.isNullOrEmpty()) { // 数据异常
             RemoteViews(context.packageName, R.layout.widget_multi_character_empty).apply {
                 setOnClickPendingIntent(R.id.root_view_multi_character_empty, appOpenIntent)
                 appWidgetManager.updateAppWidget(appWidgetIds, this)
             }
             Log.i("AppWidget", "$TAG updateWidget empty")
-        } else {
+        } else { // 数据正常
             val remoteViews =
                 RemoteViews(context.packageName, R.layout.widget_multi_character).apply {
                     setOnClickPendingIntent(R.id.ll_top, appOpenIntent)
@@ -110,9 +109,9 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
                     86.dpToPx(),
                     22.dpToPx()
                 )?.let { bitmap ->
-                        remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
+                    remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
                         remoteViews.setOnClickPendingIntent(imageViewIds[index], appOpenIntent)
-                    }
+                }
             }
 
             Log.i("AppWidget", "$TAG updateWidget")
