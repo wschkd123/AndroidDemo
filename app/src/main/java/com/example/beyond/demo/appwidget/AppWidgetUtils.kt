@@ -45,18 +45,43 @@ internal object AppWidgetUtils {
         url: String,
         width: Int,
         height: Int,
-        radius: Int,
-        borderColor: Int? = null,
-        borderWidth: Float? = null
+        radius: Int
     ): Bitmap? {
         var bitmap: Bitmap? = null
         val requestOptions = RequestOptions()
-        if (borderColor != null && borderWidth != null) {
-            requestOptions.transform(CenterCrop(), CircleCropTransform(borderWidth, borderColor))
-        } else {
-            requestOptions.transform(CenterCrop(), RoundedCorners(radius))
+            .transform(CenterCrop(), RoundedCorners(radius))
+            .override(width, height)
+        try {
+            val futureTarget = Glide.with(applicationContext)
+                .asBitmap()
+                .load(url)
+                .apply(requestOptions)
+                .submit(width, height)
+            bitmap = futureTarget.get()
+            Log.i("AppWidget", "$tag loadBitmapSync success, url:${url}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("AppWidget", "$tag loadBitmapSync fail, url:${url}", e)
         }
-        requestOptions.override(width, height)
+        return bitmap
+    }
+
+    /**
+     * 同步加载圆形图片
+     */
+    @WorkerThread
+    fun loadCircleBitmapSync(
+        tag: String,
+        url: String,
+        width: Int,
+        height: Int,
+        borderColor: Int,
+        borderWidth: Float
+    ): Bitmap? {
+        var bitmap: Bitmap? = null
+        val requestOptions = RequestOptions()
+            .transform(CenterCrop(), CircleCropTransform(borderWidth, borderColor))
+            .override(width, height)
         try {
             val futureTarget = Glide.with(applicationContext)
                 .asBitmap()

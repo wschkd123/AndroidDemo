@@ -109,7 +109,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
 
             // 背景头像
-            AppWidgetUtils.loadBitmapSync(TAG, recCharacter.getAvatarUrl(), 480, 480, 22.dpToPx())
+            AppWidgetUtils.loadBitmapSync(TAG, recCharacter.getAvatarUrl(), 480, 480, 18.dpToPx())
                 ?.let {
                     remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
                 }
@@ -136,9 +136,13 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         // 加载带边框和圆角的图片
         val originBitmapList = mutableListOf<Bitmap>()
         for (url in urlList) {
-            AppWidgetUtils.loadBitmapSync(
-                TAG, url, avatarSize, avatarSize, 18.dpToPx(),
-                borderWidth = 4.dpToPxFloat(), borderColor = Color.parseColor("#131517")
+            AppWidgetUtils.loadCircleBitmapSync(
+                TAG,
+                url,
+                avatarSize,
+                avatarSize,
+                borderWidth = 4.dpToPxFloat(),
+                borderColor = Color.parseColor("#131517")
             )?.let {
                 originBitmapList.add(it)
             }
