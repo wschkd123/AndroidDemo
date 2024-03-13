@@ -1,8 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_view_character"
-    android:layout_width="155dp"
-    android:layout_height="155dp"
+    android:layout_width="@dimen/widget_two_cell_height"
+    android:layout_height="@dimen/widget_two_cell_height"
     android:background="@drawable/widget_bg">
 
     <ImageView
@@ -33,7 +33,7 @@
     <ImageView
         android:id="@+id/iv_group_member"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="@dimen/widget_group_avatar_size"
         android:scaleType="fitStart"
         android:layout_alignParentBottom="true"
         android:layout_marginHorizontal="14dp"

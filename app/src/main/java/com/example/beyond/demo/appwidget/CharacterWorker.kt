@@ -13,6 +13,7 @@ import android.graphics.RectF
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
+import androidx.core.content.ContextCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.beyond.demo.R
@@ -142,8 +143,10 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
      * 将成员多个头像绘制到一个Bitmap上
      */
     private fun getMemberAvatarBitmapSync(urlList: List<String>): Bitmap {
-        val avatarSize = 36.dpToPx() // 圆形图片的宽度
-        val overlapOffset = 8.dpToPx() // 第 n-1 张图片压在第 n 张图片上方的偏移量
+        // 头像的尺寸
+        val avatarSize = applicationContext.resources.getDimension(R.dimen.widget_group_avatar_size).toInt()
+        // 第 n-1 张图片压在第 n 张图片上方的偏移量
+        val overlapOffset = 8.dpToPx()
 
         // 加载带边框和圆角的图片
         val originBitmapList = mutableListOf<Bitmap>()
@@ -154,7 +157,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
                 avatarSize,
                 avatarSize,
                 borderWidth = 4.dpToPxFloat(),
-                borderColor = Color.parseColor("#131517")
+                borderColor = ContextCompat.getColor(applicationContext, R.color.widget_group_avatar_border)
             )?.let {
                 originBitmapList.add(it)
             }
@@ -165,7 +168,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         val bitmap = Bitmap.createBitmap(canvasWidth, avatarSize, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint(ANTI_ALIAS_FLAG)
-        paint.color = Color.RED
+        paint.color = ContextCompat.getColor(applicationContext, R.color.widget_group_avatar_bg)
         canvas.drawRoundRect(0f, 0f, canvasWidth.toFloat(), avatarSize.toFloat(), canvasWidth.div(2f), canvasWidth.div(2f), paint)
         for (index in originBitmapList.size -1 downTo 0) {
             val left = (avatarSize - overlapOffset) * index

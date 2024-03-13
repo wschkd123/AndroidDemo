@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="widget_four_cell_width">316dp</dimen>
+    <dimen name="widget_two_cell_height">144dp</dimen>
+    <dimen name="widget_group_avatar_size">28dp</dimen>
+</resources>

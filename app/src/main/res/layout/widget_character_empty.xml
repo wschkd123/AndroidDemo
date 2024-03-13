@@ -1,7 +1,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root_view_character_empty"
-    android:layout_width="155dp"
-    android:layout_height="155dp"
+    android:layout_width="@dimen/widget_two_cell_height"
+    android:layout_height="@dimen/widget_two_cell_height"
     android:orientation="vertical"
     android:padding="14dp"
     android:background="@drawable/widget_empty_bg">
