@@ -66,7 +66,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         //TODO 网络请求
         val type = object : TypeToken<NetResult<AppRecResult>>() {}.type
         val recList =
-            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_1_GROUP, type).data?.recList
+            Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_1, type).data?.recList
 
         updateAppWidgetFromServer(
             applicationContext,
@@ -119,7 +119,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
                     recCharacter.getAvatarUrl(),
                     context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
                     context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
-                    18.dpToPx()
+                    22.dpToPx()
                 )?.let {
                     remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
                 }
@@ -150,7 +150,7 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
                     recCharacter.getAvatarUrl(),
                     context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
                     context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
-                    18.dpToPx()
+                    22.dpToPx()
                 )?.let {
                     remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
                 }
