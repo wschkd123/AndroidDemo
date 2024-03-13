@@ -98,11 +98,9 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
                 appWidgetManager.updateAppWidget(appWidgetIds, this)
             }
             Log.i("AppWidget", "$TAG updateWidget empty")
-        } else {
+        } else if (recList[0].isGroupChat()) {
             val recCharacter = recList[0]
-            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
-//                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
-                //TODO 跳转个人页
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character_group).apply {
                 setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
             }
             // 名称
@@ -115,11 +113,25 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
                 }
 
             // 群聊头像
-            if (!recCharacter.characterList.isNullOrEmpty()) {
-                getMemberAvatarBitmapSync(recCharacter.getGroupMemberUrlList()).let {
-                    remoteViews.setImageViewBitmap(R.id.iv_group_member, it)
-                }
+            getMemberAvatarBitmapSync(recCharacter.getGroupMemberUrlList()).let {
+                remoteViews.setImageViewBitmap(R.id.iv_group_member, it)
             }
+
+            Log.i("AppWidget", "$TAG updateWidget groupChat")
+            appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
+        } else {
+            val recCharacter = recList[0]
+            val remoteViews = RemoteViews(context.packageName, R.layout.widget_character).apply {
+                setOnClickPendingIntent(R.id.root_view_character, appOpenIntent)
+            }
+            // 名称
+            remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
+
+            // 背景头像
+            AppWidgetUtils.loadBitmapSync(TAG, recCharacter.getAvatarUrl(), 480, 480, 18.dpToPx())
+                ?.let {
+                    remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
+                }
 
             Log.i("AppWidget", "$TAG updateWidget")
             appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)

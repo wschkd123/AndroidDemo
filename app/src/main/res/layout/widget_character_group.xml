@@ -22,11 +22,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="14dp"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginBottom="58dp"
         android:ellipsize="end"
         android:maxLines="1"
         tools:text="启动筑梦岛以获取数据"
         android:textColor="#FFFFFF"
         android:textSize="14dp" />
+
+    <ImageView
+        android:id="@+id/iv_group_member"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:scaleType="fitStart"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="14dp"
+        android:layout_marginBottom="14dp" />
 
 </RelativeLayout>

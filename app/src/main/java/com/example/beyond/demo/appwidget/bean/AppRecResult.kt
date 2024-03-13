@@ -66,6 +66,10 @@ data class AppRecResult(
         fun getCharacterName(): String {
             return characterList?.get(0)?.characterName ?: ""
         }
+
+        fun isGroupChat(): Boolean {
+            return type == 2
+        }
     }
 
     companion object {
@@ -76,8 +80,8 @@ data class AppRecResult(
                 "        \"recList\": [\n" +
                 "            {\n" +
                 "                \"roomId\": null,\n" +
-                "                \"roomName\": null,\n" +
-                "                \"type\": 1,\n" +
+                "                \"roomName\": \"我是群聊我是群聊我是群聊\",\n" +
+                "                \"type\": 2,\n" +
                 "                \"sort\": 0,\n" +
                 "                \"recUser\": {\n" +
                 "                    \"userName\": \"书友9348\",\n" +
