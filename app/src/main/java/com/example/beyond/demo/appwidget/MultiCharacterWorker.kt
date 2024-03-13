@@ -60,7 +60,7 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
             Gson().fromJson<NetResult<AppRecResult>>(AppRecResult.MOCK_2, type).data?.recList
         Log.i("AppWidget", "$TAG doWork")
 
-        updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, null)
+        updateAppWidgetFromServer(applicationContext, AppWidgetManager.getInstance(applicationContext), appWidgetIds, recList)
 
         Log.i("AppWidget", "$TAG doWork end")
         return Result.success()
@@ -103,10 +103,14 @@ class MultiCharacterWorker(context: Context, private val workerParams: WorkerPar
                 remoteViews.setTextViewText(textViewIds[index], rec.getCharacterName())
 
                 // 人物形象
-                AppWidgetUtils.loadBitmapSync(TAG, rec.getAvatarUrl(), 480, 645, 22.dpToPx())
-                    ?.let { bitmap ->
+                AppWidgetUtils.loadBitmapSync(
+                    TAG,
+                    rec.getAvatarUrl(),
+                    64.dpToPx(),
+                    86.dpToPx(),
+                    22.dpToPx()
+                )?.let { bitmap ->
                         remoteViews.setImageViewBitmap(imageViewIds[index], bitmap)
-                        //TODO 跳转个人页
                         remoteViews.setOnClickPendingIntent(imageViewIds[index], appOpenIntent)
                     }
             }

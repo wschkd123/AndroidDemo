@@ -50,7 +50,6 @@ internal object AppWidgetUtils {
         var bitmap: Bitmap? = null
         val requestOptions = RequestOptions()
             .transform(CenterCrop(), RoundedCorners(radius))
-            .override(width, height)
         try {
             val futureTarget = Glide.with(applicationContext)
                 .asBitmap()
@@ -93,6 +92,34 @@ internal object AppWidgetUtils {
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e("AppWidget", "$tag loadBitmapSync fail, url:${url}", e)
+        }
+        return bitmap
+    }
+
+    /**
+     * 加载本地圆形图片
+     */
+    @WorkerThread
+    fun loadLocalCircleBitmap(
+        resId: Int,
+        width: Int,
+        height: Int,
+        borderColor: Int,
+        borderWidth: Float
+    ): Bitmap? {
+        var bitmap: Bitmap? = null
+        val requestOptions = RequestOptions()
+            .transform(CenterCrop(), CircleCropTransform(borderWidth, borderColor))
+            .override(width, height)
+        try {
+            val futureTarget = Glide.with(applicationContext)
+                .asBitmap()
+                .load(resId)
+                .apply(requestOptions)
+                .submit(width, height)
+            bitmap = futureTarget.get()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return bitmap
     }

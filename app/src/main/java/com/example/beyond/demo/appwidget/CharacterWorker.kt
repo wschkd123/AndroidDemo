@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.graphics.RectF
@@ -108,10 +107,15 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
 
             // 背景头像
-            AppWidgetUtils.loadBitmapSync(TAG, recCharacter.getAvatarUrl(), 480, 480, 18.dpToPx())
-                ?.let {
-                    remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
-                }
+            AppWidgetUtils.loadBitmapSync(
+                TAG,
+                recCharacter.getAvatarUrl(),
+                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                18.dpToPx()
+            )?.let {
+                remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
+            }
 
             // 群聊头像
             getMemberAvatarBitmapSync(recCharacter.getGroupMemberUrlList()).let {
@@ -129,10 +133,15 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             remoteViews.setTextViewText(R.id.tv_name, recCharacter.getName())
 
             // 背景头像
-            AppWidgetUtils.loadBitmapSync(TAG, recCharacter.getAvatarUrl(), 480, 480, 18.dpToPx())
-                ?.let {
-                    remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
-                }
+            AppWidgetUtils.loadBitmapSync(
+                TAG,
+                recCharacter.getAvatarUrl(),
+                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                context.resources.getDimension(R.dimen.widget_two_cell_height).toInt(),
+                18.dpToPx()
+            )?.let {
+                remoteViews.setImageViewBitmap(R.id.iv_avatar, it)
+            }
 
             Log.i("AppWidget", "$TAG updateWidget")
             appWidgetManager.updateAppWidget(appWidgetIds, remoteViews)
@@ -161,6 +170,17 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
             )?.let {
                 originBitmapList.add(it)
             }
+        }
+
+        // 加载群聊图标
+        AppWidgetUtils.loadLocalCircleBitmap(
+            R.drawable.widget_ic_group,
+            avatarSize,
+            avatarSize,
+            borderWidth = 2.dpToPxFloat(),
+            borderColor = ContextCompat.getColor(applicationContext, R.color.widget_group_avatar_border)
+        )?.let {
+            originBitmapList.add(it)
         }
 
         // 从右往左绘制图片
