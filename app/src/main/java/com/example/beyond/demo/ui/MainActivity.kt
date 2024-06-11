@@ -1,48 +1,42 @@
 package com.example.beyond.demo.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.example.beyond.demo.appwidget.CharacterWidgetReceiver
-import com.example.beyond.demo.appwidget.CharacterWidgetReceiver.Companion.ACTION_APPWIDGET_CHARACTER_REFRESH
-import com.example.beyond.demo.appwidget.MultiCharacterWidgetReceiver.Companion.ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH
-import com.example.beyond.demo.appwidget.MultiCharacterWidgetReceiver
-import com.example.beyond.demo.appwidget.test.TestWidgetReceiver
-import com.example.beyond.demo.appwidget.test.TestWidgetReceiver.Companion.REFRESH_ACTION
 import com.example.beyond.demo.databinding.ActivityMainBinding
+import com.example.beyond.demo.player.MediaPlugin
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
+    private val mediaClient = MediaPlugin.Client()
+
     companion object {
         private const val TAG = "MainActivity"
     }
 
-    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("AppWidget", "$TAG onCreate")
-        binding = ActivityMainBinding.inflate(layoutInflater).apply {
-            setContentView(root)
-            tvTestRefresh.setOnClickListener {
-                val intent = Intent(this@MainActivity, TestWidgetReceiver::class.java)
-                intent.setAction(REFRESH_ACTION)
-                sendBroadcast(intent)
-            }
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-            tvCharacterRefresh.setOnClickListener {
-                val intent = Intent(this@MainActivity, CharacterWidgetReceiver::class.java)
-                intent.setAction(ACTION_APPWIDGET_CHARACTER_REFRESH)
-                sendBroadcast(intent)
-            }
-
-            tvMultiCharacterRefresh.setOnClickListener {
-                val intent = Intent(this@MainActivity, MultiCharacterWidgetReceiver::class.java)
-                intent.setAction(ACTION_APPWIDGET_MULTI_CHARACTER_REFRESH)
-                sendBroadcast(intent)
-            }
+        binding.tvPlay.setOnClickListener {
+            play()
         }
-
     }
 
+    private fun play() {
+
+        mediaClient.create("https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3", "aa", { key, player ->
+            Log.i(TAG, "$key onComplete")
+        }, { desc ->
+            Log.i(TAG, "onError $desc")
+        })
+
+
+        binding.root.postDelayed({
+            mediaClient.play("aa")
+        }, 500)
+    }
 }

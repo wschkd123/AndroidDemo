@@ -5,6 +5,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.example.beyond.demo.appwidget.CharacterWorker
+import com.example.beyond.demo.base.AppContext
 import com.example.beyond.demo.common.Init
 import java.util.concurrent.TimeUnit
 
@@ -17,5 +18,6 @@ class DemoApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         Init.setApplication(this)
+        AppContext.init(this)
     }
 }
