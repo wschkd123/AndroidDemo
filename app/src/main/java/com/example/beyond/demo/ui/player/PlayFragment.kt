@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui
+package com.example.beyond.demo.ui.player
 
 import android.os.Bundle
 import android.util.Log
@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.beyond.demo.base.BaseFragment
 import com.example.beyond.demo.databinding.FragmentPlayBinding
-import com.example.beyond.demo.ui.player.MediaClient
 
 /**
  * 播放器

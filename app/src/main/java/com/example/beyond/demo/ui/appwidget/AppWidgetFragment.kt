@@ -1,12 +1,10 @@
-package com.example.beyond.demo.ui
+package com.example.beyond.demo.ui.appwidget
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.beyond.demo.ui.appwidget.CharacterWidgetReceiver
-import com.example.beyond.demo.ui.appwidget.MultiCharacterWidgetReceiver
 import com.example.beyond.demo.ui.appwidget.test.TestWidgetReceiver
 import com.example.beyond.demo.base.BaseFragment
 import com.example.beyond.demo.databinding.FragmentAppwidgetBinding

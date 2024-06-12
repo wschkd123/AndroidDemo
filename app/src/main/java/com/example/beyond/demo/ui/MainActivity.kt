@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.example.beyond.demo.databinding.ActivityMainBinding
 import com.example.beyond.demo.base.BaseActivity
+import com.example.beyond.demo.ui.player.PlayFragment
 
 class MainActivity : BaseActivity() {
 
@@ -26,9 +27,7 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onBackPressed() {
-        Log.w(TAG, "backStackEntryCount:${supportFragmentManager.backStackEntryCount}")
-        // 返回键直接退出App
-        if (supportFragmentManager.backStackEntryCount <= 1 ) {
+        if (supportFragmentManager.backStackEntryCount <= 1) {
             finish()
         } else {
             super.onBackPressed()
