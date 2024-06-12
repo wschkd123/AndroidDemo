@@ -1,16 +1,13 @@
-package com.example.beyond.demo.appwidget.test
+package com.example.beyond.demo.ui.appwidget.test
 
-import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.widget.RemoteViews
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import com.example.beyond.demo.R
 
 /**
  * Author: clement

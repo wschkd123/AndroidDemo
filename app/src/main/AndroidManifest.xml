@@ -23,7 +23,7 @@
         </activity>
 
         <receiver
-            android:name=".appwidget.CharacterWidgetReceiver"
+            android:name="com.example.beyond.demo.ui.appwidget.CharacterWidgetReceiver"
             android:exported="true"
             android:label="快速查看赛博爱人">
             <intent-filter>
@@ -36,7 +36,7 @@
         </receiver>
 
         <receiver
-            android:name=".appwidget.MultiCharacterWidgetReceiver"
+            android:name="com.example.beyond.demo.ui.appwidget.MultiCharacterWidgetReceiver"
             android:exported="true"
             android:label="快速查看赛博爱人">
             <intent-filter>
@@ -49,7 +49,7 @@
         </receiver>
 
         <receiver
-            android:name=".appwidget.test.TestWidgetReceiver"
+            android:name="com.example.beyond.demo.ui.appwidget.test.TestWidgetReceiver"
             android:exported="true"
             android:label="测试刷新">
             <intent-filter>

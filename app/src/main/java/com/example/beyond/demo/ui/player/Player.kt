@@ -1,4 +1,4 @@
-package com.example.beyond.demo.player
+package com.example.beyond.demo.ui.player
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer

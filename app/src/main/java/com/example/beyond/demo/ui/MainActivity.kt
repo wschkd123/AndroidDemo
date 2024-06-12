@@ -2,64 +2,36 @@ package com.example.beyond.demo.ui
 
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.player.MediaClient
+import com.example.beyond.demo.base.BaseActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
+
     private lateinit var binding: ActivityMainBinding
-    private val mediaClient = MediaClient()
-
-    companion object {
-        private const val TAG = "MainActivity"
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.i("AppWidget", "$TAG onCreate")
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initPlayer()
+        showFragment(PlayFragment())
+    }
 
-        binding.tvPlay.setOnClickListener {
-            mediaClient.play("aa")
-        }
-
-        binding.tvStop.setOnClickListener {
-            mediaClient.pause("aa")
+    private fun showFragment(fragment: Fragment, tag: String = "") {
+        supportFragmentManager.commit(true) {
+            add(binding.fragmentContainerView.id, fragment, tag)
         }
     }
 
-    private fun initPlayer() {
-
-        mediaClient.create(
-            "https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3",
-            "aa",
-            { key, player ->
-                Log.i(TAG, "$key onReady")
-                mediaClient.play("aa")
-            },
-            { desc ->
-                Log.i(TAG, "onError $desc")
-            })
-
-        mediaClient.setOnCompleteListener {
-            Log.i(TAG, "complete $it")
+    override fun onBackPressed() {
+        Log.w(TAG, "backStackEntryCount:${supportFragmentManager.backStackEntryCount}")
+        // 返回键直接退出App
+        if (supportFragmentManager.backStackEntryCount <= 1 ) {
+            finish()
+        } else {
+            super.onBackPressed()
         }
-
-        mediaClient.setOnPlaybackStateChangedListener { key, time ->
-            Log.i(TAG, "playback key:$key time:$time")
-        }
-
-        mediaClient.setOnErrorListener { key, desc ->
-            Log.i(TAG, "error key:$key desc:$desc")
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mediaClient.release()
     }
 }

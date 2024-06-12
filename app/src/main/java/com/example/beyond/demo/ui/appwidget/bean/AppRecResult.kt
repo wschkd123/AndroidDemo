@@ -1,4 +1,4 @@
-package com.example.beyond.demo.appwidget.bean
+package com.example.beyond.demo.ui.appwidget.bean
 
 import java.io.Serializable
 

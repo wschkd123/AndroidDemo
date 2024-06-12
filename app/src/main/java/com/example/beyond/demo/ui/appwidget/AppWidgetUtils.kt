@@ -1,4 +1,4 @@
-package com.example.beyond.demo.appwidget
+package com.example.beyond.demo.ui.appwidget
 
 import android.graphics.Bitmap
 import android.util.Log

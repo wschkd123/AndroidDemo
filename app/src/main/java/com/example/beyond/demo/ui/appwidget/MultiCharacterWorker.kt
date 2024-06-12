@@ -1,4 +1,4 @@
-package com.example.beyond.demo.appwidget
+package com.example.beyond.demo.ui.appwidget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -10,7 +10,7 @@ import androidx.annotation.WorkerThread
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.beyond.demo.R
-import com.example.beyond.demo.appwidget.bean.AppRecResult
+import com.example.beyond.demo.ui.appwidget.bean.AppRecResult
 import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.ui.MainActivity
 import com.example.beyond.demo.util.kt.dpToPx

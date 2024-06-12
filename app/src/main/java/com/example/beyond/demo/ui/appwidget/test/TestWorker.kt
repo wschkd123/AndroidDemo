@@ -1,4 +1,4 @@
-package com.example.beyond.demo.appwidget.test
+package com.example.beyond.demo.ui.appwidget.test
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -8,15 +8,11 @@ import android.content.Intent
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.MutableLiveData
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.beyond.demo.R
-import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.net.RetrofitFactory
 import com.example.beyond.demo.net.WanAndroidService
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
