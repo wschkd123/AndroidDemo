@@ -11,11 +11,11 @@ internal object MediaPlugin {
 
     class Player(
         url: String,
-        onReady: ((player: Player) -> Unit)? = null,
-        onError: ((desc: String?) -> Unit)? = null
+        onPrepareReady: ((player: Player) -> Unit)? = null,
+        onPrepareError: ((desc: String?) -> Unit)? = null
     ) {
         companion object {
-            private const val TAG = "[Player-NA]"
+            private const val TAG = "[Player]"
         }
         private val mediaPlayer = MediaPlayer()
         private var playing: Boolean = false
@@ -64,14 +64,14 @@ internal object MediaPlugin {
                         prepared = false
                         errorListener?.invoke("what:$what extra:$extra")
                     } else {
-                        onError?.invoke("what:$what extra:$extra")
+                        onPrepareError?.invoke("what:$what extra:$extra")
                     }
                     return@setOnErrorListener false
                 }
                 mediaPlayer.setOnPreparedListener {
                     Log.d(TAG, "OnPrepared")
                     prepared = true
-                    onReady?.invoke(this)
+                    onPrepareReady?.invoke(this)
                 }
                 mediaPlayer.setAudioAttributes(
                     AudioAttributes.Builder()
@@ -83,7 +83,7 @@ internal object MediaPlugin {
                 mediaPlayer.prepareAsync()
             } catch (e: Exception) {
                 Log.w(TAG, "create player failed")
-                onError?.invoke(e.message)
+                onPrepareError?.invoke(e.message)
             }
         }
 
@@ -175,15 +175,14 @@ internal object MediaPlugin {
         fun create(
             url: String,
             key: String,
-            onComplete: ((key: String, player: Player) -> Unit)? = null,
-            onError: ((desc: String?) -> Unit)? = null
+            onPrepareReady: ((key: String, player: Player) -> Unit)? = null,
+            onPrepareError: ((desc: String?) -> Unit)? = null
         ) {
-//            val key = generator.next
             val player = Player(url, { player ->
-                onComplete?.invoke(key, player)
+                onPrepareReady?.invoke(key, player)
             }, { desc ->
                 map.remove(key)?.release()
-                onError?.invoke(desc)
+                onPrepareError?.invoke(desc)
             })
             player.setOnCompletionListener {
                 onCompleteListener?.invoke(key)
@@ -255,7 +254,7 @@ internal object MediaPlugin {
             clear()
         }
 
-        fun clear() {
+        private fun clear() {
             map.forEach {
                 it.value.release()
             }

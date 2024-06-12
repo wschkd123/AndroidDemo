@@ -21,22 +21,45 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        initPlayer()
+
         binding.tvPlay.setOnClickListener {
-            play()
+            mediaClient.play("aa")
+        }
+
+        binding.tvStop.setOnClickListener {
+            mediaClient.pause("aa")
         }
     }
 
-    private fun play() {
+    private fun initPlayer() {
 
-        mediaClient.create("https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3", "aa", { key, player ->
-            Log.i(TAG, "$key onComplete")
-        }, { desc ->
-            Log.i(TAG, "onError $desc")
-        })
+        mediaClient.create(
+            "https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3",
+            "aa",
+            { key, player ->
+                Log.i(TAG, "$key onReady")
+                mediaClient.play("aa")
+            },
+            { desc ->
+                Log.i(TAG, "onError $desc")
+            })
 
+        mediaClient.setOnCompleteListener {
+            Log.i(TAG, "complete $it")
+        }
 
-        binding.root.postDelayed({
-            mediaClient.play("aa")
-        }, 500)
+        mediaClient.setOnPlaybackStateChangedListener { key, time ->
+            Log.i(TAG, "playback key:$key time:$time")
+        }
+
+        mediaClient.setOnErrorListener { key, desc ->
+            Log.i(TAG, "error key:$key desc:$desc")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaClient.release()
     }
 }

@@ -11,4 +11,9 @@
         android:layout_height="wrap_content"
         android:text="play"/>
 
+    <TextView
+        android:id="@+id/tv_stop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="stop"/>
 </LinearLayout>
