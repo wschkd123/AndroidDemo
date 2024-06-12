@@ -4,11 +4,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.player.MediaPlugin
+import com.example.beyond.demo.player.MediaClient
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private val mediaClient = MediaPlugin.Client()
+    private val mediaClient = MediaClient()
 
     companion object {
         private const val TAG = "MainActivity"
