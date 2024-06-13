@@ -5,8 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.beyond.demo.base.AppContext
 import com.example.beyond.demo.base.BaseFragment
 import com.example.beyond.demo.databinding.FragmentPlayBinding
+import com.example.beyond.demo.util.YWFileUtil
 
 /**
  * 播放器
@@ -20,10 +22,6 @@ class PlayFragment : BaseFragment() {
     private val binding get() = _binding!!
     private val audioController = AudioController()
 
-    companion object {
-        private const val TAG = "PlayFragment"
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -36,55 +34,54 @@ class PlayFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initPlayer("https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3", "aa")
+        binding.tvPlay1.setOnClickListener {
+            val path = YWFileUtil.getStorageFileDir(AppContext.application).path + "/Audio/" + "test.mp3"
+            preparePlay(path)
+        }
+
+        binding.tvPlay2.setOnClickListener {
+            preparePlay("https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3")
+        }
 
         binding.tvPlay.setOnClickListener {
-//            initPlayer("https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3", "bb")
-//            mediaClient.release()
-            audioController.play("aa")
+            audioController.play()
         }
 
         binding.tvStop.setOnClickListener {
-            audioController.pause("aa")
+            audioController.pause()
         }
+
     }
 
-    private fun initPlayer(url: String, key: String) {
-        audioController.create(url, key, { key, player ->
-            Log.i(TAG, "$key onReady")
-            audioController.play(key)
+    private fun preparePlay(url: String) {
+        Log.i(TAG, "initPlayer url:$url")
+        audioController.prepare(url, {
+            Log.i(TAG, "onReady")
         }, { desc ->
             Log.i(TAG, "onError $desc")
         })
 
-        audioController.setOnCompleteListener {
-            Log.i(TAG, "complete $it")
+        audioController.setOnCompletionListener {
+            Log.i(TAG, "complete")
         }
 
-        audioController.setOnPlaybackStateChangedListener { key, time ->
-            Log.i(TAG, "playback key:$key time:$time")
-        }
-
-        audioController.setOnErrorListener { key, desc ->
-            Log.i(TAG, "error key:$key desc:$desc")
+        audioController.setOnErrorListener { desc ->
+            Log.i(TAG, "error desc:$desc")
         }
     }
 
     override fun onResume() {
         super.onResume()
+        Log.i(TAG, "onResume")
         AudioFocusManager.requestAudioFocus()
     }
 
     override fun onStop() {
         super.onStop()
-//        mediaClient.pause("aa")
+        Log.i(TAG, "onStop")
+        audioController.release()
         AudioFocusManager.abandonAudioFocus()
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        Log.i(TAG, "onDestroyView")
-        audioController.release()
-    }
 
 }

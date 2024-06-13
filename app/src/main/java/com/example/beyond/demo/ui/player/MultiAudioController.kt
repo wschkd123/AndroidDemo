@@ -1,31 +1,33 @@
 package com.example.beyond.demo.ui.player
-
-internal class MediaClient {
+/**
+ * 多实例播放器控制器
+ *
+ * @author wangshichao
+ * @date 2024/6/13
+ */
+internal class MultiAudioController {
     private val map by lazy {
         mutableMapOf<String, PlayerWrapper>()
     }
 
     private var onCompleteListener: ((key: String) -> Unit)? = null
-    private var onPlaybackStateChangedListener: ((key: String, time: Float) -> Unit)? = null
     private var onErrorListener: ((key: String, desc: String) -> Unit)? = null
 
-    fun create(
+    fun prepare(
         url: String,
         key: String,
-        onPrepareReady: ((key: String, player: PlayerWrapper) -> Unit)? = null,
+        onPrepareReady: ((player: PlayerWrapper) -> Unit)? = null,
         onPrepareError: ((desc: String?) -> Unit)? = null
     ) {
-        val player = PlayerWrapper(url, { player ->
-            onPrepareReady?.invoke(key, player)
+        val player = PlayerWrapper()
+        player.prepare(url, {
+            onPrepareReady?.invoke(it)
         }, { desc ->
             map.remove(key)?.release()
             onPrepareError?.invoke(desc)
         })
         player.setOnCompletionListener {
             onCompleteListener?.invoke(key)
-        }
-        player.setOnPlaybackStateChangedListener { time ->
-            onPlaybackStateChangedListener?.invoke(key, time)
         }
         player.setOnErrorListener {
             onErrorListener?.invoke(key, it)
@@ -49,25 +51,8 @@ internal class MediaClient {
         return map[key]?.isPlaying
     }
 
-    fun currentTime(key: String) : Float? {
-        return map[key]?.currentTime
-    }
-
-    fun seekTo(key: String, time: Float) {
-        map[key]?.currentTime = time
-    }
-
-    fun setScreenOnWhilePlaying(key: String, value: Boolean) {
-        map[key]?.setScreenOnWhilePlaying(value)
-    }
-
-    fun setOnCompleteListener(listener: ((key: String) -> Unit)? = null) {
+    fun setOnCompletionListener(listener: ((key: String) -> Unit)? = null) {
         onCompleteListener = listener
-    }
-
-    fun setOnPlaybackStateChangedListener(
-            listener: ((key: String, time: Float) -> Unit)? = null) {
-        onPlaybackStateChangedListener = listener
     }
 
     fun setOnErrorListener(listener: ((key: String, desc: String) -> Unit)?) {
@@ -78,15 +63,8 @@ internal class MediaClient {
         return map.contains(key)
     }
 
-    fun forEach(fn: (key: String) -> Unit) {
-        map.keys.forEach {
-            fn(it)
-        }
-    }
-
     fun release() {
         onCompleteListener = null
-        onPlaybackStateChangedListener = null
         onErrorListener = null
         clear()
     }

@@ -2,7 +2,9 @@ package com.example.beyond.demo.ui.player
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.net.Uri
 import android.util.Log
+import android.webkit.URLUtil.isNetworkUrl
 import com.example.beyond.demo.base.AppContext
 import kotlin.math.max
 import kotlin.math.min
@@ -13,11 +15,7 @@ import kotlin.math.min
  * @author wangshichao
  * @date 2024/6/12
  */
-internal class PlayerWrapper(
-    url: String,
-    onPrepareReady: ((player: PlayerWrapper) -> Unit)? = null,
-    onPrepareError: ((desc: String?) -> Unit)? = null
-) {
+internal class PlayerWrapper {
     companion object {
         private const val TAG = "[PlayerWrapper]"
     }
@@ -31,7 +29,20 @@ internal class PlayerWrapper(
 
     private var lastTime: Float? = null
 
-    init {
+    fun reset() {
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.reset()
+            playing = false
+            prepared = false
+            lastTime = null
+        }
+    }
+
+    fun prepare(
+        url: String,
+        onPrepareReady: ((player: PlayerWrapper) -> Unit)? = null,
+        onPrepareError: ((desc: String?) -> Unit)? = null
+    ) {
         try {
             mediaPlayer.apply {
                 setOnCompletionListener {
