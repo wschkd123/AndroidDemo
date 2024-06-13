@@ -7,13 +7,19 @@ import com.example.beyond.demo.base.AppContext
 import kotlin.math.max
 import kotlin.math.min
 
-internal class Player(
+/**
+ * MediaPlayer 封装
+ *
+ * @author wangshichao
+ * @date 2024/6/12
+ */
+internal class PlayerWrapper(
     url: String,
-    onPrepareReady: ((player: Player) -> Unit)? = null,
+    onPrepareReady: ((player: PlayerWrapper) -> Unit)? = null,
     onPrepareError: ((desc: String?) -> Unit)? = null
 ) {
     companion object {
-        private const val TAG = "[Player]"
+        private const val TAG = "[PlayerWrapper]"
     }
     private val mediaPlayer = MediaPlayer()
     private var playing: Boolean = false
@@ -27,58 +33,60 @@ internal class Player(
 
     init {
         try {
-            mediaPlayer.setOnCompletionListener {
-                Log.d(TAG, "OnComplete")
-                playing = false
-                playToEndListener?.invoke()
-                syncPlaybackStatusIfNeeds()
-            }
-            mediaPlayer.setOnInfoListener { _, what, _ ->
-                return@setOnInfoListener when (what) {
-                    MediaPlayer.MEDIA_INFO_BUFFERING_START,
-                    MediaPlayer.MEDIA_INFO_BUFFERING_END -> {
-                        Log.d(TAG, "OnInfo BUFFERING $what")
-                        syncPlaybackStatusIfNeeds()
-                        true
-                    }
-                    MediaPlayer.MEDIA_INFO_AUDIO_NOT_PLAYING,
-                    MediaPlayer.MEDIA_INFO_VIDEO_NOT_PLAYING -> {
-                        Log.d(TAG, "OnInfo NOT_PLAYING $what")
-                        syncPlaybackStatusIfNeeds()
-                        true
-                    } else -> {
-                        Log.d(TAG, "OnInfo others $what")
-                        false
+            mediaPlayer.apply {
+                setOnCompletionListener {
+                    Log.d(TAG, "OnComplete")
+                    playing = false
+                    playToEndListener?.invoke()
+                    syncPlaybackStatusIfNeeds()
+                }
+                setOnInfoListener { _, what, _ ->
+                    return@setOnInfoListener when (what) {
+                        MediaPlayer.MEDIA_INFO_BUFFERING_START,
+                        MediaPlayer.MEDIA_INFO_BUFFERING_END -> {
+                            Log.d(TAG, "OnInfo BUFFERING $what")
+                            syncPlaybackStatusIfNeeds()
+                            true
+                        }
+                        MediaPlayer.MEDIA_INFO_AUDIO_NOT_PLAYING,
+                        MediaPlayer.MEDIA_INFO_VIDEO_NOT_PLAYING -> {
+                            Log.d(TAG, "OnInfo NOT_PLAYING $what")
+                            syncPlaybackStatusIfNeeds()
+                            true
+                        } else -> {
+                            Log.d(TAG, "OnInfo others $what")
+                            false
+                        }
                     }
                 }
-            }
-            mediaPlayer.setOnSeekCompleteListener {
-                Log.d(TAG, "OnSeekComplete")
-                syncPlaybackStatusIfNeeds()
-            }
-            mediaPlayer.setOnErrorListener { _, what, extra ->
-                Log.w(TAG, "OnError prepared:$prepared what:$what extra:$extra")
-                if (prepared) {
-                    prepared = false
-                    errorListener?.invoke("what:$what extra:$extra")
-                } else {
-                    onPrepareError?.invoke("what:$what extra:$extra")
+                setOnSeekCompleteListener {
+                    Log.d(TAG, "OnSeekComplete")
+                    syncPlaybackStatusIfNeeds()
                 }
-                return@setOnErrorListener false
+                setOnErrorListener { _, what, extra ->
+                    Log.w(TAG, "OnError prepared:$prepared what:$what extra:$extra")
+                    if (prepared) {
+                        prepared = false
+                        errorListener?.invoke("what:$what extra:$extra")
+                    } else {
+                        onPrepareError?.invoke("what:$what extra:$extra")
+                    }
+                    return@setOnErrorListener false
+                }
+                setOnPreparedListener {
+                    Log.d(TAG, "OnPrepared")
+                    prepared = true
+                    onPrepareReady?.invoke(this@PlayerWrapper)
+                }
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(url)
+                prepareAsync()
             }
-            mediaPlayer.setOnPreparedListener {
-                Log.d(TAG, "OnPrepared")
-                prepared = true
-                onPrepareReady?.invoke(this)
-            }
-            mediaPlayer.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build()
-            )
-            mediaPlayer.setDataSource(url)
-            mediaPlayer.prepareAsync()
         } catch (e: Exception) {
             Log.w(TAG, "create player failed")
             onPrepareError?.invoke(e.message)
@@ -141,15 +149,17 @@ internal class Player(
 
     fun release() {
         playToEndListener = null
-        mediaPlayer.setOnCompletionListener(null)
-        mediaPlayer.setOnInfoListener(null)
         errorListener = null
-        mediaPlayer.setOnErrorListener(null)
-        mediaPlayer.setOnPreparedListener(null)
         playbackStateChangedListener = null
+        mediaPlayer.apply {
+            setOnCompletionListener(null)
+            setOnInfoListener(null)
+            setOnErrorListener(null)
+            setOnPreparedListener(null)
+            stop()
+            release()
+        }
 
-        mediaPlayer.stop()
-        mediaPlayer.release()
     }
 
     private fun syncPlaybackStatusIfNeeds() {
@@ -160,4 +170,5 @@ internal class Player(
             playbackStateChangedListener?.invoke(time)
         }
     }
+
 }

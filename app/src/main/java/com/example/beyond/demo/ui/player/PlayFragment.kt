@@ -18,7 +18,7 @@ class PlayFragment : BaseFragment() {
 
     private var _binding: FragmentPlayBinding? = null
     private val binding get() = _binding!!
-    private val mediaClient = MediaClient()
+    private val audioController = AudioController()
 
     companion object {
         private const val TAG = "PlayFragment"
@@ -36,47 +36,55 @@ class PlayFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initPlayer()
+        initPlayer("https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3", "aa")
 
         binding.tvPlay.setOnClickListener {
-            mediaClient.play("aa")
+//            initPlayer("https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3", "bb")
+//            mediaClient.release()
+            audioController.play("aa")
         }
 
         binding.tvStop.setOnClickListener {
-            mediaClient.pause("aa")
+            audioController.pause("aa")
         }
     }
 
-    private fun initPlayer() {
+    private fun initPlayer(url: String, key: String) {
+        audioController.create(url, key, { key, player ->
+            Log.i(TAG, "$key onReady")
+            audioController.play(key)
+        }, { desc ->
+            Log.i(TAG, "onError $desc")
+        })
 
-        mediaClient.create(
-            "https://downsc.chinaz.net/Files/DownLoad/sound1/201906/11582.mp3",
-            "aa",
-            { key, player ->
-                Log.i(TAG, "$key onReady")
-                mediaClient.play("aa")
-            },
-            { desc ->
-                Log.i(TAG, "onError $desc")
-            })
-
-        mediaClient.setOnCompleteListener {
+        audioController.setOnCompleteListener {
             Log.i(TAG, "complete $it")
         }
 
-        mediaClient.setOnPlaybackStateChangedListener { key, time ->
+        audioController.setOnPlaybackStateChangedListener { key, time ->
             Log.i(TAG, "playback key:$key time:$time")
         }
 
-        mediaClient.setOnErrorListener { key, desc ->
+        audioController.setOnErrorListener { key, desc ->
             Log.i(TAG, "error key:$key desc:$desc")
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AudioFocusManager.requestAudioFocus()
+    }
+
+    override fun onStop() {
+        super.onStop()
+//        mediaClient.pause("aa")
+        AudioFocusManager.abandonAudioFocus()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         Log.i(TAG, "onDestroyView")
-        mediaClient.release()
+        audioController.release()
     }
 
 }

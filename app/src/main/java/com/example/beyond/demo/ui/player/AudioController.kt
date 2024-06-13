@@ -1,6 +1,12 @@
 package com.example.beyond.demo.ui.player
 
-internal class MediaClient {
+/**
+ *
+ *
+ * @author wangshichao
+ * @date 2024/6/12
+ */
+internal class AudioController {
     private val map by lazy {
         mutableMapOf<String, PlayerWrapper>()
     }
