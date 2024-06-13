@@ -1,4 +1,4 @@
-package com.example.beyond.demo.base
+package com.example.base
 
 import android.app.Activity
 import android.app.Application

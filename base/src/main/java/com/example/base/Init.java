@@ -1,4 +1,4 @@
-package com.example.beyond.demo.common;
+package com.example.base;
 
 import android.app.Application;
 import android.content.Context;

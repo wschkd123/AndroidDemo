@@ -1,11 +1,10 @@
 package com.example.beyond.demo.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import com.example.base.BaseActivity
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.base.BaseActivity
 import com.example.beyond.demo.ui.player.PlayFragment
 
 class MainActivity : BaseActivity() {

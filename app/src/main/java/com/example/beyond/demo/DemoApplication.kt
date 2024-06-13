@@ -1,8 +1,8 @@
 package com.example.beyond.demo
 
 import android.app.Application
-import com.example.beyond.demo.base.AppContext
-import com.example.beyond.demo.common.Init
+import com.example.base.AppContext
+import com.example.base.Init
 
 /**
  *

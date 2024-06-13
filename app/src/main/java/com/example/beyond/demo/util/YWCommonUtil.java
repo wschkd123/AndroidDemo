@@ -22,7 +22,7 @@ import android.widget.RelativeLayout;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.beyond.demo.common.Init;
+import com.example.base.Init;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

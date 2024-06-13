@@ -1,11 +1,9 @@
-package com.example.beyond.demo.ui.player
+package com.example.base.player
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.net.Uri
 import android.util.Log
-import android.webkit.URLUtil.isNetworkUrl
-import com.example.beyond.demo.base.AppContext
+import com.example.base.AppContext
 import kotlin.math.max
 import kotlin.math.min
 

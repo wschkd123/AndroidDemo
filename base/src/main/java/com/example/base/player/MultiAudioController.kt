@@ -1,11 +1,12 @@
-package com.example.beyond.demo.ui.player
+package com.example.base.player
+
 /**
  * 多实例播放器控制器
  *
  * @author wangshichao
  * @date 2024/6/13
  */
-internal class MultiAudioController {
+class MultiAudioController {
     private val map by lazy {
         mutableMapOf<String, PlayerWrapper>()
     }
@@ -17,12 +18,12 @@ internal class MultiAudioController {
     fun prepare(
         url: String,
         key: String,
-        onPrepareReady: ((player: PlayerWrapper) -> Unit)? = null,
+        onPrepareReady: (() -> Unit)? = null,
         onPrepareError: ((desc: String?) -> Unit)? = null
     ) {
         val player = PlayerWrapper()
         player.prepare(url, {
-            onPrepareReady?.invoke(it)
+            onPrepareReady?.invoke()
         }, { desc ->
             map.remove(key)?.release()
             onPrepareError?.invoke(desc)

@@ -10,7 +10,7 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
-import com.example.beyond.demo.common.Init.applicationContext
+import com.example.base.Init.applicationContext
 
 /**
  * 单个人物

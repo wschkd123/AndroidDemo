@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.player
+package com.example.base.player
 
 import android.app.Activity
 import android.media.AudioAttributes
@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.example.beyond.demo.base.AppContext
+import com.example.base.AppContext
 
 /**
  * 音频焦点管理

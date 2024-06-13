@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.player
+package com.example.base.player
 
 /**
  * 单实例播放器控制器
