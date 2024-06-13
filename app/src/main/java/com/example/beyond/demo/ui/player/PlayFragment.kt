@@ -65,6 +65,10 @@ class PlayFragment : BaseFragment() {
             Log.i(TAG, "complete")
         }
 
+        audioController.setOnPlaybackStateChangedListener {
+            Log.i(TAG, "playbackState $it")
+        }
+
         audioController.setOnErrorListener { desc ->
             Log.i(TAG, "error desc:$desc")
         }

@@ -10,6 +10,7 @@ class AudioController {
     private val player = PlayerWrapper()
 
     private var onCompleteListener: (() -> Unit)? = null
+    private var onPlaybackStateChangedListener: ((time: Float) -> Unit)? = null
     private var onErrorListener: ((desc: String) -> Unit)? = null
 
     fun prepare(
@@ -28,6 +29,9 @@ class AudioController {
             })
             setOnCompletionListener {
                 onCompleteListener?.invoke()
+            }
+            player.setOnPlaybackStateChangedListener { time ->
+                onPlaybackStateChangedListener?.invoke(time)
             }
             setOnErrorListener {
                 onErrorListener?.invoke(it)
@@ -50,6 +54,11 @@ class AudioController {
 
     fun setOnCompletionListener(listener: (() -> Unit)? = null) {
         onCompleteListener = listener
+    }
+
+    fun setOnPlaybackStateChangedListener(
+        listener: ((time: Float) -> Unit)? = null) {
+        onPlaybackStateChangedListener = listener
     }
 
     fun setOnErrorListener(listener: ((desc: String) -> Unit)?) {

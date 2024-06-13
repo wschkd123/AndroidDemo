@@ -11,6 +11,7 @@ internal class MultiAudioController {
     }
 
     private var onCompleteListener: ((key: String) -> Unit)? = null
+    private var onPlaybackStateChangedListener: ((time: Float) -> Unit)? = null
     private var onErrorListener: ((key: String, desc: String) -> Unit)? = null
 
     fun prepare(
@@ -28,6 +29,9 @@ internal class MultiAudioController {
         })
         player.setOnCompletionListener {
             onCompleteListener?.invoke(key)
+        }
+        player.setOnPlaybackStateChangedListener { time ->
+            onPlaybackStateChangedListener?.invoke(time)
         }
         player.setOnErrorListener {
             onErrorListener?.invoke(key, it)
@@ -53,6 +57,11 @@ internal class MultiAudioController {
 
     fun setOnCompletionListener(listener: ((key: String) -> Unit)? = null) {
         onCompleteListener = listener
+    }
+
+    fun setOnPlaybackStateChangedListener(
+        listener: ((time: Float) -> Unit)? = null) {
+        onPlaybackStateChangedListener = listener
     }
 
     fun setOnErrorListener(listener: ((key: String, desc: String) -> Unit)?) {

@@ -17,7 +17,7 @@ import kotlin.math.min
  */
 internal class PlayerWrapper {
     companion object {
-        private const val TAG = "[PlayerWrapper]"
+        private const val TAG = "PlayerWrapper"
     }
     private val mediaPlayer = MediaPlayer()
     private var playing: Boolean = false
@@ -30,12 +30,10 @@ internal class PlayerWrapper {
     private var lastTime: Float? = null
 
     fun reset() {
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.reset()
-            playing = false
-            prepared = false
-            lastTime = null
-        }
+        mediaPlayer.reset()
+        playing = false
+        prepared = false
+        lastTime = null
     }
 
     fun prepare(
