@@ -13,7 +13,7 @@ import com.example.beyond.demo.R
 import com.example.beyond.demo.ui.appwidget.bean.AppRecResult
 import com.example.beyond.demo.net.NetResult
 import com.example.beyond.demo.ui.MainActivity
-import com.example.beyond.demo.util.kt.dpToPx
+import com.example.base.util.ext.dpToPx
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 

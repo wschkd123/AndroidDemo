@@ -1,4 +1,4 @@
-package com.example.beyond.demo.util;
+package com.example.base.util;
 
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;

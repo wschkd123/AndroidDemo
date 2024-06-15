@@ -1,4 +1,4 @@
-package com.example.beyond.demo.util;
+package com.example.base.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
 import java.io.BufferedReader;
@@ -703,5 +704,44 @@ public class YWFileUtil {
         } else {
             return null;
         }
+    }
+
+    @Nullable
+    public static File generateFileName(@Nullable String name, File directory) {
+        if (name == null) {
+            return null;
+        }
+
+        File file = new File(directory, name);
+
+        if (file.exists()) {
+            String fileName = name;
+            String extension = "";
+            int dotIndex = name.lastIndexOf('.');
+            if (dotIndex > 0) {
+                fileName = name.substring(0, dotIndex);
+                extension = name.substring(dotIndex);
+            }
+
+            int index = 0;
+
+            while (file.exists()) {
+                index++;
+                name = fileName + '(' + index + ')' + extension;
+                file = new File(directory, name);
+            }
+        }
+
+        try {
+            if (!file.createNewFile()) {
+                return null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+
+        return file;
     }
 }

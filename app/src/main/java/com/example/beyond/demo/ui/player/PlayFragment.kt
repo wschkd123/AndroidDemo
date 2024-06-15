@@ -10,7 +10,7 @@ import com.example.base.BaseFragment
 import com.example.base.player.AudioController
 import com.example.beyond.demo.databinding.FragmentPlayBinding
 import com.example.base.player.AudioFocusManager
-import com.example.beyond.demo.util.YWFileUtil
+import com.example.base.util.YWFileUtil
 
 /**
  * 播放器
