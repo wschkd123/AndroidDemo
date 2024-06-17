@@ -1,14 +1,13 @@
 package com.example.beyond.demo.ui.player
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
+import androidx.annotation.WorkerThread
+import com.example.base.AppContext
 import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.YWFileUtil
-import com.example.beyond.demo.ui.player.data.AudioChunkResult
 import com.example.beyond.demo.ui.player.data.MediaDataSource
-import com.yuewen.baseutil.ext.getActivity
+import com.example.beyond.demo.ui.player.data.TTSChunkResult
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,18 +22,17 @@ import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 /**
- * 通过sse协议实现文本流式输入语音流式输出
+ * 通过sse协议实现文本流式输入语音流式输出（TTS）
  *
  * https://platform.minimaxi.com/document/guides/T2A-model/stream?id=65701c77024fd5d1dffbb8fe
  *
  * @author wangshichao
  * @date 2024/6/14
  */
-class SpeechStreamHelper(
-    private val context: Context,
-    private val listener: SpeechStreamListener? = null
+class TTSStreamHelper(
+    private var listener: TTSStreamListener
 ) {
-    private val TAG = "ExoHelper"
+    private val TAG = "ExoPlayerTTS"
     private val apiKey =
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLkuIrmtbfnrZHmoqblspvkurrlt6Xmmbrog73np5HmioDmnInpmZDlhazlj7giLCJVc2VyTmFtZSI6ImNsaWVudHRlc3QiLCJBY2NvdW50IjoiY2xpZW50dGVzdEAxNzgyNTg4NTA5Njk4MTM0NDU1IiwiU3ViamVjdElEIjoiMTgwMTE5NDU2ODkwNTkyNDYwOSIsIlBob25lIjoiIiwiR3JvdXBJRCI6IjE3ODI1ODg1MDk2OTgxMzQ0NTUiLCJQYWdlTmFtZSI6IiIsIk1haWwiOiIiLCJDcmVhdGVUaW1lIjoiMjAyNC0wNi0xMyAyMToxNzoyMCIsImlzcyI6Im1pbmltYXgifQ.T-09xCHVDtou3vpO_gIxJW8dg9yOw8BQ_gIpDffhWWAzZb5R6Tv2Q6UJdMRxdPdCYWjqRnOBRS8dEf2Wu9rukhFY9CoDoeYQ7hNwB8472aoz67hJnv0420PlOXTV9VH5MB648lC0uYcdmOQ7-VH7MF5NSyvYr-rRvyL2UVJr2zyGlsS40ngzygoaIJK3ZmD7O-v1ko-JRBiFTFFfzb6Kp6lRnc20HKnK35gpJVY2OkmtoxxFCXm8rJvFuj0dlijmoeqKG8hS8f6JDpkybp1pqlwzOSg15f1rDstYOAtL8OYkYuJeNZFkZ9sUCPyqQPVkQhDJLZhJS9VaVzJmkLTpBw"
     private val format = "mp3"
@@ -45,12 +43,31 @@ class SpeechStreamHelper(
             .readTimeout(10, TimeUnit.MINUTES)
             .addNetworkInterceptor(HttpLogInterceptor())
             .build()
+    private val ttsCompleteDir =
+        YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/"
+    private val ttsChunkDir =
+        YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/chunk/"
 
-    private var chunkIndex = 0
+    /**
+     * ttsKey列表
+     */
+    private val requestSet = hashSetOf<String>()
+
+    fun startConnect(
+        content: String = "你好",
+        ttsKey: String
+    ) {
+        Log.i(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
+
+        //TODO 已缓存
 
 
-    fun loadData(content: String = "你好") {
-        chunkIndex = 0
+        //TODO 正在请求
+        if (requestSet.contains(ttsKey)) {
+            Log.w(TAG, "$content $ttsKey is requesting")
+            return
+        }
+        requestSet.add(ttsKey)
         val json = "{\n" +
                 "    \"timber_weights\": [\n" +
                 "      {\n" +
@@ -94,11 +111,12 @@ class SpeechStreamHelper(
                 data: String
             ) {
                 super.onEvent(eventSource, id, type, data)
-                processMessageContent(data)
+                parserMessageContent(ttsKey, data)
             }
 
             override fun onClosed(eventSource: EventSource) {
                 super.onClosed(eventSource)
+                requestSet.remove(ttsKey)
                 Log.i(TAG, "已断开")
             }
 
@@ -108,9 +126,10 @@ class SpeechStreamHelper(
                 response: Response?
             ) {
                 super.onFailure(eventSource, t, response)
-                Log.i(TAG, "连接失败 ${t?.message}")
+                requestSet.remove(ttsKey)
+                Log.w(TAG, "连接失败 ${t?.message} ttsKey:$ttsKey")
                 val data = readStringFromBuffer(response)
-                processMessageContent(data)
+                parserMessageContent(ttsKey, data)
             }
         })
         realEventSource.connect(okHttpClient)
@@ -118,7 +137,7 @@ class SpeechStreamHelper(
     }
 
     private fun readStringFromBuffer(response: Response?): String {
-        val buffer: Buffer = response?.body()?.source()?.buffer()?:return ""
+        val buffer: Buffer = response?.body()?.source()?.buffer ?: return ""
         val bufferSize = buffer.size()
         var body = ""
         try {
@@ -129,50 +148,50 @@ class SpeechStreamHelper(
         return body
     }
 
-    private fun processMessageContent(data: String) {
-        val chunk = JsonUtilKt.toObject(data, AudioChunkResult::class.java)
+    private fun parserMessageContent(
+        ttsKey: String,
+        data: String
+    ) {
+        val chunk = JsonUtilKt.toObject(data, TTSChunkResult::class.java)
         if (chunk == null) {
             Log.i(TAG, "chunk is null")
             return
         }
         val traceId = chunk.trace_id
-        if (chunk.base_resp.isSuccess().not()) {
-            Log.w(TAG, "chunk is fail, code:${chunk.base_resp.status_code} msg:${chunk.base_resp.status_msg} trace_id:$traceId")
-            context.getActivity()?.runOnUiThread {
-                Toast.makeText(context, "您点的太快啦", Toast.LENGTH_SHORT).show()
-            }
+        val audio = chunk.data?.audio
+        val baseResp = chunk.base_resp
+        if (baseResp?.isSuccess() != true) {
+            listener?.onReceiveLimit(baseResp?.status_code ?: 0, baseResp?.status_msg ?: "")
             return
         }
-        if (chunk.data.audio.isNullOrEmpty()) {
-            Log.i(TAG, "audio is null, trace_id:$traceId")
+        if (audio.isNullOrEmpty()) {
+            Log.i(TAG, "audio is empty, trace_id:$traceId")
             return
         }
 
-        context.getActivity()?.runOnUiThread {
-        val chunkPath = if (chunk.data.isEnd()) {
-            //TODO 缓存
-            Log.w(TAG, "content:${chunk.data.audio.length} end, trace_id:$traceId")
-            saveAudioLocal(chunk.data.audio, chunk.trace_id)
+        val chunkPath = if (chunk.data.isLastComplete()) {
+            //TODO 最后一个完整资源缓存，以
+            val path = "$ttsCompleteDir$ttsKey.$format"
+            Log.w(TAG, "parser complete content:${audio.length} path:$path ttsKey:${ttsKey}")
+            saveAudioChunkToFile(audio, path)
         } else {
-            Log.i(TAG, "content:${chunk.data.audio.length}, trace_id:$traceId")
-            saveAudioLocal(chunk.data.audio, chunk.trace_id + "_" + chunkIndex)
+            val path = "$ttsChunkDir${chunk.trace_id}_${System.currentTimeMillis()}.$format"
+            Log.i(TAG, "parser content:${audio.length} path:$path path:${ttsKey}")
+            saveAudioChunkToFile(audio, path)
         }
-        listener?.onReceiveChunk(
-            MediaDataSource(
-                chunk.trace_id,
+        val mediaDataSource = MediaDataSource(
+            traceId = chunk.trace_id,
+            ttsKey = ttsKey,
+            audioChunk = MediaDataSource.AudioChunk(
                 chunkPath,
-                format,
-                chunk.data.isEnd(),
-                chunkIndex
+                chunk.data.isLastComplete(),
             )
         )
-        chunkIndex++
-        }
+        listener?.onReceiveChunk(mediaDataSource)
     }
 
-    private fun saveAudioLocal(data: String, key: String): String {
+    private fun saveAudioChunkToFile(data: String, path: String): String {
         val byteArray = decodeHex(data)
-        val path = YWFileUtil.getStorageFileDir(context).path + "/" + key + ".mp3"
         YWFileUtil.saveByteArrayToFile(byteArray, path)
         return path
     }
@@ -190,6 +209,16 @@ class SpeechStreamHelper(
 
 }
 
-interface SpeechStreamListener {
+interface TTSStreamListener {
+    /**
+     * 接收音频片段
+     */
+    @WorkerThread
     fun onReceiveChunk(dataSource: MediaDataSource)
+
+    /**
+     * 触发速率限制
+     */
+    @WorkerThread
+    fun onReceiveLimit(code: Int, msg: String)
 }

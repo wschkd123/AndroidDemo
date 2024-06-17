@@ -4,30 +4,37 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 /**
- * 音频片段播放数据资源
+ * 音频片段播放数据源
  */
 @Parcelize
 data class MediaDataSource(
     /**
-     * 本次会话的id
+     * 本次tts请求的id
      */
     val traceId: String,
+
     /**
-     * 音频片段路径
+     * 本次tts key。用于用于请求、播放和下载
      */
-    val chunkPath: String,
+    val ttsKey: String,
+
     /**
-     * 生成的音频格式。默认mp3，范围[mp3,pcm,flac]
+     * 音频片段
      */
-    val format: String,
-    /**
-     * 是否合成结束
-     */
-    val isEnd: Boolean,
-    val chunkIndex: Int = 0
+    val audioChunk: AudioChunk
 ) : Parcelable {
-    /**
-     * 新的资源
-     */
-    fun isNewSource() = chunkIndex == 0
+
+    @Parcelize
+    data class AudioChunk(
+        /**
+         * 音频片段缓存路径
+         */
+        val chunkPath: String,
+        /**
+         * 是否是最后一个完整资源
+         */
+        val isLastComplete: Boolean,
+    ) : Parcelable
+
+
 }

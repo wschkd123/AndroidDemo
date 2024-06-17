@@ -34,23 +34,19 @@ object ExoPlayerManager {
             }
     }
 
-    fun replaceDataSource(dataSource: MediaDataSource) {
-        // 切换资源
-//        if (dataSource.isNewSource()) {
-//            player?.clearMediaItems()
-//        }
-        if (dataSource.isEnd.not()) {
-            Log.w(TAG, "receive stream path:${dataSource.chunkPath}")
+    fun addMediaItem(dataSource: MediaDataSource) {
+        if (dataSource.audioChunk.isLastComplete.not()) {
+            Log.w(TAG, "prepare play path:${dataSource.audioChunk.chunkPath}")
             player.apply {
-                curPlayUri = dataSource.chunkPath
-                addMediaItem(MediaItem.fromUri(dataSource.chunkPath))
+                curPlayUri = dataSource.audioChunk.chunkPath
+                addMediaItem(MediaItem.fromUri(dataSource.audioChunk.chunkPath))
                 prepare()
                 playWhenReady = playWhenReady
             }
         }
     }
 
-    fun replaceDataSource(uri: String) {
+    fun addMediaItem(uri: String) {
         curPlayUri = uri
         player.apply {
             clearMediaItems()

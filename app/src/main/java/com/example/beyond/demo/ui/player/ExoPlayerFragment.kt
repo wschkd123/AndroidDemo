@@ -3,13 +3,15 @@ package com.example.beyond.demo.ui.player
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.example.base.BaseFragment
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
-import com.example.beyond.demo.ui.player.ExoPlayerManager.replaceDataSource
+import com.example.beyond.demo.ui.player.ExoPlayerManager
 import com.example.beyond.demo.ui.player.data.MediaDataSource
 
 /**
@@ -24,12 +26,23 @@ class ExoPlayerFragment : BaseFragment() {
     private val mp3Url =
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context).path + "/test.mp3" }
-    private var chatSpeechHelper: SpeechStreamHelper? = null
+    private lateinit var ttsStreamHelper: TTSStreamHelper
+    private var currentTtsKey: String? = ""
     private val handler = Handler(Looper.getMainLooper()) { // 首帧清除数据
         when (it.what) {
-            WHAT_AUDIO_CHUNK -> {
+            WHAT_TTS_SUCCESS -> {
                 val dataSource = it.obj as MediaDataSource
-                replaceDataSource(dataSource)
+                Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}")
+                // 仅播放最后一个被点击的内容
+                if (currentTtsKey == dataSource.ttsKey) {
+                    Log.w(TAG, "replaceDataSource ttsKey:${dataSource.ttsKey}")
+                    ExoPlayerManager.addMediaItem(dataSource)
+                }
+                true
+            }
+
+            WHAT_TTS_FAIL -> {
+                Toast.makeText(context, "您点的太快啦", Toast.LENGTH_SHORT).show()
                 true
             }
 
@@ -43,7 +56,8 @@ class ExoPlayerFragment : BaseFragment() {
         /**
          * 音频片段消息
          */
-        private const val WHAT_AUDIO_CHUNK = 0x10
+        private const val WHAT_TTS_SUCCESS = 0x10
+        private const val WHAT_TTS_FAIL=0x11
     }
 
     override fun onCreateView(
@@ -57,30 +71,45 @@ class ExoPlayerFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        chatSpeechHelper = SpeechStreamHelper(view.context, object : SpeechStreamListener {
+        ttsStreamHelper = TTSStreamHelper(object : TTSStreamListener {
             override fun onReceiveChunk(dataSource: MediaDataSource) {
-                replaceDataSource(dataSource)
+                Log.i(TAG, "onReceiveChunk clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}")
+                val message = handler.obtainMessage(WHAT_TTS_SUCCESS, dataSource)
+                handler.sendMessage(message)
+            }
+
+            override fun onReceiveLimit(code: Int, msg: String) {
+                Log.w(TAG, "onReceiveLimit code:${code} msg:$msg")
+                val message = handler.obtainMessage(WHAT_TTS_FAIL)
+                handler.sendMessage(message)
             }
 
         })
 
         binding.tvPlayStream1.setOnClickListener {
             ExoPlayerManager.clearMediaItems()
-            chatSpeechHelper?.loadData("Events")
+            val content = "Events"
+            currentTtsKey = content.hashCode().toString()
+            Log.w(TAG, "click clickTtsKey:${currentTtsKey} content:${content}")
+            ttsStreamHelper.startConnect(content, currentTtsKey!!)
         }
 
         binding.tvPlayStream2.setOnClickListener {
             ExoPlayerManager.clearMediaItems()
-            chatSpeechHelper?.loadData("筑梦岛")
+            val content = "筑梦岛"
+            currentTtsKey = content.hashCode().toString()
+            Log.w(TAG, "click clickTtsKey:${currentTtsKey} content:${content}")
+            ttsStreamHelper.startConnect(content, currentTtsKey!!)
         }
 
         binding.tvPlayLocal.setOnClickListener {
-            ExoPlayerManager.replaceDataSource(mp3Path)
+            ExoPlayerManager.clearMediaItems()
+            ExoPlayerManager.addMediaItem(mp3Path)
         }
 
         binding.tvPlayNet.setOnClickListener {
-            ExoPlayerManager.replaceDataSource(mp3Url)
+            ExoPlayerManager.clearMediaItems()
+            ExoPlayerManager.addMediaItem(mp3Url)
         }
     }
 

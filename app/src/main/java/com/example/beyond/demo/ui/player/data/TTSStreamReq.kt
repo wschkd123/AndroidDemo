@@ -3,11 +3,16 @@ package com.example.beyond.demo.ui.player.data
 /**
  * 音频流式请求
  *
+ * https://platform.minimaxi.com/document/guides/T2A-model/stream?id=65701c77024fd5d1dffbb8fe
+ *
  * @author wangshichao
  * @date 2024/6/17
  */
 
-data class AudioStreamReq(
+/**
+ * 流式语音生成请求入参
+ */
+data class TTSStreamReq(
     /**
      * 调用的模型版本
      */
@@ -62,11 +67,11 @@ data class AudioStreamReq(
 }
 
 /**
- * 音频片段数据返回
+ * 流式语音生成请求返回单个片段数据
  */
-data class AudioChunkResult(
-    val base_resp: BaseResp,
-    val `data`: Data,
+data class TTSChunkResult(
+    val base_resp: BaseResp? = null,
+    val `data`: Data? = null,
     val extra_info: ExtraInfo? = null,
     /**
      * 本次会话的id
@@ -94,7 +99,10 @@ data class AudioChunkResult(
          */
         val status: Int = 0
     ) {
-        fun isEnd() = status == 2
+        /**
+         * 是否是最后一个完整资源
+         */
+        fun isLastComplete() = status == 2
     }
 
     data class ExtraInfo(
