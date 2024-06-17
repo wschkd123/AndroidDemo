@@ -36,7 +36,7 @@ object ExoPlayerManager {
 
     fun addMediaItem(dataSource: MediaDataSource) {
         if (dataSource.audioChunk.isLastComplete.not()) {
-            Log.w(TAG, "prepare play path:${dataSource.audioChunk.chunkPath}")
+            Log.w(TAG, "addMediaItem path:${dataSource.audioChunk.chunkPath} ttsKey:${dataSource.ttsKey}")
             player.apply {
                 curPlayUri = dataSource.audioChunk.chunkPath
                 addMediaItem(MediaItem.fromUri(dataSource.audioChunk.chunkPath))
@@ -47,6 +47,7 @@ object ExoPlayerManager {
     }
 
     fun addMediaItem(uri: String) {
+        Log.w(TAG, "addMediaItem uri:${uri}")
         curPlayUri = uri
         player.apply {
             clearMediaItems()

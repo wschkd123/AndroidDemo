@@ -18,6 +18,7 @@ import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okio.Buffer
 import java.io.EOFException
+import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
@@ -47,6 +48,7 @@ class TTSStreamHelper(
         YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/"
     private val ttsChunkDir =
         YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/chunk/"
+    private fun getCompletePath(ttsKey: String, format: String) = "$ttsCompleteDir$ttsKey.$format"
 
     /**
      * ttsKey列表
@@ -59,10 +61,15 @@ class TTSStreamHelper(
     ) {
         Log.i(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
 
-        //TODO 已缓存
+        // 是否存在缓存
+        val cachePath = getCompletePath(ttsKey, format)
+        if (File(cachePath).exists()) {
+            Log.w(TAG, "exist cache")
+            listener.onExistCache(ttsKey, cachePath)
+            return
+        }
 
-
-        //TODO 正在请求
+        // 是否正在请求
         if (requestSet.contains(ttsKey)) {
             Log.w(TAG, "$content $ttsKey is requesting")
             return
@@ -161,7 +168,7 @@ class TTSStreamHelper(
         val audio = chunk.data?.audio
         val baseResp = chunk.base_resp
         if (baseResp?.isSuccess() != true) {
-            listener?.onReceiveLimit(baseResp?.status_code ?: 0, baseResp?.status_msg ?: "")
+            listener.onReceiveLimit(baseResp?.status_code ?: 0, baseResp?.status_msg ?: "")
             return
         }
         if (audio.isNullOrEmpty()) {
@@ -170,8 +177,8 @@ class TTSStreamHelper(
         }
 
         val chunkPath = if (chunk.data.isLastComplete()) {
-            //TODO 最后一个完整资源缓存，以
-            val path = "$ttsCompleteDir$ttsKey.$format"
+            // 最后一个完整资源直接缓存
+            val path = getCompletePath(ttsKey, format)
             Log.w(TAG, "parser complete content:${audio.length} path:$path ttsKey:${ttsKey}")
             saveAudioChunkToFile(audio, path)
         } else {
@@ -187,7 +194,7 @@ class TTSStreamHelper(
                 chunk.data.isLastComplete(),
             )
         )
-        listener?.onReceiveChunk(mediaDataSource)
+        listener.onReceiveChunk(mediaDataSource)
     }
 
     private fun saveAudioChunkToFile(data: String, path: String): String {
@@ -221,4 +228,10 @@ interface TTSStreamListener {
      */
     @WorkerThread
     fun onReceiveLimit(code: Int, msg: String)
+
+    /**
+     * 存在缓存
+     */
+    @WorkerThread
+    fun onExistCache(ttsKey: String, path: String)
 }

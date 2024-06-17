@@ -35,29 +35,43 @@ class ExoPlayerFragment : BaseFragment() {
                 Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}")
                 // 仅播放最后一个被点击的内容
                 if (currentTtsKey == dataSource.ttsKey) {
-                    Log.w(TAG, "replaceDataSource ttsKey:${dataSource.ttsKey}")
                     ExoPlayerManager.addMediaItem(dataSource)
                 }
-                true
             }
 
-            WHAT_TTS_FAIL -> {
+            WHAT_TTS_LIMIT -> {
                 Toast.makeText(context, "您点的太快啦", Toast.LENGTH_SHORT).show()
-                true
+            }
+
+            WHAT_TTS_CACHE -> {
+                val pair = it.obj as Pair<String, String>
+                Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:${pair.first}")
+                if (currentTtsKey == pair.first) {
+                    ExoPlayerManager.addMediaItem(pair.second)
+                }
             }
 
             else -> {
-                false
             }
         }
+        false
     }
 
     companion object {
         /**
-         * 音频片段消息
+         * 音频片段成功
          */
         private const val WHAT_TTS_SUCCESS = 0x10
-        private const val WHAT_TTS_FAIL=0x11
+        /**
+         * 音频片段达到限制
+         */
+        private const val WHAT_TTS_LIMIT=0x11
+
+        /**
+         * 存在缓存
+         */
+        private const val WHAT_TTS_CACHE=0x12
+
     }
 
     override fun onCreateView(
@@ -80,7 +94,12 @@ class ExoPlayerFragment : BaseFragment() {
 
             override fun onReceiveLimit(code: Int, msg: String) {
                 Log.w(TAG, "onReceiveLimit code:${code} msg:$msg")
-                val message = handler.obtainMessage(WHAT_TTS_FAIL)
+                val message = handler.obtainMessage(WHAT_TTS_LIMIT)
+                handler.sendMessage(message)
+            }
+
+            override fun onExistCache(ttsKey: String, path: String) {
+                val message = handler.obtainMessage(WHAT_TTS_CACHE, Pair(ttsKey, path))
                 handler.sendMessage(message)
             }
 
