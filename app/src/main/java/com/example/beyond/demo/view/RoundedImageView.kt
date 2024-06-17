@@ -41,7 +41,7 @@ class RoundedImageView(context: Context, attrs: AttributeSet?, defStyleAttr: Int
         typedArray.recycle()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         paint.color = borderColor
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = borderWidth

@@ -14,7 +14,6 @@ open class BaseActivity : AppCompatActivity() {
 
     protected open val TAG = javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         super.onCreate(savedInstanceState)
     }
 

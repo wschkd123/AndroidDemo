@@ -744,4 +744,33 @@ public class YWFileUtil {
 
         return file;
     }
+
+    public static boolean saveByteArrayToFile(byte[] byteArray, String filepath) {
+        Log.i(TAG, "saveBitmap [filepath] = " + filepath);
+        FileOutputStream fos = null;
+        try {
+            File file = new File(filepath);
+            File parentFile = file.getParentFile();
+            if (parentFile != null && !parentFile.exists()) {
+                parentFile.mkdirs();
+            }
+            if (!file.exists()) {
+                boolean createResult = file.createNewFile();
+                if (!createResult) {
+                    return false;
+                }
+            }
+            fos = new FileOutputStream(file);
+            fos.write(byteArray);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(TAG, "saveByteArrayToFile fail" + e.getMessage());
+            return false;
+        } finally {
+            flush(fos);
+            close(fos);
+        }
+        return true;
+    }
+
 }
