@@ -4,9 +4,6 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Player.TimelineChangeReason
-import androidx.media3.common.Timeline
-import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.base.AppContext
 import com.example.beyond.demo.ui.player.data.MediaDataSource
@@ -89,16 +86,6 @@ object ExoPlayerManager {
             Log.i(TAG, "changed state to $stateString")
         }
 
-        override fun onTimelineChanged(timeline: Timeline, reason: @TimelineChangeReason Int) {
-            super.onTimelineChanged(timeline, reason)
-            Log.i(TAG, "onTimelineChanged reason:$reason")
-        }
-
-        override fun onTracksChanged(tracks: Tracks) {
-            super.onTracksChanged(tracks)
-            Log.i(TAG, "onTracksChanged tracks:$tracks")
-        }
-
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             super.onPlayWhenReadyChanged(playWhenReady, reason)
             Log.i(TAG, "onPlayWhenReadyChanged playWhenReady:$playWhenReady reason:$reason")
@@ -107,11 +94,6 @@ object ExoPlayerManager {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             super.onMediaItemTransition(mediaItem, reason)
             Log.i(TAG, "onMediaItemTransition reason:$reason")
-        }
-
-        override fun onAvailableCommandsChanged(availableCommands: Player.Commands) {
-            super.onAvailableCommandsChanged(availableCommands)
-            Log.i(TAG, "onAvailableCommandsChanged availableCommands:$availableCommands")
         }
 
         override fun onPlayerError(error: PlaybackException) {

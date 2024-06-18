@@ -25,14 +25,15 @@ import java.util.concurrent.TimeUnit
 /**
  * 通过sse协议实现文本流式输入语音流式输出（TTS）
  *
+ * 1. 单例设计。长连接在App生命周期中保持连接
+ * 2. 功能包括tts流式请求、资源缓存 [startConnect]
+ *
  * https://platform.minimaxi.com/document/guides/T2A-model/stream?id=65701c77024fd5d1dffbb8fe
  *
  * @author wangshichao
  * @date 2024/6/14
  */
-class TTSStreamHelper(
-    private var listener: TTSStreamListener
-) {
+object TTSStreamManager {
     private val TAG = "ExoPlayerTTS"
     private val apiKey =
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLkuIrmtbfnrZHmoqblspvkurrlt6Xmmbrog73np5HmioDmnInpmZDlhazlj7giLCJVc2VyTmFtZSI6ImNsaWVudHRlc3QiLCJBY2NvdW50IjoiY2xpZW50dGVzdEAxNzgyNTg4NTA5Njk4MTM0NDU1IiwiU3ViamVjdElEIjoiMTgwMTE5NDU2ODkwNTkyNDYwOSIsIlBob25lIjoiIiwiR3JvdXBJRCI6IjE3ODI1ODg1MDk2OTgxMzQ0NTUiLCJQYWdlTmFtZSI6IiIsIk1haWwiOiIiLCJDcmVhdGVUaW1lIjoiMjAyNC0wNi0xMyAyMToxNzoyMCIsImlzcyI6Im1pbmltYXgifQ.T-09xCHVDtou3vpO_gIxJW8dg9yOw8BQ_gIpDffhWWAzZb5R6Tv2Q6UJdMRxdPdCYWjqRnOBRS8dEf2Wu9rukhFY9CoDoeYQ7hNwB8472aoz67hJnv0420PlOXTV9VH5MB648lC0uYcdmOQ7-VH7MF5NSyvYr-rRvyL2UVJr2zyGlsS40ngzygoaIJK3ZmD7O-v1ko-JRBiFTFFfzb6Kp6lRnc20HKnK35gpJVY2OkmtoxxFCXm8rJvFuj0dlijmoeqKG8hS8f6JDpkybp1pqlwzOSg15f1rDstYOAtL8OYkYuJeNZFkZ9sUCPyqQPVkQhDJLZhJS9VaVzJmkLTpBw"
@@ -44,16 +45,30 @@ class TTSStreamHelper(
             .readTimeout(10, TimeUnit.MINUTES)
             .addNetworkInterceptor(HttpLogInterceptor())
             .build()
+
+    /**
+     * tts完整音频目录
+     */
     private val ttsCompleteDir =
         YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/"
+
+    /**
+     * tts分片音频目录
+     */
     private val ttsChunkDir =
         YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/chunk/"
     private fun getCompletePath(ttsKey: String, format: String) = "$ttsCompleteDir$ttsKey.$format"
 
     /**
-     * ttsKey列表
+     * ttsKey列表。用于请求唯一标识，避免重复请求。
      */
     private val requestSet = hashSetOf<String>()
+    var listener: TTSStreamListener? = null
+
+    init {
+        //TODO 每次初始化删除片段缓存。考虑修改删除时机
+        deleteAllChunkFile()
+    }
 
     fun startConnect(
         content: String = "你好",
@@ -65,7 +80,7 @@ class TTSStreamHelper(
         val cachePath = getCompletePath(ttsKey, format)
         if (File(cachePath).exists()) {
             Log.w(TAG, "exist cache")
-            listener.onExistCache(ttsKey, cachePath)
+            listener?.onExistCache(ttsKey, cachePath)
             return
         }
 
@@ -143,6 +158,16 @@ class TTSStreamHelper(
 
     }
 
+    /**
+     * 删除分片缓存临时文件夹
+     */
+    private fun deleteAllChunkFile() {
+        //TODO 考虑子线程
+        val startTime = System.currentTimeMillis()
+        val deleteResult = File(ttsChunkDir).deleteRecursively()
+        Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
+    }
+
     private fun readStringFromBuffer(response: Response?): String {
         val buffer: Buffer = response?.body()?.source()?.buffer ?: return ""
         val bufferSize = buffer.size()
@@ -168,7 +193,10 @@ class TTSStreamHelper(
         val audio = chunk.data?.audio
         val baseResp = chunk.base_resp
         if (baseResp?.isSuccess() != true) {
-            listener.onReceiveLimit(baseResp?.status_code ?: 0, baseResp?.status_msg ?: "")
+            val code = baseResp?.status_code ?: 0
+            val msg = baseResp?.status_msg ?: ""
+            Log.w(TAG, "receive limit code:$code msg:$msg")
+            listener?.onReceiveLimit(code, msg)
             return
         }
         if (audio.isNullOrEmpty()) {
@@ -194,7 +222,7 @@ class TTSStreamHelper(
                 chunk.data.isLastComplete(),
             )
         )
-        listener.onReceiveChunk(mediaDataSource)
+        listener?.onReceiveChunk(mediaDataSource)
     }
 
     private fun saveAudioChunkToFile(data: String, path: String): String {
@@ -233,5 +261,5 @@ interface TTSStreamListener {
      * 存在缓存
      */
     @WorkerThread
-    fun onExistCache(ttsKey: String, path: String)
+    fun onExistCache(ttsKey: String, cachePath: String)
 }

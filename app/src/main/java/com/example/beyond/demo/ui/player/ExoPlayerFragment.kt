@@ -9,9 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.example.base.BaseFragment
+import com.example.base.player.AudioFocusManager
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
-import com.example.beyond.demo.ui.player.ExoPlayerManager
 import com.example.beyond.demo.ui.player.data.MediaDataSource
 
 /**
@@ -26,7 +26,6 @@ class ExoPlayerFragment : BaseFragment() {
     private val mp3Url =
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context).path + "/test.mp3" }
-    private lateinit var ttsStreamHelper: TTSStreamHelper
     private var currentTtsKey: String? = ""
     private val handler = Handler(Looper.getMainLooper()) { // 首帧清除数据
         when (it.what) {
@@ -45,9 +44,11 @@ class ExoPlayerFragment : BaseFragment() {
 
             WHAT_TTS_CACHE -> {
                 val pair = it.obj as Pair<String, String>
-                Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:${pair.first}")
-                if (currentTtsKey == pair.first) {
-                    ExoPlayerManager.addMediaItem(pair.second)
+                val ttsKey = pair.first
+                val cachePath = pair.second
+                Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:$ttsKey")
+                if (currentTtsKey == ttsKey) {
+                    ExoPlayerManager.addMediaItem(cachePath)
                 }
             }
 
@@ -62,15 +63,16 @@ class ExoPlayerFragment : BaseFragment() {
          * 音频片段成功
          */
         private const val WHAT_TTS_SUCCESS = 0x10
+
         /**
          * 音频片段达到限制
          */
-        private const val WHAT_TTS_LIMIT=0x11
+        private const val WHAT_TTS_LIMIT = 0x11
 
         /**
          * 存在缓存
          */
-        private const val WHAT_TTS_CACHE=0x12
+        private const val WHAT_TTS_CACHE = 0x12
 
     }
 
@@ -85,40 +87,20 @@ class ExoPlayerFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ttsStreamHelper = TTSStreamHelper(object : TTSStreamListener {
-            override fun onReceiveChunk(dataSource: MediaDataSource) {
-                Log.i(TAG, "onReceiveChunk clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}")
-                val message = handler.obtainMessage(WHAT_TTS_SUCCESS, dataSource)
-                handler.sendMessage(message)
-            }
-
-            override fun onReceiveLimit(code: Int, msg: String) {
-                Log.w(TAG, "onReceiveLimit code:${code} msg:$msg")
-                val message = handler.obtainMessage(WHAT_TTS_LIMIT)
-                handler.sendMessage(message)
-            }
-
-            override fun onExistCache(ttsKey: String, path: String) {
-                val message = handler.obtainMessage(WHAT_TTS_CACHE, Pair(ttsKey, path))
-                handler.sendMessage(message)
-            }
-
-        })
-
         binding.tvPlayStream1.setOnClickListener {
             ExoPlayerManager.clearMediaItems()
             val content = "Events"
             currentTtsKey = content.hashCode().toString()
             Log.w(TAG, "click clickTtsKey:${currentTtsKey} content:${content}")
-            ttsStreamHelper.startConnect(content, currentTtsKey!!)
+            TTSStreamManager.startConnect(content, currentTtsKey!!)
         }
 
         binding.tvPlayStream2.setOnClickListener {
             ExoPlayerManager.clearMediaItems()
-            val content = "筑梦岛"
+            val content = "Server-Send Events"
             currentTtsKey = content.hashCode().toString()
             Log.w(TAG, "click clickTtsKey:${currentTtsKey} content:${content}")
-            ttsStreamHelper.startConnect(content, currentTtsKey!!)
+            TTSStreamManager.startConnect(content, currentTtsKey!!)
         }
 
         binding.tvPlayLocal.setOnClickListener {
@@ -132,9 +114,47 @@ class ExoPlayerFragment : BaseFragment() {
         }
     }
 
+    private val ttsStreamListener = object : TTSStreamListener {
+        override fun onReceiveChunk(dataSource: MediaDataSource) {
+            Log.i(
+                TAG,
+                "onReceiveChunk clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}"
+            )
+            val message = handler.obtainMessage(WHAT_TTS_SUCCESS, dataSource)
+            handler.sendMessage(message)
+        }
+
+        override fun onReceiveLimit(code: Int, msg: String) {
+            Log.w(TAG, "onReceiveLimit code:${code} msg:$msg")
+            val message = handler.obtainMessage(WHAT_TTS_LIMIT)
+            handler.sendMessage(message)
+        }
+
+        override fun onExistCache(ttsKey: String, cachePath: String) {
+            Log.i(TAG, "onExistCache clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
+            val message = handler.obtainMessage(WHAT_TTS_CACHE, Pair(ttsKey, cachePath))
+            handler.sendMessage(message)
+        }
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        TTSStreamManager.listener = ttsStreamListener
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AudioFocusManager.requestAudioFocus()
+    }
+
     override fun onStop() {
         super.onStop()
+        Log.i(TAG, "onStop")
+        TTSStreamManager.listener = null
+        handler.removeCallbacksAndMessages(null)
         ExoPlayerManager.stop()
+        AudioFocusManager.abandonAudioFocus()
     }
 
     override fun onDestroy() {
