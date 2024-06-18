@@ -11,6 +11,7 @@ import android.widget.Toast
 import com.example.base.BaseFragment
 import com.example.base.player.AudioFocusManager
 import com.example.base.util.YWFileUtil
+import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
 import com.example.beyond.demo.ui.player.data.MediaDataSource
 
@@ -52,6 +53,10 @@ class ExoPlayerFragment : BaseFragment() {
                 }
             }
 
+            WHAT_TTS_NET_ERROR -> {
+                Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
+            }
+
             else -> {
             }
         }
@@ -59,20 +64,26 @@ class ExoPlayerFragment : BaseFragment() {
     }
 
     companion object {
-        /**
-         * 音频片段成功
-         */
-        private const val WHAT_TTS_SUCCESS = 0x10
-
-        /**
-         * 音频片段达到限制
-         */
-        private const val WHAT_TTS_LIMIT = 0x11
 
         /**
          * 存在缓存
          */
-        private const val WHAT_TTS_CACHE = 0x12
+        private const val WHAT_TTS_CACHE = 0x10
+
+        /**
+         * 音频片段成功
+         */
+        private const val WHAT_TTS_SUCCESS = 0x11
+
+        /**
+         * 音频片段达到限制
+         */
+        private const val WHAT_TTS_LIMIT = 0x12
+
+        /**
+         * 网络错误
+         */
+        private const val WHAT_TTS_NET_ERROR = 0x13
 
     }
 
@@ -115,6 +126,12 @@ class ExoPlayerFragment : BaseFragment() {
     }
 
     private val ttsStreamListener = object : TTSStreamListener {
+        override fun onExistCache(ttsKey: String, cachePath: String) {
+            Log.i(TAG, "onExistCache clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
+            val message = handler.obtainMessage(WHAT_TTS_CACHE, Pair(ttsKey, cachePath))
+            handler.sendMessage(message)
+        }
+
         override fun onReceiveChunk(dataSource: MediaDataSource) {
             Log.i(
                 TAG,
@@ -130,17 +147,18 @@ class ExoPlayerFragment : BaseFragment() {
             handler.sendMessage(message)
         }
 
-        override fun onExistCache(ttsKey: String, cachePath: String) {
-            Log.i(TAG, "onExistCache clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
-            val message = handler.obtainMessage(WHAT_TTS_CACHE, Pair(ttsKey, cachePath))
+        override fun onNetError(msg: String) {
+            val message = handler.obtainMessage(WHAT_TTS_NET_ERROR)
             handler.sendMessage(message)
         }
-
     }
 
     override fun onStart() {
         super.onStart()
         TTSStreamManager.listener = ttsStreamListener
+        ExoPlayerManager.onErrorListener = {
+            Toast.makeText(context, "播放出错", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onResume() {

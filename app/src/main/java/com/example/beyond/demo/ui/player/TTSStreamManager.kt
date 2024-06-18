@@ -186,7 +186,8 @@ object TTSStreamManager {
     ) {
         val chunk = JsonUtilKt.toObject(data, TTSChunkResult::class.java)
         if (chunk == null) {
-            Log.i(TAG, "chunk is null")
+            Log.w(TAG, "chunk is null")
+            listener?.onNetError("")
             return
         }
         val traceId = chunk.trace_id
@@ -246,6 +247,12 @@ object TTSStreamManager {
 
 interface TTSStreamListener {
     /**
+     * 存在缓存
+     */
+    @WorkerThread
+    fun onExistCache(ttsKey: String, cachePath: String)
+
+    /**
      * 接收音频片段
      */
     @WorkerThread
@@ -253,13 +260,15 @@ interface TTSStreamListener {
 
     /**
      * 触发速率限制
+     * 1. 1041 conn limit
+     * 2. 1002 rate limit
      */
     @WorkerThread
     fun onReceiveLimit(code: Int, msg: String)
 
     /**
-     * 存在缓存
+     * 网络错误
      */
     @WorkerThread
-    fun onExistCache(ttsKey: String, cachePath: String)
+    fun onNetError(msg: String)
 }

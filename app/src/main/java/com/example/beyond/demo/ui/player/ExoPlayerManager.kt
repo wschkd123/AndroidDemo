@@ -19,7 +19,7 @@ object ExoPlayerManager {
     private val player: Player
     private var playWhenReady = true
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private var onErrorListener: ((desc: String) -> Unit)? = null
+    var onErrorListener: ((desc: String) -> Unit)? = null
     private var curPlayUri: String? = ""
 
     init {
@@ -74,6 +74,8 @@ object ExoPlayerManager {
         }
     }
 
+    private fun currentMediaItemUri() = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration?.uri
+
     private fun playbackStateListener() = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             val stateString: String = when (playbackState) {
@@ -97,10 +99,9 @@ object ExoPlayerManager {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message}")
             super.onPlayerError(error)
-            Log.e(TAG, "Playback error", error)
-            onErrorListener?.invoke("code:${error.errorCode} msg:${error.message}")
+            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${currentMediaItemUri()}")
+            onErrorListener?.invoke("${error.message}")
         }
     }
 
