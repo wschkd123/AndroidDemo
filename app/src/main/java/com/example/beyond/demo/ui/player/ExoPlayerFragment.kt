@@ -1,8 +1,6 @@
 package com.example.beyond.demo.ui.player
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -28,64 +26,6 @@ class ExoPlayerFragment : BaseFragment() {
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context).path + "/test.mp3" }
     private var currentTtsKey: String? = ""
-    private val handler = Handler(Looper.getMainLooper()) { // 首帧清除数据
-        when (it.what) {
-            WHAT_TTS_SUCCESS -> {
-                val dataSource = it.obj as MediaDataSource
-                Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}")
-                // 仅播放最后一个被点击的内容
-                if (currentTtsKey == dataSource.ttsKey) {
-                    ExoPlayerManager.addMediaItem(dataSource)
-                }
-            }
-
-            WHAT_TTS_LIMIT -> {
-                Toast.makeText(context, "您点的太快啦", Toast.LENGTH_SHORT).show()
-            }
-
-            WHAT_TTS_CACHE -> {
-                val pair = it.obj as Pair<String, String>
-                val ttsKey = pair.first
-                val cachePath = pair.second
-                Log.i(TAG, "handleMessage clickTtsKey:${currentTtsKey} ttsKey:$ttsKey")
-                if (currentTtsKey == ttsKey) {
-                    ExoPlayerManager.addMediaItem(cachePath)
-                }
-            }
-
-            WHAT_TTS_NET_ERROR -> {
-                Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
-            }
-
-            else -> {
-            }
-        }
-        false
-    }
-
-    companion object {
-
-        /**
-         * 存在缓存
-         */
-        private const val WHAT_TTS_CACHE = 0x10
-
-        /**
-         * 音频片段成功
-         */
-        private const val WHAT_TTS_SUCCESS = 0x11
-
-        /**
-         * 音频片段达到限制
-         */
-        private const val WHAT_TTS_LIMIT = 0x12
-
-        /**
-         * 网络错误
-         */
-        private const val WHAT_TTS_NET_ERROR = 0x13
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -128,8 +68,16 @@ class ExoPlayerFragment : BaseFragment() {
     private val ttsStreamListener = object : TTSStreamListener {
         override fun onExistCache(ttsKey: String, cachePath: String) {
             Log.i(TAG, "onExistCache clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
-            val message = handler.obtainMessage(WHAT_TTS_CACHE, Pair(ttsKey, cachePath))
-            handler.sendMessage(message)
+            if (currentTtsKey == ttsKey) {
+                ExoPlayerManager.addMediaItem(cachePath)
+            }
+        }
+
+        override fun onReceiveCompleteUrl(ttsKey: String, url: String) {
+            Log.i(TAG, "onReceiveCompleteUrl clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
+            if (currentTtsKey == ttsKey) {
+                ExoPlayerManager.addMediaItem(url)
+            }
         }
 
         override fun onReceiveChunk(dataSource: MediaDataSource) {
@@ -137,19 +85,19 @@ class ExoPlayerFragment : BaseFragment() {
                 TAG,
                 "onReceiveChunk clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}"
             )
-            val message = handler.obtainMessage(WHAT_TTS_SUCCESS, dataSource)
-            handler.sendMessage(message)
+            // 仅播放最后一个被点击的内容
+            if (currentTtsKey == dataSource.ttsKey) {
+                ExoPlayerManager.addMediaItem(dataSource)
+            }
         }
 
-        override fun onReceiveLimit(code: Int, msg: String) {
+        override fun onRateLimit(code: Int, msg: String) {
             Log.w(TAG, "onReceiveLimit code:${code} msg:$msg")
-            val message = handler.obtainMessage(WHAT_TTS_LIMIT)
-            handler.sendMessage(message)
+            Toast.makeText(context, "您点的太快啦", Toast.LENGTH_SHORT).show()
         }
 
         override fun onNetError(msg: String) {
-            val message = handler.obtainMessage(WHAT_TTS_NET_ERROR)
-            handler.sendMessage(message)
+            Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -170,7 +118,6 @@ class ExoPlayerFragment : BaseFragment() {
         super.onStop()
         Log.i(TAG, "onStop")
         TTSStreamManager.listener = null
-        handler.removeCallbacksAndMessages(null)
         ExoPlayerManager.stop()
         AudioFocusManager.abandonAudioFocus()
     }

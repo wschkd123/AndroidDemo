@@ -76,8 +76,17 @@ data class TTSChunkResult(
     /**
      * 本次会话的id
      */
-    val trace_id: String
+    val trace_id: String? = null,
+    /**
+     * 数据类型 // 1 完整url 2.音频片段
+     */
+    val type: Int = 0,
+    /**
+     * 完整音频地址
+     */
+    val url: String? = null,
 ) {
+    fun isCompleteUrl() = type == 1
     data class BaseResp(
         /**
          * 1000，未知错误1001，超时1002，触发限流1004，鉴权失败1013，服务内部错误及非法字符超过10%2013，输入格式信息不正常

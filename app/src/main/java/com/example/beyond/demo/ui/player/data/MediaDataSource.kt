@@ -11,7 +11,7 @@ data class MediaDataSource(
     /**
      * 本次tts请求的id
      */
-    val traceId: String,
+    val traceId: String? = null,
 
     /**
      * 本次tts key。用于用于请求、播放和下载

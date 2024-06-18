@@ -1,13 +1,17 @@
 package com.example.beyond.demo.ui.player
 
 import android.util.Log
-import androidx.annotation.WorkerThread
 import com.example.base.AppContext
+import com.example.base.download.AudioDownloadManager
 import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
+import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
+import com.example.beyond.demo.ui.player.TTSStreamManager.startConnect
 import com.example.beyond.demo.ui.player.data.MediaDataSource
 import com.example.beyond.demo.ui.player.data.TTSChunkResult
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -34,10 +38,10 @@ import java.util.concurrent.TimeUnit
  * @date 2024/6/14
  */
 object TTSStreamManager {
-    private val TAG = "ExoPlayerTTS"
-    private val apiKey =
+    private const val TAG = "ExoPlayerTTS"
+    private const val API_KEY =
         "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLkuIrmtbfnrZHmoqblspvkurrlt6Xmmbrog73np5HmioDmnInpmZDlhazlj7giLCJVc2VyTmFtZSI6ImNsaWVudHRlc3QiLCJBY2NvdW50IjoiY2xpZW50dGVzdEAxNzgyNTg4NTA5Njk4MTM0NDU1IiwiU3ViamVjdElEIjoiMTgwMTE5NDU2ODkwNTkyNDYwOSIsIlBob25lIjoiIiwiR3JvdXBJRCI6IjE3ODI1ODg1MDk2OTgxMzQ0NTUiLCJQYWdlTmFtZSI6IiIsIk1haWwiOiIiLCJDcmVhdGVUaW1lIjoiMjAyNC0wNi0xMyAyMToxNzoyMCIsImlzcyI6Im1pbmltYXgifQ.T-09xCHVDtou3vpO_gIxJW8dg9yOw8BQ_gIpDffhWWAzZb5R6Tv2Q6UJdMRxdPdCYWjqRnOBRS8dEf2Wu9rukhFY9CoDoeYQ7hNwB8472aoz67hJnv0420PlOXTV9VH5MB648lC0uYcdmOQ7-VH7MF5NSyvYr-rRvyL2UVJr2zyGlsS40ngzygoaIJK3ZmD7O-v1ko-JRBiFTFFfzb6Kp6lRnc20HKnK35gpJVY2OkmtoxxFCXm8rJvFuj0dlijmoeqKG8hS8f6JDpkybp1pqlwzOSg15f1rDstYOAtL8OYkYuJeNZFkZ9sUCPyqQPVkQhDJLZhJS9VaVzJmkLTpBw"
-    private val format = "mp3"
+    private const val AUDIO_FORMAT = "pcm"
     private val mediaType = MediaType.parse("application/json; charset=utf-8");
     private val okHttpClient: OkHttpClient =
         OkHttpClient.Builder()
@@ -66,8 +70,10 @@ object TTSStreamManager {
     var listener: TTSStreamListener? = null
 
     init {
-        //TODO 每次初始化删除片段缓存。考虑修改删除时机
-        deleteAllChunkFile()
+        // 每次初始化删除片段缓存。考虑修改删除时机
+        GlobalScope.launch {
+            deleteAllChunkFile()
+        }
     }
 
     fun startConnect(
@@ -77,7 +83,7 @@ object TTSStreamManager {
         Log.i(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
 
         // 是否存在缓存
-        val cachePath = getCompletePath(ttsKey, format)
+        val cachePath = getCompletePath(ttsKey, AUDIO_FORMAT)
         if (File(cachePath).exists()) {
             Log.w(TAG, "exist cache")
             listener?.onExistCache(ttsKey, cachePath)
@@ -109,13 +115,13 @@ object TTSStreamManager {
                 "    \"pitch\": 0,\n" +
                 "    \"audio_sample_rate\": 32000,\n" +
                 "    \"bitrate\": 128000,\n" +
-                "    \"format\": \"$format\"\n" +
+                "    \"format\": \"$AUDIO_FORMAT\"\n" +
                 "  }"
         val requestBody = RequestBody.create(mediaType, json)
         val request = Request.Builder()
             .url("https://api.minimax.chat/v1/tts/stream?GroupId=1782588509698134455")
             .addHeader("accept", "application/json, text/plain, */*")
-            .addHeader("Authorization", "Bearer $apiKey")
+            .addHeader("Authorization", "Bearer $API_KEY")
             .addHeader("Content-Type", "application/json")
             .post(requestBody)
             .build()
@@ -187,49 +193,66 @@ object TTSStreamManager {
         val chunk = JsonUtilKt.toObject(data, TTSChunkResult::class.java)
         if (chunk == null) {
             Log.w(TAG, "chunk is null")
-            listener?.onNetError("")
+            ThreadUtil.runOnUiThread {
+                listener?.onNetError("")
+            }
             return
         }
-        val traceId = chunk.trace_id
-        val audio = chunk.data?.audio
+        // 存在完整音频地址
+        if (chunk.isCompleteUrl()) {
+            val url = chunk.url ?: ""
+            AudioDownloadManager.download(ttsKey, url)
+            ThreadUtil.runOnUiThread {
+                listener?.onReceiveCompleteUrl(ttsKey, url)
+            }
+            return
+        }
+
         val baseResp = chunk.base_resp
         if (baseResp?.isSuccess() != true) {
             val code = baseResp?.status_code ?: 0
             val msg = baseResp?.status_msg ?: ""
             Log.w(TAG, "receive limit code:$code msg:$msg")
-            listener?.onReceiveLimit(code, msg)
+            ThreadUtil.runOnUiThread {
+                listener?.onRateLimit(code, msg)
+            }
             return
         }
+        decodeAudioAndSave(chunk, ttsKey)
+    }
+
+    private fun decodeAudioAndSave(chunk: TTSChunkResult, ttsKey: String) {
+        val traceId = chunk.trace_id
+        val audio = chunk.data?.audio
+        // 存在片段内容为空，直接忽略
         if (audio.isNullOrEmpty()) {
             Log.i(TAG, "audio is empty, trace_id:$traceId")
             return
         }
 
+        // 最后一个完整资源以ttsKey缓存，其它片段保存临时文件
         val chunkPath = if (chunk.data.isLastComplete()) {
-            // 最后一个完整资源直接缓存
-            val path = getCompletePath(ttsKey, format)
-            Log.w(TAG, "parser complete content:${audio.length} path:$path ttsKey:${ttsKey}")
-            saveAudioChunkToFile(audio, path)
+            getCompletePath(ttsKey, AUDIO_FORMAT)
         } else {
-            val path = "$ttsChunkDir${chunk.trace_id}_${System.currentTimeMillis()}.$format"
-            Log.i(TAG, "parser content:${audio.length} path:$path path:${ttsKey}")
-            saveAudioChunkToFile(audio, path)
+            "$ttsChunkDir${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
         }
-        val mediaDataSource = MediaDataSource(
-            traceId = chunk.trace_id,
-            ttsKey = ttsKey,
-            audioChunk = MediaDataSource.AudioChunk(
-                chunkPath,
-                chunk.data.isLastComplete(),
+        Log.w(TAG, "parser content:${audio.length} path:$chunkPath ttsKey:${ttsKey}")
+        val saveResult = YWFileUtil.saveByteArrayToFile(decodeHex(audio), chunkPath)
+        if (saveResult) {
+            val mediaDataSource = MediaDataSource(
+                traceId = traceId,
+                ttsKey = ttsKey,
+                audioChunk = MediaDataSource.AudioChunk(
+                    chunkPath,
+                    chunk.data.isLastComplete(),
+                )
             )
-        )
-        listener?.onReceiveChunk(mediaDataSource)
-    }
-
-    private fun saveAudioChunkToFile(data: String, path: String): String {
-        val byteArray = decodeHex(data)
-        YWFileUtil.saveByteArrayToFile(byteArray, path)
-        return path
+            ThreadUtil.runOnUiThread {
+                listener?.onReceiveChunk(mediaDataSource)
+            }
+        } else {
+            Log.e(TAG, "save fail path:$chunkPath ttsKey:${ttsKey}")
+        }
     }
 
     private fun decodeHex(hexString: String): ByteArray {
@@ -249,13 +272,16 @@ interface TTSStreamListener {
     /**
      * 存在缓存
      */
-    @WorkerThread
     fun onExistCache(ttsKey: String, cachePath: String)
 
     /**
-     * 接收音频片段
+     * 完整音频地址
      */
-    @WorkerThread
+    fun onReceiveCompleteUrl(ttsKey: String, url: String)
+
+    /**
+     * 音频片段
+     */
     fun onReceiveChunk(dataSource: MediaDataSource)
 
     /**
@@ -263,12 +289,10 @@ interface TTSStreamListener {
      * 1. 1041 conn limit
      * 2. 1002 rate limit
      */
-    @WorkerThread
-    fun onReceiveLimit(code: Int, msg: String)
+    fun onRateLimit(code: Int, msg: String)
 
     /**
      * 网络错误
      */
-    @WorkerThread
     fun onNetError(msg: String)
 }

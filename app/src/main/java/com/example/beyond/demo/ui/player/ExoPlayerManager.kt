@@ -20,7 +20,6 @@ object ExoPlayerManager {
     private var playWhenReady = true
     private val playbackStateListener: Player.Listener = playbackStateListener()
     var onErrorListener: ((desc: String) -> Unit)? = null
-    private var curPlayUri: String? = ""
 
     init {
         player = ExoPlayer.Builder(AppContext.application)
@@ -35,7 +34,6 @@ object ExoPlayerManager {
         if (dataSource.audioChunk.isLastComplete.not()) {
             Log.w(TAG, "addMediaItem path:${dataSource.audioChunk.chunkPath} ttsKey:${dataSource.ttsKey}")
             player.apply {
-                curPlayUri = dataSource.audioChunk.chunkPath
                 addMediaItem(MediaItem.fromUri(dataSource.audioChunk.chunkPath))
                 prepare()
                 playWhenReady = playWhenReady
@@ -45,7 +43,6 @@ object ExoPlayerManager {
 
     fun addMediaItem(uri: String) {
         Log.w(TAG, "addMediaItem uri:${uri}")
-        curPlayUri = uri
         player.apply {
             clearMediaItems()
             addMediaItem(MediaItem.fromUri(uri))
@@ -74,7 +71,7 @@ object ExoPlayerManager {
         }
     }
 
-    private fun currentMediaItemUri() = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration?.uri
+    private fun currentPlayUri() = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration?.uri
 
     private fun playbackStateListener() = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -100,7 +97,7 @@ object ExoPlayerManager {
 
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
-            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${currentMediaItemUri()}")
+            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${currentPlayUri()}")
             onErrorListener?.invoke("${error.message}")
         }
     }
