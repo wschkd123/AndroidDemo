@@ -1,5 +1,7 @@
 package com.example.beyond.demo.ui.player.data
 
+import com.example.base.bean.IgnoreProguard
+
 /**
  * 音频流式请求
  *
@@ -53,7 +55,7 @@ data class TTSStreamReq(
      * 生成声音的语速
      */
     val speed: Int = 0,
-) {
+) : IgnoreProguard() {
     data class TimberWeight(
         /**
          * 请求的音色编号
@@ -63,7 +65,7 @@ data class TTSStreamReq(
          * 权重
          */
         val weight: Int = 0
-    )
+    ) : IgnoreProguard()
 }
 
 /**
@@ -85,7 +87,7 @@ data class TTSChunkResult(
      * 完整音频地址
      */
     val url: String? = null,
-) {
+) : IgnoreProguard() {
     fun isCompleteUrl() = type == 1
     data class BaseResp(
         /**
@@ -93,7 +95,7 @@ data class TTSChunkResult(
          */
         val status_code: Int = 0,
         val status_msg: String? = null
-    ) {
+    ) : IgnoreProguard() {
         fun isSuccess() = status_code == 0
     }
 
@@ -107,7 +109,7 @@ data class TTSChunkResult(
          * 当前音频流状态，1表示合成中，2表示合成结束
          */
         val status: Int = 0
-    ) {
+    ) : IgnoreProguard() {
         /**
          * 是否是最后一个完整资源
          */
@@ -143,5 +145,5 @@ data class TTSChunkResult(
          * 已经发音的字数统计（不算标点等其他符号，包含汉字数字字母）
          */
         val word_count: Int = 0
-    )
+    ) : IgnoreProguard()
 }

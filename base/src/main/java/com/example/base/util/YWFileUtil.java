@@ -746,7 +746,7 @@ public class YWFileUtil {
     }
 
     public static boolean saveByteArrayToFile(byte[] byteArray, String filepath) {
-        Log.i(TAG, "saveBitmap [filepath] = " + filepath);
+        Log.i(TAG, "saveByteArrayToFile [filepath] = " + filepath);
         FileOutputStream fos = null;
         try {
             File file = new File(filepath);
