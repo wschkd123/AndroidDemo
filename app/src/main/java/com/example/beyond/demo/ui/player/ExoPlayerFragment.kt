@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.example.base.BaseFragment
+import com.example.base.download.AudioDownloadManager
+import com.example.base.download.AudioProgressListener
 import com.example.base.player.AudioFocusManager
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
@@ -24,6 +26,7 @@ class ExoPlayerFragment : BaseFragment() {
     private val binding get() = _binding!!
     private val mp3Url =
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
+    private val mp3Url1 = "http://music.163.com/song/media/outer/url?id=447925558.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context).path + "/test.mp3" }
     private var currentTtsKey: String? = ""
 
@@ -62,6 +65,22 @@ class ExoPlayerFragment : BaseFragment() {
         binding.tvPlayNet.setOnClickListener {
             ExoPlayerManager.clearMediaItems()
             ExoPlayerManager.addMediaItem(mp3Url)
+        }
+
+        binding.tvDownUrl.setOnClickListener {
+            ExoPlayerManager.clearMediaItems()
+            AudioDownloadManager.download("mp3Url", mp3Url1, object : AudioProgressListener{
+                override fun onSuccess(ttsKey: String, path: String) {
+                    if (currentTtsKey == ttsKey) {
+                        ExoPlayerManager.addMediaItem(path)
+                    }
+                }
+
+                override fun onError(code: Int, msg: String?) {
+                    Log.i(TAG, "download $mp3Url1, Error code:${code} msg:${msg}")
+                }
+
+            })
         }
     }
 
