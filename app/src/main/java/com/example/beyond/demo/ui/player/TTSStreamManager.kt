@@ -1,8 +1,8 @@
 package com.example.beyond.demo.ui.player
 
 import android.util.Log
-import com.example.base.AppContext
 import com.example.base.download.AudioDownloadManager
+import com.example.base.download.TTSFileUtil
 import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.ThreadUtil
@@ -51,19 +51,6 @@ object TTSStreamManager {
             .build()
 
     /**
-     * tts完整音频目录
-     */
-    private val ttsCompleteDir =
-        YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/"
-
-    /**
-     * tts分片音频目录
-     */
-    private val ttsChunkDir =
-        YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/chunk/"
-    private fun getCompletePath(ttsKey: String, format: String) = "$ttsCompleteDir$ttsKey.$format"
-
-    /**
      * ttsKey列表。用于请求唯一标识，避免重复请求。
      */
     private val requestSet = hashSetOf<String>()
@@ -81,14 +68,6 @@ object TTSStreamManager {
         ttsKey: String
     ) {
         Log.i(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
-
-        // 是否存在缓存
-        val cachePath = getCompletePath(ttsKey, AUDIO_FORMAT)
-        if (File(cachePath).exists()) {
-            Log.w(TAG, "exist cache")
-            listener?.onExistCache(ttsKey, cachePath)
-            return
-        }
 
         // 是否正在请求
         if (requestSet.contains(ttsKey)) {
@@ -168,9 +147,8 @@ object TTSStreamManager {
      * 删除分片缓存临时文件夹
      */
     private fun deleteAllChunkFile() {
-        //TODO 考虑子线程
         val startTime = System.currentTimeMillis()
-        val deleteResult = File(ttsChunkDir).deleteRecursively()
+        val deleteResult = File(TTSFileUtil.ttsChunkDir).deleteRecursively()
         Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
     }
 
@@ -232,9 +210,9 @@ object TTSStreamManager {
 
         // 最后一个完整资源以ttsKey缓存，其它片段保存临时文件
         val chunkPath = if (chunk.data.isLastComplete()) {
-            getCompletePath(ttsKey, AUDIO_FORMAT)
+            TTSFileUtil.getCacheFile(ttsKey, AUDIO_FORMAT).path
         } else {
-            "$ttsChunkDir${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
+            "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
         }
         Log.w(TAG, "parser content:${audio.length} path:$chunkPath ttsKey:${ttsKey}")
         val saveResult = YWFileUtil.saveByteArrayToFile(decodeHex(audio), chunkPath)
@@ -269,10 +247,6 @@ object TTSStreamManager {
 }
 
 interface TTSStreamListener {
-    /**
-     * 存在缓存
-     */
-    fun onExistCache(ttsKey: String, cachePath: String)
 
     /**
      * 完整音频地址

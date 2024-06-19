@@ -58,6 +58,5 @@ dependencies {
 
     // exoplayer
     api "androidx.media3:media3-exoplayer:$mediaVersion"
-    api "androidx.media3:media3-datasource:$mediaVersion"
     api "com.squareup.okhttp3:okhttp-sse:$okhttpVersion"
 }

@@ -7,13 +7,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.example.base.BaseFragment
-import com.example.base.download.AudioDownloadManager
-import com.example.base.download.AudioProgressListener
+import com.example.base.download.FileDownloadListener
+import com.example.base.download.FileDownloadManager
+import com.example.base.download.TTSFileUtil
 import com.example.base.player.AudioFocusManager
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
 import com.example.beyond.demo.ui.player.data.MediaDataSource
+import java.io.File
 
 /**
  * ExoPlayer播放
@@ -42,19 +44,11 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tvPlayStream1.setOnClickListener {
-            ExoPlayerManager.clearMediaItems()
-            val content = "Events"
-            currentTtsKey = content.hashCode().toString()
-            Log.w(TAG, "click clickTtsKey:${currentTtsKey} content:${content}")
-            TTSStreamManager.startConnect(content, currentTtsKey!!)
+            clickStartTTS("Events")
         }
 
         binding.tvPlayStream2.setOnClickListener {
-            ExoPlayerManager.clearMediaItems()
-            val content = "Server-Send Events"
-            currentTtsKey = content.hashCode().toString()
-            Log.w(TAG, "click clickTtsKey:${currentTtsKey} content:${content}")
-            TTSStreamManager.startConnect(content, currentTtsKey!!)
+            clickStartTTS("Hello")
         }
 
         binding.tvPlayLocal.setOnClickListener {
@@ -68,29 +62,72 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvDownUrl.setOnClickListener {
+            val ttsKey = "mp3Url"
+            currentTtsKey = ttsKey
             ExoPlayerManager.clearMediaItems()
-            AudioDownloadManager.download("mp3Url", mp3Url1, object : AudioProgressListener{
-                override fun onSuccess(ttsKey: String, path: String) {
-                    if (currentTtsKey == ttsKey) {
-                        ExoPlayerManager.addMediaItem(path)
+//            AudioDownloadManager.download("mp3Url", ttsKey, object : AudioProgressListener {
+//                override fun onSuccess(url: String, fileName: String, path: String) {
+//                    Log.i(TAG, "download url:$url, clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
+//                    if (currentTtsKey == fileName) {
+//                        ExoPlayerManager.addMediaItem(path)
+//                    }
+//                }
+//
+//                override fun onError(url: String, msg: String?) {
+//                    Log.i(TAG, "download url:${url} msg:${msg}")
+//                }
+//
+//            })
+            val cachePath = TTSFileUtil.getCacheFile(ttsKey)?.path
+            if (cachePath != null) {
+                Log.i(TAG, "exist cache cachePath:${cachePath}")
+                ExoPlayerManager.addMediaItem(cachePath)
+                return@setOnClickListener
+            }
+
+            FileDownloadManager.download(mp3Url, currentTtsKey!!, object : FileDownloadListener {
+
+                override fun onProgress(
+                    url: String,
+                    bytesRead: Long,
+                    contentLength: Long,
+                    done: Boolean
+                ) {
+                    Log.i(
+                        TAG,
+                        "onProgress $url progress:${100 * bytesRead / contentLength} done:${done}"
+                    )
+                }
+
+                override fun onSuccess(url: String, fileName: String, file: File) {
+                    Log.i(TAG, "onSuccess $url file:${file}")
+                    if (currentTtsKey == fileName) {
+                        ExoPlayerManager.addMediaItem(file.path)
                     }
                 }
 
-                override fun onError(code: Int, msg: String?) {
-                    Log.i(TAG, "download $mp3Url1, Error code:${code} msg:${msg}")
+                override fun onFail(url: String, errorMessage: String) {
+                    Log.i(TAG, "onFail url:$url errorMessage:$errorMessage")
                 }
-
             })
         }
     }
 
-    private val ttsStreamListener = object : TTSStreamListener {
-        override fun onExistCache(ttsKey: String, cachePath: String) {
-            Log.i(TAG, "onExistCache clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
-            if (currentTtsKey == ttsKey) {
-                ExoPlayerManager.addMediaItem(cachePath)
-            }
+    private fun clickStartTTS(content: String) {
+        ExoPlayerManager.clearMediaItems()
+        val ttsKey = content.hashCode().toString()
+        currentTtsKey = ttsKey
+        Log.w(TAG, "click clickTtsKey:${ttsKey} content:${content}")
+        val cacheFile = TTSFileUtil.getCacheFile(ttsKey)
+        if (cacheFile != null) {
+            Log.w(TAG, "exist cache ${cacheFile.path}")
+            ExoPlayerManager.addMediaItem(cacheFile.path)
+            return
         }
+        TTSStreamManager.startConnect(content, ttsKey)
+    }
+
+    private val ttsStreamListener = object : TTSStreamListener {
 
         override fun onReceiveCompleteUrl(ttsKey: String, url: String) {
             Log.i(TAG, "onReceiveCompleteUrl clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")

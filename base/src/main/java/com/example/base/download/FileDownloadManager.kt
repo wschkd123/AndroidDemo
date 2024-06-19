@@ -9,25 +9,25 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody
-import okio.Okio
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
-
 /**
- * 音频下载管理
+ * 文件下载管理
  *
  * @author wangshichao
- * @date 2024/6/18
+ * @date 2024/6/19
  */
-object AudioDownloadManager {
-    private const val TAG = "ExoPlayerDownload"
-    private val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.MINUTES)
-            .readTimeout(10, TimeUnit.MINUTES)
-            .addNetworkInterceptor(HttpLogInterceptor())
-            .build()
+object FileDownloadManager {
+    private const val TAG = "FileDownloadManager"
+    private var okHttpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.MINUTES)
+        .readTimeout(10, TimeUnit.MINUTES)
+        .addNetworkInterceptor(HttpLogInterceptor())
+        .build()
     /**
      * 正在请求任务列表。
      */
@@ -47,7 +47,7 @@ object AudioDownloadManager {
     fun download(
         url: String,
         fileName: String,
-        listener: AudioProgressListener? = null
+        listener: FileDownloadListener? = null
     ) {
         if (downCallMap.containsKey(url)) {
             Log.w(TAG, "$url is requesting")
@@ -56,24 +56,40 @@ object AudioDownloadManager {
         val request = Request.Builder()
             .url(url)
             .build()
+        // 进度监听
+        okHttpClient = okHttpClient.newBuilder()
+            .addNetworkInterceptor { chain ->
+                val originalResponse = chain.proceed(chain.request())
+                originalResponse.newBuilder()
+                    .body(DownloadResponseBody(originalResponse.body()!!, listener, url))
+                    .build()
+            }
+            .build()
         val call = okHttpClient.newCall(request)
         downCallMap[url] = call
         Log.w(TAG, "down start url:${url}")
         call.enqueue(object : Callback {
+            @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 val responseBody = response.body()
-                saveResponseBodyToFile(responseBody, url, fileName, listener)
+                val file = saveResponseBodyToFile(responseBody, url, fileName)
                 downCallMap.remove(url)
+                ThreadUtil.runOnUiThread {
+                    if (file != null) {
+                        listener?.onSuccess(url, fileName, file)
+                    } else {
+                        listener?.onFail(url, "文件内容为空")
+                    }
+                }
             }
 
             override fun onFailure(call: Call, e: IOException) {
                 Log.w(TAG, "error url:${url}")
                 downCallMap.remove(url)
                 ThreadUtil.runOnUiThread {
-                    listener?.onError(url, e.message)
+                    listener?.onFail(url, e.message ?: "")
                 }
             }
-
         })
     }
 
@@ -99,43 +115,21 @@ object AudioDownloadManager {
         return file
     }
 
-    private fun saveResponseBodyToFile(
-        responseBody: ResponseBody?,
-        url: String,
-        fileName: String,
-        listener: AudioProgressListener?
-    ) {
-        val tempFile = getTempFile(fileName);
-        if (responseBody != null) {
-            try {
-                responseBody.source().use { source ->
-                    Okio.buffer(Okio.sink(tempFile)).use { sink ->
-                        var totalBytesRead: Long = 0
-                        val contentLength: Long = responseBody.contentLength()
-                        var bytesRead: Long
-                        while (source.read(sink.buffer(), 8192).also { bytesRead = it } != -1L) {
-                            sink.emitCompleteSegments()
-                            totalBytesRead += bytesRead
-//                            callback.onProgress(url, totalBytesRead, contentLength)
-                            Log.i(TAG, "onProgress totalBytesRead:${totalBytesRead}")
-                        }
-                        sink.flush()
-                        val file = createSaveFile(url, fileName) ?: return
-                        tempFile.renameTo(file)
-                        listener?.onSuccess(url, fileName, file.path)
-                    }
-                }
-            } catch (e: IOException) {
-                listener?.onError(url, "文件写入失败: " + e.message)
-            }
-        } else {
-            listener?.onError(url, "文件内容为空")
+    @Throws(IOException::class)
+    private fun saveResponseBodyToFile(responseBody: ResponseBody?, url: String, fileName: String): File? {
+        if (responseBody == null) return null
+        val tempFile = getTempFile(fileName)
+        val inputStream = responseBody.byteStream()
+        val outputStream: OutputStream = FileOutputStream(tempFile)
+        val buffer = ByteArray(8192)
+        var bytesRead: Int
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            outputStream.write(buffer, 0, bytesRead)
         }
+        outputStream.close()
+        inputStream.close()
+        val finalFile = createSaveFile(url, fileName) ?: return null
+        tempFile.renameTo(finalFile)
+        return finalFile
     }
-
-}
-
-interface AudioProgressListener {
-    fun onSuccess(url: String, fileName: String, path: String)
-    fun onError(url: String, msg: String?)
 }
