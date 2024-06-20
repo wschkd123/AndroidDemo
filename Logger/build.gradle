@@ -1,0 +1,34 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileOptions.encoding = "UTF-8"
+    // 编译SDK的版本
+    compileSdkVersion project.compileSdkVersion
+    // build tools的版本
+    buildToolsVersion project.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion project.minSdkVersion
+        targetSdkVersion project.targetSdkVersion
+
+        versionCode 1
+        versionName "1.0"
+
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation 'com.yuewen.ywlog:sdk:0.1.2'
+}
+
+

@@ -1,0 +1,2 @@
+-keep class com.qq.reader.component.logger.Logger {public <methods>;}
+-keep class com.tencent.mars.xlog.**{*;}
