@@ -6,7 +6,7 @@ import androidx.fragment.app.commit
 import com.example.base.BaseActivity
 import com.example.beyond.demo.databinding.ActivityMainBinding
 import com.example.beyond.demo.ui.appwidget.AppWidgetFragment
-import com.example.beyond.demo.ui.player.ExoPlayerFragment
+import com.example.beyond.demo.ui.tts.ExoPlayerFragment
 
 class MainActivity : BaseActivity() {
 

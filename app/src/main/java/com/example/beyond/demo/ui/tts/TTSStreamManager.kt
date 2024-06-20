@@ -1,15 +1,15 @@
-package com.example.beyond.demo.ui.player
+package com.example.beyond.demo.ui.tts
 
 import android.util.Log
-import com.example.base.download.AudioDownloadManager
+import com.example.base.download.FileDownloadManager
 import com.example.base.download.TTSFileUtil
 import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
-import com.example.beyond.demo.ui.player.TTSStreamManager.startConnect
-import com.example.beyond.demo.ui.player.data.MediaDataSource
-import com.example.beyond.demo.ui.player.data.TTSChunkResult
+import com.example.beyond.demo.ui.tts.data.MediaDataSource
+import com.example.beyond.demo.ui.tts.data.TTSChunkResult
+import com.example.beyond.demo.ui.tts.TTSStreamManager.startConnect
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType
@@ -179,7 +179,8 @@ object TTSStreamManager {
         // 存在完整音频地址
         if (chunk.isCompleteUrl()) {
             val url = chunk.url ?: ""
-            AudioDownloadManager.download(ttsKey, url)
+            Log.w(TAG, "server exist cache, play and download $url")
+            FileDownloadManager.download(ttsKey, url)
             ThreadUtil.runOnUiThread {
                 listener?.onReceiveCompleteUrl(ttsKey, url)
             }

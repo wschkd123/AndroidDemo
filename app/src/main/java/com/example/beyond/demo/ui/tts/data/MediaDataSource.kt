@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.player.data
+package com.example.beyond.demo.ui.tts.data
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

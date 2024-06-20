@@ -1,5 +1,6 @@
 package com.example.base.download
 
+import android.util.Log
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import okio.Buffer
@@ -10,7 +11,7 @@ import okio.Source
 import java.io.IOException
 
 /**
- * 自定义ResponseBody，包含进度
+ * 自定义ResponseBody，监听进度。避免用户拦截器读取数据导致业务方不能即时收到进度
  *
  * @author wangshichao
  * @date 2024/6/19
@@ -44,6 +45,7 @@ internal class DownloadResponseBody(
                 val bytesRead = super.read(sink, byteCount)
                 totalBytesRead += if (bytesRead != -1L) bytesRead else 0
                 val done = bytesRead == -1L
+                Log.w(FileDownloadManager.TAG, "read bytesRead:${totalBytesRead/totalBytesRead}")
                 downloadListener?.onProgress(url, totalBytesRead, responseBody.contentLength(), done)
                 return bytesRead
             }

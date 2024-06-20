@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.player
+package com.example.beyond.demo.ui.tts.player
 
 import android.os.Bundle
 import android.util.Log
@@ -8,17 +8,16 @@ import android.view.ViewGroup
 import com.example.base.AppContext
 import com.example.base.BaseFragment
 import com.example.base.player.AudioController
-import com.example.beyond.demo.databinding.FragmentPlayBinding
-import com.example.base.player.AudioFocusManager
 import com.example.base.util.YWFileUtil
+import com.example.beyond.demo.databinding.FragmentPlayBinding
 
 /**
- * 播放器
+ * MediaPlayer 播放器
  *
  * @author wangshichao
  * @date 2024/6/12
  */
-class PlayFragment : BaseFragment() {
+class MediaPlayFragment : BaseFragment() {
 
     private var _binding: FragmentPlayBinding? = null
     private val binding get() = _binding!!
@@ -37,7 +36,7 @@ class PlayFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.tvPlay1.setOnClickListener {
-            val path = YWFileUtil.getStorageFileDir(AppContext.application).path + "/Audio/" + "test.mp3"
+            val path = YWFileUtil.getStorageFileDir(AppContext.application)?.path + "/Audio/" + "test.mp3"
             preparePlay(path)
         }
 

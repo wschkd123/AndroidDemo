@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.player
+package com.example.beyond.demo.ui.tts.player
 
 import android.util.Log
 import androidx.media3.common.MediaItem
@@ -6,7 +6,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.base.AppContext
-import com.example.beyond.demo.ui.player.data.MediaDataSource
+import com.example.beyond.demo.ui.tts.data.MediaDataSource
 
 /**
  * exoPlayer 播放器管理
@@ -19,7 +19,7 @@ object ExoPlayerManager {
     private val player: Player
     private var playWhenReady = true
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    var onErrorListener: ((desc: String) -> Unit)? = null
+    var onErrorListener: ((uri: String, desc: String) -> Unit)? = null
 
     init {
         player = ExoPlayer.Builder(AppContext.application)
@@ -71,7 +71,7 @@ object ExoPlayerManager {
         }
     }
 
-    private fun currentPlayUri() = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration?.uri
+    private fun currentPlayUri() = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration?.uri.toString()
 
     private fun playbackStateListener() = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -97,8 +97,9 @@ object ExoPlayerManager {
 
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
-            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${currentPlayUri()}")
-            onErrorListener?.invoke("${error.message}")
+            val uri = currentPlayUri()
+            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${uri}")
+            onErrorListener?.invoke(uri, error.message ?: "")
         }
     }
 

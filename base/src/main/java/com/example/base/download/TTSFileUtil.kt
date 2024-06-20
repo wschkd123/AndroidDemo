@@ -18,13 +18,13 @@ object TTSFileUtil {
      * tts完整音频目录
      */
     private val ttsDir =
-        YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/"
+        YWFileUtil.getStorageFileDir(AppContext.application)?.path + "/tts/"
 
     /**
      * tts分片音频临时目录
      */
     val ttsChunkDir =
-        YWFileUtil.getStorageFileDir(AppContext.application).path + "/tts/chunk/"
+        YWFileUtil.getStorageFileDir(AppContext.application)?.path + "/tts/chunk/"
 
     /**
      * 不知道格式，获取缓存文件

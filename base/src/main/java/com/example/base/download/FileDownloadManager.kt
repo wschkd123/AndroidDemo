@@ -1,8 +1,8 @@
 package com.example.base.download
 
 import android.util.Log
-import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.ThreadUtil
+import com.example.base.util.YWFileUtil
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -22,11 +22,10 @@ import java.util.concurrent.TimeUnit
  * @date 2024/6/19
  */
 object FileDownloadManager {
-    private const val TAG = "FileDownloadManager"
-    private var okHttpClient = OkHttpClient.Builder()
+    val TAG = "FileDownload"
+    private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.MINUTES)
         .readTimeout(10, TimeUnit.MINUTES)
-        .addNetworkInterceptor(HttpLogInterceptor())
         .build()
     /**
      * 正在请求任务列表。
@@ -36,7 +35,13 @@ object FileDownloadManager {
     /**
      * 下载临时文件
      */
-    private fun getTempFile(ttsKey: String) = TTSFileUtil.getCacheFile(ttsKey, "temp")
+    private fun getTempFile(fileName: String) = TTSFileUtil.getCacheFile(fileName, "temp")
+
+    private fun getFinalFile(url: String, fileName: String): File {
+        val fileFormat = url.substring(url.lastIndexOf('.') + 1)
+        return TTSFileUtil.getCacheFile(fileName, fileFormat)
+    }
+
 
     /**
      * 下载url
@@ -56,15 +61,6 @@ object FileDownloadManager {
         val request = Request.Builder()
             .url(url)
             .build()
-        // 进度监听
-        okHttpClient = okHttpClient.newBuilder()
-            .addNetworkInterceptor { chain ->
-                val originalResponse = chain.proceed(chain.request())
-                originalResponse.newBuilder()
-                    .body(DownloadResponseBody(originalResponse.body()!!, listener, url))
-                    .build()
-            }
-            .build()
         val call = okHttpClient.newCall(request)
         downCallMap[url] = call
         Log.w(TAG, "down start url:${url}")
@@ -72,7 +68,7 @@ object FileDownloadManager {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 val responseBody = response.body()
-                val file = saveResponseBodyToFile(responseBody, url, fileName)
+                val file = saveResponseBodyToFile(responseBody, url, fileName, listener)
                 downCallMap.remove(url)
                 ThreadUtil.runOnUiThread {
                     if (file != null) {
@@ -99,37 +95,39 @@ object FileDownloadManager {
         downCallMap.remove(url)
     }
 
-    private fun createSaveFile(url: String, fileName: String): File? {
-        val fileFormat = url.substring(url.lastIndexOf('.') + 1)
-        val file = TTSFileUtil.getCacheFile(fileName, fileFormat)
-        if (!file.exists()) {
-            file.parentFile?.mkdirs()
-            val createResult = file.createNewFile()
-            if (!createResult) {
-                Log.e(TAG, "$url create ${file.path} fail")
-                return null
-            }
-        } else {
-            Log.e(TAG, "$url $file is exists")
-        }
-        return file
-    }
+
 
     @Throws(IOException::class)
-    private fun saveResponseBodyToFile(responseBody: ResponseBody?, url: String, fileName: String): File? {
+    private fun saveResponseBodyToFile(
+        responseBody: ResponseBody?,
+        url: String,
+        fileName: String,
+        listener: FileDownloadListener?
+    ): File? {
         if (responseBody == null) return null
-        val tempFile = getTempFile(fileName)
+        val tempFile = YWFileUtil.createNewFile(getTempFile(fileName)) ?: return null
         val inputStream = responseBody.byteStream()
         val outputStream: OutputStream = FileOutputStream(tempFile)
+        val contentLength = responseBody.contentLength()
         val buffer = ByteArray(8192)
         var bytesRead: Int
+        var totalBytesRead = 0L
+        Log.w(TAG, "saveResponseBodyToFile start tempFile:${tempFile.path}")
         while (inputStream.read(buffer).also { bytesRead = it } != -1) {
             outputStream.write(buffer, 0, bytesRead)
+            totalBytesRead += bytesRead.toLong()
+            listener?.onProgress(url, totalBytesRead, contentLength, totalBytesRead == contentLength)
+            Log.w(TAG, "progress:${bytesRead / totalBytesRead.toFloat()} url:${url}")
         }
+        Log.w(TAG, "saveResponseBodyToFile end")
         outputStream.close()
         inputStream.close()
-        val finalFile = createSaveFile(url, fileName) ?: return null
-        tempFile.renameTo(finalFile)
+        val finalFile = YWFileUtil.createNewFile(getFinalFile(url, fileName)) ?: return null
+        val renameResult = tempFile.renameTo(finalFile)
+        if (renameResult.not()) {
+            Log.e(TAG, "${tempFile.path} renameTo $finalFile fail")
+            return null
+        }
         return finalFile
     }
 }

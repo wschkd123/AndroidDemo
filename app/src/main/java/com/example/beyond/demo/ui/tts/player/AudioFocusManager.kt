@@ -1,4 +1,4 @@
-package com.example.base.player
+package com.example.beyond.demo.ui.tts.player
 
 import android.app.Activity
 import android.media.AudioAttributes

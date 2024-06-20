@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.player
+package com.example.beyond.demo.ui.tts
 
 import android.os.Bundle
 import android.util.Log
@@ -10,11 +10,12 @@ import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadListener
 import com.example.base.download.FileDownloadManager
 import com.example.base.download.TTSFileUtil
-import com.example.base.player.AudioFocusManager
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
-import com.example.beyond.demo.ui.player.data.MediaDataSource
+import com.example.beyond.demo.ui.tts.data.MediaDataSource
+import com.example.beyond.demo.ui.tts.player.AudioFocusManager
+import com.example.beyond.demo.ui.tts.player.ExoPlayerManager
 import java.io.File
 
 /**
@@ -29,7 +30,7 @@ class ExoPlayerFragment : BaseFragment() {
     private val mp3Url =
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
     private val mp3Url1 = "http://music.163.com/song/media/outer/url?id=447925558.mp3"
-    private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context).path + "/test.mp3" }
+    private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context)?.path + "/test.mp3" }
     private var currentTtsKey: String? = ""
 
     override fun onCreateView(
@@ -65,26 +66,18 @@ class ExoPlayerFragment : BaseFragment() {
             val ttsKey = "mp3Url"
             currentTtsKey = ttsKey
             ExoPlayerManager.clearMediaItems()
-//            AudioDownloadManager.download("mp3Url", ttsKey, object : AudioProgressListener {
-//                override fun onSuccess(url: String, fileName: String, path: String) {
-//                    Log.i(TAG, "download url:$url, clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
-//                    if (currentTtsKey == fileName) {
-//                        ExoPlayerManager.addMediaItem(path)
-//                    }
-//                }
-//
-//                override fun onError(url: String, msg: String?) {
-//                    Log.i(TAG, "download url:${url} msg:${msg}")
-//                }
-//
-//            })
+
+            // 有缓存直接播放
             val cachePath = TTSFileUtil.getCacheFile(ttsKey)?.path
             if (cachePath != null) {
                 Log.i(TAG, "exist cache cachePath:${cachePath}")
                 ExoPlayerManager.addMediaItem(cachePath)
                 return@setOnClickListener
             }
+            // 在线播放
+            ExoPlayerManager.addMediaItem(mp3Url)
 
+            // 离线下载
             FileDownloadManager.download(mp3Url, currentTtsKey!!, object : FileDownloadListener {
 
                 override fun onProgress(
@@ -93,17 +86,12 @@ class ExoPlayerFragment : BaseFragment() {
                     contentLength: Long,
                     done: Boolean
                 ) {
-                    Log.i(
-                        TAG,
-                        "onProgress $url progress:${100 * bytesRead / contentLength} done:${done}"
-                    )
+                    val progress = 100 * bytesRead / contentLength
+                    Log.i(TAG, "onProgress $url progress:$progress done:${done}")
                 }
 
                 override fun onSuccess(url: String, fileName: String, file: File) {
                     Log.i(TAG, "onSuccess $url file:${file}")
-                    if (currentTtsKey == fileName) {
-                        ExoPlayerManager.addMediaItem(file.path)
-                    }
                 }
 
                 override fun onFail(url: String, errorMessage: String) {
@@ -160,8 +148,12 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         TTSStreamManager.listener = ttsStreamListener
-        ExoPlayerManager.onErrorListener = {
-            Toast.makeText(context, "播放出错", Toast.LENGTH_SHORT).show()
+        ExoPlayerManager.onErrorListener = { uri: String, desc: String ->
+            // 离线播放失败，删除缓存。方便下次通过在线播放
+            if (YWFileUtil.isLocalPath(uri)) {
+                File(uri).delete()
+            }
+            Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
         }
     }
 
