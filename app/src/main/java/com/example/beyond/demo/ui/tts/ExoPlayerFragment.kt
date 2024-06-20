@@ -7,9 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import com.example.base.BaseFragment
-import com.example.base.download.FileDownloadListener
 import com.example.base.download.FileDownloadManager
-import com.example.base.download.TTSFileUtil
 import com.example.base.player.AudioFocusManager
 import com.example.base.player.ExoPlayerManager
 import com.example.base.util.YWFileUtil
@@ -68,7 +66,7 @@ class ExoPlayerFragment : BaseFragment() {
             ExoPlayerManager.clearMediaItems()
 
             // 有缓存直接播放
-            val cachePath = TTSFileUtil.getCacheFile(ttsKey)?.path
+            val cachePath = TTSFileUtil.checkCacheFileFromKey(ttsKey)?.path
             if (cachePath != null) {
                 Log.i(TAG, "exist cache cachePath:${cachePath}")
                 ExoPlayerManager.addMediaItem(cachePath)
@@ -78,26 +76,8 @@ class ExoPlayerFragment : BaseFragment() {
             ExoPlayerManager.addMediaItem(mp3Url)
 
             // 离线下载
-            FileDownloadManager.download(mp3Url, currentTtsKey!!, object : FileDownloadListener {
-
-                override fun onProgress(
-                    url: String,
-                    bytesRead: Long,
-                    contentLength: Long,
-                    done: Boolean
-                ) {
-                    val progress = 100 * bytesRead / contentLength
-                    Log.i(TAG, "onProgress $url progress:$progress done:${done}")
-                }
-
-                override fun onSuccess(url: String, fileName: String, file: File) {
-                    Log.i(TAG, "onSuccess $url file:${file}")
-                }
-
-                override fun onFail(url: String, errorMessage: String) {
-                    Log.i(TAG, "onFail url:$url errorMessage:$errorMessage")
-                }
-            })
+            val file = TTSFileUtil.createCacheFileFromUrl(ttsKey, mp3Url)
+            FileDownloadManager.download(mp3Url, file.path)
         }
     }
 
@@ -109,7 +89,7 @@ class ExoPlayerFragment : BaseFragment() {
         val ttsKey = content.hashCode().toString()
         currentTtsKey = ttsKey
         Log.w(TAG, "click clickTtsKey:${ttsKey} content:${content}")
-        val cacheFile = TTSFileUtil.getCacheFile(ttsKey)
+        val cacheFile = TTSFileUtil.checkCacheFileFromKey(ttsKey)
         if (cacheFile != null) {
             Log.w(TAG, "exist cache ${cacheFile.path}")
             ExoPlayerManager.addMediaItem(cacheFile.path)

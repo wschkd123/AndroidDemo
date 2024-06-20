@@ -2,7 +2,6 @@ package com.example.beyond.demo.ui.tts
 
 import android.util.Log
 import com.example.base.download.FileDownloadManager
-import com.example.base.download.TTSFileUtil
 import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.ThreadUtil
@@ -67,13 +66,12 @@ object TTSStreamManager {
         content: String = "你好",
         ttsKey: String
     ) {
-        Log.i(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
-
         // 是否正在请求
         if (requestSet.contains(ttsKey)) {
             Log.w(TAG, "$content $ttsKey is requesting")
             return
         }
+        Log.w(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
         requestSet.add(ttsKey)
         val json = "{\n" +
                 "    \"timber_weights\": [\n" +
@@ -180,7 +178,8 @@ object TTSStreamManager {
         if (chunk.isCompleteUrl()) {
             val url = chunk.url ?: ""
             Log.w(TAG, "server exist cache, play and download $url")
-            FileDownloadManager.download(ttsKey, url)
+            val file = TTSFileUtil.createCacheFileFromUrl(ttsKey, url)
+            FileDownloadManager.download(url, file.path)
             ThreadUtil.runOnUiThread {
                 listener?.onReceiveCompleteUrl(ttsKey, url)
             }
@@ -214,13 +213,14 @@ object TTSStreamManager {
 
         if (chunk.data.isLastComplete()) {
             // 最后一个完整音频缓存下来
-            val chunkPath = TTSFileUtil.getCacheFile(ttsKey, AUDIO_FORMAT).path
+            val chunkPath = TTSFileUtil.createCacheFileFromKey(ttsKey, AUDIO_FORMAT).path
             YWFileUtil.saveByteArrayToFile(byteArray, chunkPath)
-            Log.w(TAG, "parser content:${audio.length} path:$chunkPath ttsKey:${ttsKey}")
+            Log.i(TAG, "parser last content:${audio.length} path:$chunkPath")
         } else {
             // 音频片段保存在临时文件，然后回调路径等信息
             val chunkPath = "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
             takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
+            Log.i(TAG, "parser content:${audio.length} path:$chunkPath")
             ThreadUtil.runOnUiThread {
                 listener?.onReceiveChunk(ChunkDataSource(
                     traceId = traceId,

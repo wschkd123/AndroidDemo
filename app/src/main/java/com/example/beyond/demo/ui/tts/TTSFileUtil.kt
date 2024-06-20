@@ -1,4 +1,4 @@
-package com.example.base.download
+package com.example.beyond.demo.ui.tts
 
 import com.example.base.AppContext
 import com.example.base.util.YWFileUtil
@@ -27,9 +27,9 @@ object TTSFileUtil {
         YWFileUtil.getStorageFileDir(AppContext.application)?.path + "/tts/chunk/"
 
     /**
-     * 不知道格式，获取缓存文件
+     * 检查是否存在缓存
      */
-    fun getCacheFile(ttsKey: String): File? {
+    fun checkCacheFileFromKey(ttsKey: String): File? {
         formatList.forEach { format ->
             val path = "$ttsDir$ttsKey.$format"
             val file = File(path)
@@ -41,9 +41,19 @@ object TTSFileUtil {
     }
 
     /**
-     * 指定格式，获取缓存文件
+     * 通过文件格式创建缓存路径
      */
-    fun getCacheFile(ttsKey: String, format: String): File {
+    fun createCacheFileFromKey(ttsKey: String, format: String): File {
         return File("$ttsDir$ttsKey.$format")
     }
+
+    /**
+     * 通过key和url创建缓存路径
+     */
+    fun createCacheFileFromUrl(ttsKey: String, url: String): File {
+        val fileFormat = YWFileUtil.getFormatFromUrl(url)
+        return createCacheFileFromKey(ttsKey, fileFormat)
+    }
+
+
 }

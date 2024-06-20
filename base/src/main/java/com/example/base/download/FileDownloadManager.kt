@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
  * @date 2024/6/19
  */
 object FileDownloadManager {
-    val TAG = "FileDownload"
+    private const val TAG = "FileDownloadManager"
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.MINUTES)
         .readTimeout(10, TimeUnit.MINUTES)
@@ -32,26 +32,16 @@ object FileDownloadManager {
      */
     private val downCallMap: MutableMap<String, Call> = HashMap()
 
-    /**
-     * 下载临时文件
-     */
-    private fun getTempFile(fileName: String) = TTSFileUtil.getCacheFile(fileName, "temp")
-
-    private fun getFinalFile(url: String, fileName: String): File {
-        val fileFormat = url.substring(url.lastIndexOf('.') + 1)
-        return TTSFileUtil.getCacheFile(fileName, fileFormat)
-    }
-
 
     /**
      * 下载url
      *
      * @param url 请求地址
-     * @param fileName 保存文件名
+     * @param savePath 保存的文件路径
      */
     fun download(
         url: String,
-        fileName: String,
+        savePath: String,
         listener: FileDownloadListener? = null
     ) {
         if (downCallMap.containsKey(url)) {
@@ -68,11 +58,11 @@ object FileDownloadManager {
             @Throws(IOException::class)
             override fun onResponse(call: Call, response: Response) {
                 val responseBody = response.body()
-                val file = saveResponseBodyToFile(responseBody, url, fileName, listener)
+                val file = saveResponseBodyToFile(responseBody, url, savePath, listener)
                 downCallMap.remove(url)
                 ThreadUtil.runOnUiThread {
                     if (file != null) {
-                        listener?.onSuccess(url, fileName, file)
+                        listener?.onSuccess(url, file)
                     } else {
                         listener?.onFail(url, "文件内容为空")
                     }
@@ -101,28 +91,27 @@ object FileDownloadManager {
     private fun saveResponseBodyToFile(
         responseBody: ResponseBody?,
         url: String,
-        fileName: String,
+        savePath: String,
         listener: FileDownloadListener?
     ): File? {
         if (responseBody == null) return null
-        val tempFile = YWFileUtil.createNewFile(getTempFile(fileName)) ?: return null
+        val tempPath = YWFileUtil.replacePathSuffix(savePath, "temp")
+        val tempFile = YWFileUtil.createNewFile(tempPath) ?: return null
         val inputStream = responseBody.byteStream()
         val outputStream: OutputStream = FileOutputStream(tempFile)
         val contentLength = responseBody.contentLength()
         val buffer = ByteArray(8192)
         var bytesRead: Int
         var totalBytesRead = 0L
-        Log.w(TAG, "saveResponseBodyToFile start tempFile:${tempFile.path}")
         while (inputStream.read(buffer).also { bytesRead = it } != -1) {
             outputStream.write(buffer, 0, bytesRead)
             totalBytesRead += bytesRead.toLong()
             listener?.onProgress(url, totalBytesRead, contentLength, totalBytesRead == contentLength)
-            Log.w(TAG, "progress:${bytesRead / totalBytesRead.toFloat()} url:${url}")
+            Log.i(TAG, "progress:${bytesRead / totalBytesRead.toFloat()} url:${url}")
         }
-        Log.w(TAG, "saveResponseBodyToFile end")
         outputStream.close()
         inputStream.close()
-        val finalFile = YWFileUtil.createNewFile(getFinalFile(url, fileName)) ?: return null
+        val finalFile = YWFileUtil.createNewFile(savePath) ?: return null
         val renameResult = tempFile.renameTo(finalFile)
         if (renameResult.not()) {
             Log.e(TAG, "${tempFile.path} renameTo $finalFile fail")

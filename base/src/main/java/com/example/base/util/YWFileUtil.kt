@@ -678,41 +678,11 @@ object YWFileUtil {
         }
     }
 
-    fun generateFileName(name: String?, directory: File?): File? {
-        var name = name ?: return null
-        var file = File(directory, name)
-        if (file.exists()) {
-            var fileName = name
-            var extension = ""
-            val dotIndex = name.lastIndexOf('.')
-            if (dotIndex > 0) {
-                fileName = name.substring(0, dotIndex)
-                extension = name.substring(dotIndex)
-            }
-            var index = 0
-            while (file.exists()) {
-                index++
-                name = "$fileName($index)$extension"
-                file = File(directory, name)
-            }
-        }
-        try {
-            if (!file.createNewFile()) {
-                return null
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
-        return file
-    }
-
     fun saveByteArrayToFile(byteArray: ByteArray?, filepath: String): Boolean {
         Log.i(TAG, "saveByteArrayToFile [filepath] = $filepath")
         var fos: FileOutputStream? = null
         try {
-            val file = File(filepath)
-            createNewFile(file) ?: false
+            val file = createNewFile(filepath) ?: return false
             fos = FileOutputStream(file)
             fos.write(byteArray)
         } catch (e: IOException) {
@@ -733,7 +703,8 @@ object YWFileUtil {
         return uri != null && (uri.startsWith("/") || uri.startsWith("file://"))
     }
 
-    fun createNewFile(file: File): File? {
+    fun createNewFile(path: String): File? {
+        val file = File(path)
         if (!file.exists()) {
             file.parentFile?.mkdirs()
             val createResult = file.createNewFile()
@@ -746,4 +717,27 @@ object YWFileUtil {
         }
         return file
     }
+
+    fun getFormatFromUrl(url: String): String {
+        return url.substring(url.lastIndexOf('.') + 1)
+    }
+
+    /**
+     * 替换path的后缀（格式）
+     */
+    fun replacePathSuffix(path: String, newSuffix: String): String {
+        // 获取最后一个斜杠的索引
+        val lastSlashIndex = path.lastIndexOf("/")
+        // 获取最后一个点的索引
+        val lastDotIndex = path.lastIndexOf(".")
+        // 如果最后一个点在最后一个斜杠之后，则将后缀替换为新的后缀
+        if (lastDotIndex > lastSlashIndex) {
+            val oldSuffix = path.substring(lastDotIndex + 1)
+            return path.replace(oldSuffix, newSuffix)
+        }
+        // 如果没有找到最后一个点或者最后一个点在最后一个斜杠之前，则直接返回原始URL
+        return path
+    }
+
+
 }

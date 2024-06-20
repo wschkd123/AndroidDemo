@@ -1,6 +1,5 @@
 package com.example.base.download
 
-import android.util.Log
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import okio.Buffer
@@ -45,7 +44,6 @@ internal class DownloadResponseBody(
                 val bytesRead = super.read(sink, byteCount)
                 totalBytesRead += if (bytesRead != -1L) bytesRead else 0
                 val done = bytesRead == -1L
-                Log.w(FileDownloadManager.TAG, "read bytesRead:${totalBytesRead/totalBytesRead}")
                 downloadListener?.onProgress(url, totalBytesRead, responseBody.contentLength(), done)
                 return bytesRead
             }
