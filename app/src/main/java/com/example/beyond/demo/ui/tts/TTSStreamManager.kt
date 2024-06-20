@@ -7,9 +7,9 @@ import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
-import com.example.beyond.demo.ui.tts.data.MediaDataSource
-import com.example.beyond.demo.ui.tts.data.TTSChunkResult
 import com.example.beyond.demo.ui.tts.TTSStreamManager.startConnect
+import com.example.beyond.demo.ui.tts.data.ChunkDataSource
+import com.example.beyond.demo.ui.tts.data.TTSChunkResult
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.MediaType
@@ -209,31 +209,32 @@ object TTSStreamManager {
             return
         }
 
-        // 最后一个完整资源以ttsKey缓存，其它片段保存临时文件
-        val chunkPath = if (chunk.data.isLastComplete()) {
-            TTSFileUtil.getCacheFile(ttsKey, AUDIO_FORMAT).path
+        // 解码
+        val byteArray = decodeHex(audio)
+
+        if (chunk.data.isLastComplete()) {
+            // 最后一个完整音频缓存下来
+            val chunkPath = TTSFileUtil.getCacheFile(ttsKey, AUDIO_FORMAT).path
+            YWFileUtil.saveByteArrayToFile(byteArray, chunkPath)
+            Log.w(TAG, "parser content:${audio.length} path:$chunkPath ttsKey:${ttsKey}")
         } else {
-            "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
-        }
-        Log.w(TAG, "parser content:${audio.length} path:$chunkPath ttsKey:${ttsKey}")
-        val saveResult = YWFileUtil.saveByteArrayToFile(decodeHex(audio), chunkPath)
-        if (saveResult) {
-            val mediaDataSource = MediaDataSource(
-                traceId = traceId,
-                ttsKey = ttsKey,
-                audioChunk = MediaDataSource.AudioChunk(
-                    chunkPath,
-                    chunk.data.isLastComplete(),
-                )
-            )
+            // 音频片段保存在临时文件，然后回调路径等信息
+            val chunkPath = "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
+            takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
             ThreadUtil.runOnUiThread {
-                listener?.onReceiveChunk(mediaDataSource)
+                listener?.onReceiveChunk(ChunkDataSource(
+                    traceId = traceId,
+                    ttsKey = ttsKey,
+                    chunkPath = chunkPath
+                ))
             }
-        } else {
-            Log.e(TAG, "save fail path:$chunkPath ttsKey:${ttsKey}")
         }
+
     }
 
+    /**
+     * 解码十六进制数据
+     */
     private fun decodeHex(hexString: String): ByteArray {
         val byteArray = ByteArray(hexString.length / 2)
         var i = 0
@@ -257,7 +258,7 @@ interface TTSStreamListener {
     /**
      * 音频片段
      */
-    fun onReceiveChunk(dataSource: MediaDataSource)
+    fun onReceiveChunk(dataSource: ChunkDataSource)
 
     /**
      * 触发速率限制

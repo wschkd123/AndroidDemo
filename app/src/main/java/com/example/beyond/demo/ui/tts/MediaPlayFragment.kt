@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.tts.player
+package com.example.beyond.demo.ui.tts
 
 import android.os.Bundle
 import android.util.Log
@@ -7,7 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.base.AppContext
 import com.example.base.BaseFragment
-import com.example.base.player.AudioController
+import com.example.base.player.AudioFocusManager
+import com.example.base.player.core.MediaPlayerController
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.databinding.FragmentPlayBinding
 
@@ -21,7 +22,7 @@ class MediaPlayFragment : BaseFragment() {
 
     private var _binding: FragmentPlayBinding? = null
     private val binding get() = _binding!!
-    private val audioController = AudioController()
+    private val audioController = MediaPlayerController()
 
     override fun onCreateView(
         inflater: LayoutInflater,

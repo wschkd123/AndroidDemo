@@ -1,4 +1,4 @@
-package com.example.base.player
+package com.example.base.player.core
 
 /**
  * 多实例播放器控制器
@@ -6,7 +6,7 @@ package com.example.base.player
  * @author wangshichao
  * @date 2024/6/13
  */
-class MultiAudioController {
+class MultiMediaPlayerController {
     private val map by lazy {
         mutableMapOf<String, PlayerWrapper>()
     }

@@ -717,7 +717,7 @@ object YWFileUtil {
             fos.write(byteArray)
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e(TAG, "saveByteArrayToFile fail" + e.message)
+            Log.e(TAG, "save $filepath fail" + e.message)
             return false
         } finally {
             flush(fos)

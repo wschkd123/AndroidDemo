@@ -10,12 +10,12 @@ import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadListener
 import com.example.base.download.FileDownloadManager
 import com.example.base.download.TTSFileUtil
+import com.example.base.player.AudioFocusManager
+import com.example.base.player.ExoPlayerManager
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
-import com.example.beyond.demo.ui.tts.data.MediaDataSource
-import com.example.beyond.demo.ui.tts.player.AudioFocusManager
-import com.example.beyond.demo.ui.tts.player.ExoPlayerManager
+import com.example.beyond.demo.ui.tts.data.ChunkDataSource
 import java.io.File
 
 /**
@@ -103,6 +103,9 @@ class ExoPlayerFragment : BaseFragment() {
 
     private fun clickStartTTS(content: String) {
         ExoPlayerManager.clearMediaItems()
+        if (ExoPlayerManager.isPlaying()) {
+            return
+        }
         val ttsKey = content.hashCode().toString()
         currentTtsKey = ttsKey
         Log.w(TAG, "click clickTtsKey:${ttsKey} content:${content}")
@@ -124,14 +127,14 @@ class ExoPlayerFragment : BaseFragment() {
             }
         }
 
-        override fun onReceiveChunk(dataSource: MediaDataSource) {
+        override fun onReceiveChunk(dataSource: ChunkDataSource) {
             Log.i(
                 TAG,
                 "onReceiveChunk clickTtsKey:${currentTtsKey} ttsKey:${dataSource.ttsKey}"
             )
             // 仅播放最后一个被点击的内容
             if (currentTtsKey == dataSource.ttsKey) {
-                ExoPlayerManager.addMediaItem(dataSource)
+                ExoPlayerManager.addMediaItem(dataSource.chunkPath)
             }
         }
 

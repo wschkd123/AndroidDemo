@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.tts.player
+package com.example.base.player
 
 import android.util.Log
 import androidx.media3.common.MediaItem
@@ -6,7 +6,6 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.base.AppContext
-import com.example.beyond.demo.ui.tts.data.MediaDataSource
 
 /**
  * exoPlayer 播放器管理
@@ -30,21 +29,9 @@ object ExoPlayerManager {
             }
     }
 
-    fun addMediaItem(dataSource: MediaDataSource) {
-        if (dataSource.audioChunk.isLastComplete.not()) {
-            Log.w(TAG, "addMediaItem path:${dataSource.audioChunk.chunkPath} ttsKey:${dataSource.ttsKey}")
-            player.apply {
-                addMediaItem(MediaItem.fromUri(dataSource.audioChunk.chunkPath))
-                prepare()
-                playWhenReady = playWhenReady
-            }
-        }
-    }
-
     fun addMediaItem(uri: String) {
         Log.w(TAG, "addMediaItem uri:${uri}")
         player.apply {
-            clearMediaItems()
             addMediaItem(MediaItem.fromUri(uri))
             prepare()
             playWhenReady = playWhenReady
