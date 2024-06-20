@@ -1,9 +1,9 @@
 //版本依赖文件
 ext {
     // 编译SDK的版本
-    compileSdkVersion = 34
+    compileSdkVersion = 33
     // build tools的版本
-    buildToolsVersion = "34.0.0"
+    buildToolsVersion = "33.0.3"
     // minSdkVersion
     minSdkVersion = 22
     // targetSdkVersion
@@ -11,6 +11,5 @@ ext {
 
     android_gradle_plugin = "7.0.0"
     kotlin_version = "1.9.0"
-    javaVersion = JavaVersion.VERSION_1_8
 
 }

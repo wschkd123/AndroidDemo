@@ -1,12 +1,10 @@
 package com.example.beyond.demo.ui.tts.data
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import com.example.base.bean.IgnoreProguard
 
 /**
  * 音频片段播放数据源
  */
-@Parcelize
 data class ChunkDataSource(
     /**
      * 本次tts请求的id
@@ -22,4 +20,4 @@ data class ChunkDataSource(
      * 获取的音频片段缓存路径
      */
     val chunkPath: String,
-) : Parcelable
+) : IgnoreProguard()
