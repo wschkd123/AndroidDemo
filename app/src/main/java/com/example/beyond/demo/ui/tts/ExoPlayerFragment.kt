@@ -83,9 +83,6 @@ class ExoPlayerFragment : BaseFragment() {
 
     private fun clickStartTTS(content: String) {
         ExoPlayerManager.clearMediaItems()
-        if (ExoPlayerManager.isPlaying()) {
-            return
-        }
         val ttsKey = content.hashCode().toString()
         currentTtsKey = ttsKey
         Log.w(TAG, "click clickTtsKey:${ttsKey} content:${content}")

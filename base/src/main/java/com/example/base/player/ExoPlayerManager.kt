@@ -16,7 +16,6 @@ import com.example.base.AppContext
 object ExoPlayerManager {
     private const val TAG = "ExoPlayerManager"
     private val player: Player
-    private var playWhenReady = true
     private val playbackStateListener: Player.Listener = playbackStateListener()
     var onErrorListener: ((uri: String, desc: String) -> Unit)? = null
 
@@ -24,7 +23,7 @@ object ExoPlayerManager {
         player = ExoPlayer.Builder(AppContext.application)
             .build()
             .also { exoPlayer ->
-                exoPlayer.playWhenReady = playWhenReady
+                exoPlayer.playWhenReady = true
                 exoPlayer.addListener(playbackStateListener)
             }
     }
@@ -34,7 +33,7 @@ object ExoPlayerManager {
         player.apply {
             addMediaItem(MediaItem.fromUri(uri))
             prepare()
-            playWhenReady = playWhenReady
+            playWhenReady = true
         }
     }
 
@@ -70,11 +69,6 @@ object ExoPlayerManager {
                 else -> "UNKNOWN_STATE             -"
             }
             Log.i(TAG, "changed state to $stateString")
-        }
-
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-            super.onPlayWhenReadyChanged(playWhenReady, reason)
-            Log.i(TAG, "onPlayWhenReadyChanged playWhenReady:$playWhenReady reason:$reason")
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {

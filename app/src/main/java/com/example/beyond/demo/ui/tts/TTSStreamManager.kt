@@ -23,6 +23,7 @@ import okio.Buffer
 import java.io.EOFException
 import java.io.File
 import java.nio.charset.Charset
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
@@ -52,7 +53,7 @@ object TTSStreamManager {
     /**
      * ttsKey列表。用于请求唯一标识，避免重复请求。
      */
-    private val requestSet = hashSetOf<String>()
+    private val requestMap = ConcurrentHashMap<String, RealEventSource>()
     var listener: TTSStreamListener? = null
 
     init {
@@ -67,12 +68,11 @@ object TTSStreamManager {
         ttsKey: String
     ) {
         // 是否正在请求
-        if (requestSet.contains(ttsKey)) {
+        if (requestMap.contains(ttsKey)) {
             Log.w(TAG, "$content $ttsKey is requesting")
             return
         }
         Log.w(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
-        requestSet.add(ttsKey)
         val json = "{\n" +
                 "    \"timber_weights\": [\n" +
                 "      {\n" +
@@ -121,7 +121,7 @@ object TTSStreamManager {
 
             override fun onClosed(eventSource: EventSource) {
                 super.onClosed(eventSource)
-                requestSet.remove(ttsKey)
+                requestMap.remove(ttsKey)
                 Log.i(TAG, "已断开")
             }
 
@@ -131,12 +131,13 @@ object TTSStreamManager {
                 response: Response?
             ) {
                 super.onFailure(eventSource, t, response)
-                requestSet.remove(ttsKey)
+                requestMap.remove(ttsKey)
                 Log.w(TAG, "连接失败 ${t?.message} ttsKey:$ttsKey")
                 val data = readStringFromBuffer(response)
                 parserMessageContent(ttsKey, data)
             }
         })
+        requestMap[ttsKey] = realEventSource
         realEventSource.connect(okHttpClient)
 
     }

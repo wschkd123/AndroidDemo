@@ -13,6 +13,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
@@ -30,7 +31,7 @@ object FileDownloadManager {
     /**
      * 正在请求任务列表。
      */
-    private val downCallMap: MutableMap<String, Call> = HashMap()
+    private val downCallMap = ConcurrentHashMap<String, Call>()
 
 
     /**
