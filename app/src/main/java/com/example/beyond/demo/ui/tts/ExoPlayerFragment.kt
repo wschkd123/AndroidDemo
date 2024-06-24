@@ -9,7 +9,7 @@ import android.widget.Toast
 import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadManager
 import com.example.base.player.AudioFocusManager
-import com.example.base.player.ExoPlayerManager
+import com.example.base.player.ExoPlayerWrapper
 import com.example.base.player.PlayState
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
@@ -30,6 +30,7 @@ class ExoPlayerFragment : BaseFragment() {
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
     private val mp3Url1 = "http://music.163.com/song/media/outer/url?id=447925558.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context)?.path + "/test.mp3" }
+    private val player = ExoPlayerWrapper()
     private var currentTtsKey: String? = ""
 
     override fun onCreateView(
@@ -52,8 +53,8 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvPlayLocal.setOnClickListener {
-//            ExoPlayerManager.clearMediaItems()
-//            ExoPlayerManager.addMediaItem(mp3Path, "")
+//            ExoPlayerWrapper.clearMediaItems()
+//            ExoPlayerWrapper.addMediaItem(mp3Path, "")
         }
 
         binding.tvPlayNet.setOnClickListener {
@@ -63,8 +64,8 @@ class ExoPlayerFragment : BaseFragment() {
             if (verifyPlaying(key)) {
                 return@setOnClickListener
             }
-            ExoPlayerManager.clearMediaItems()
-            ExoPlayerManager.addMediaItem(url, key)
+            player.clearMediaItems()
+            player.addMediaItem(url, key)
         }
 
         binding.tvDownUrl.setOnClickListener {
@@ -73,17 +74,17 @@ class ExoPlayerFragment : BaseFragment() {
             if (verifyPlaying(key)) {
                 return@setOnClickListener
             }
-            ExoPlayerManager.clearMediaItems()
+            player.clearMediaItems()
 
             // 有缓存直接播放
             val cachePath = TTSFileUtil.checkCacheFileFromKey(key)?.path
             if (cachePath != null) {
                 Log.i(TAG, "exist cache cachePath:${cachePath}")
-                ExoPlayerManager.addMediaItem(cachePath, key)
+                player.addMediaItem(cachePath, key)
                 return@setOnClickListener
             }
             // 在线播放
-            ExoPlayerManager.addMediaItem(mp3Url, key)
+            player.addMediaItem(mp3Url, key)
 
             // 离线下载
             val file = TTSFileUtil.createCacheFileFromUrl(key, mp3Url)
@@ -95,22 +96,22 @@ class ExoPlayerFragment : BaseFragment() {
         val ttsKey = content.hashCode().toString()
         Log.w(TAG, "click clickTtsKey:${ttsKey} content:${content}")
         // 如果播放中，停止播放
-        if (ExoPlayerManager.isPlaying(ttsKey)) {
+        if (player.isPlaying(ttsKey)) {
             Log.w(TAG, "already playing, stop")
-            ExoPlayerManager.stop()
+            player.stop()
             currentTtsKey = null
             TTSStreamManager.cancelConnect(ttsKey)
             return
         }
 
-        ExoPlayerManager.clearMediaItems()
+        player.clearMediaItems()
         currentTtsKey = ttsKey
 
         // 有缓存直接播放
         val cacheFile = TTSFileUtil.checkCacheFileFromKey(ttsKey)
         if (cacheFile != null) {
             Log.w(TAG, "exist cache ${cacheFile.path}")
-            ExoPlayerManager.addMediaItem(cacheFile.path, ttsKey)
+            player.addMediaItem(cacheFile.path, ttsKey)
             return
         }
 
@@ -120,9 +121,9 @@ class ExoPlayerFragment : BaseFragment() {
 
     private fun verifyPlaying(ttsKey: String): Boolean {
         // 如果播放中，停止播放
-        if (ExoPlayerManager.isPlaying(ttsKey)) {
+        if (player.isPlaying(ttsKey)) {
             Log.w(TAG, "already playing, stop")
-            ExoPlayerManager.stop()
+            player.stop()
             return true
         }
         return false
@@ -133,7 +134,7 @@ class ExoPlayerFragment : BaseFragment() {
         override fun onReceiveCompleteUrl(ttsKey: String, url: String) {
             Log.i(TAG, "onReceiveCompleteUrl clickTtsKey:${currentTtsKey} ttsKey:${ttsKey}")
             if (currentTtsKey == ttsKey) {
-                ExoPlayerManager.addMediaItem(url, ttsKey)
+                player.addMediaItem(url, ttsKey)
             }
         }
 
@@ -145,7 +146,7 @@ class ExoPlayerFragment : BaseFragment() {
             )
             // 仅播放最后一个被点击的内容
             if (currentTtsKey == ttsKey) {
-                ExoPlayerManager.addMediaItem(dataSource.chunkPath, ttsKey)
+                player.addMediaItem(dataSource.chunkPath, ttsKey)
             }
         }
 
@@ -162,14 +163,14 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         TTSStreamManager.listener = ttsStreamListener
-        ExoPlayerManager.onErrorListener = { uri: String, playKey: String?, desc: String ->
+        player.onErrorListener = { uri: String, playKey: String?, desc: String ->
             // 离线播放失败，删除缓存。方便下次通过在线播放
             if (YWFileUtil.isLocalPath(uri)) {
                 File(uri).delete()
             }
             Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
         }
-        ExoPlayerManager.onPlaybackStateChangedListener = {  uri: String, playKey: String?, playState: Int ->
+        player.onPlaybackStateChangedListener = {  uri: String, playKey: String?, playState: Int ->
             when (playState) {
                 PlayState.LOADING -> {
                     binding.tvPlayStatus.text = "loading"
@@ -193,13 +194,13 @@ class ExoPlayerFragment : BaseFragment() {
         super.onStop()
         Log.i(TAG, "onStop")
         TTSStreamManager.listener = null
-        ExoPlayerManager.stop()
+        player.stop()
         AudioFocusManager.abandonAudioFocus()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        ExoPlayerManager.release()
+        player.release()
     }
 
 }

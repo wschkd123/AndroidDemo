@@ -8,13 +8,13 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.example.base.AppContext
 
 /**
- * exoPlayer 播放器管理
+ * exoPlayer 播放器封装
  *
  * @author wangshichao
  * @date 2024/6/17
  */
-object ExoPlayerManager {
-    private const val TAG = "ExoPlayerManager"
+class ExoPlayerWrapper {
+    private val TAG = "ExoPlayerWrapper"
     private val player: Player
     private val playbackStateListener: Player.Listener = playbackStateListener()
     var onErrorListener: ((uri: String, playKey: String, desc: String) -> Unit)? = null
