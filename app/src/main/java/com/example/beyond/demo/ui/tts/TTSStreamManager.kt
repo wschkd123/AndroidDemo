@@ -63,13 +63,16 @@ object TTSStreamManager {
         }
     }
 
+    /**
+     * 开始连接
+     */
     fun startConnect(
         content: String = "你好",
         ttsKey: String
     ) {
         // 是否正在请求
-        if (requestMap.contains(ttsKey)) {
-            Log.w(TAG, "$content $ttsKey is requesting")
+        if (requestMap.containsKey(ttsKey)) {
+            Log.w(TAG, "is requesting $content $ttsKey")
             return
         }
         Log.w(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
@@ -140,6 +143,15 @@ object TTSStreamManager {
         requestMap[ttsKey] = realEventSource
         realEventSource.connect(okHttpClient)
 
+    }
+
+    /**
+     * 取消连接
+     */
+    fun cancelConnect(ttsKey: String) {
+        Log.w(TAG, "cancelConnect ttsKey:$ttsKey")
+        requestMap[ttsKey]?.cancel()
+        requestMap.remove(ttsKey)
     }
 
     /**

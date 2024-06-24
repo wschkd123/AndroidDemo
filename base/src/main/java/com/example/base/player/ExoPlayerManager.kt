@@ -17,7 +17,13 @@ object ExoPlayerManager {
     private const val TAG = "ExoPlayerManager"
     private val player: Player
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    var onErrorListener: ((uri: String, desc: String) -> Unit)? = null
+    var onErrorListener: ((uri: String, playKey: String, desc: String) -> Unit)? = null
+    var onPlaybackStateChangedListener: ((uri: String, playKey: String, playState: Int) -> Unit)? = null
+
+    /**
+     * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
+     */
+    private var playerKey: String? = null
 
     init {
         player = ExoPlayer.Builder(AppContext.application)
@@ -28,8 +34,24 @@ object ExoPlayerManager {
             }
     }
 
+    /**
+     * 将媒体项添加到播放列表的末尾。其中播放列表只有一条数据，uri与playerKey保持一致
+     *
+     * @param uri 资源地址
+     */
     fun addMediaItem(uri: String) {
-        Log.w(TAG, "addMediaItem uri:${uri}")
+        addMediaItem(uri, uri)
+    }
+
+    /**
+     * 将媒体项添加到播放列表的末尾
+     *
+     * @param uri 资源地址
+     * @param key 资源key
+     */
+    fun addMediaItem(uri: String, key: String) {
+        Log.w(TAG, "addMediaItem uri:${uri} key:${key}")
+        playerKey = key
         player.apply {
             addMediaItem(MediaItem.fromUri(uri))
             prepare()
@@ -39,10 +61,27 @@ object ExoPlayerManager {
 
     fun clearMediaItems() {
         player.clearMediaItems()
+        playerKey = null
     }
 
-    fun isPlaying(): Boolean {
-        return player.isPlaying
+    /**
+     * 指定资源是否播放中
+     *
+     * @param key 资源key
+     */
+    fun isPlaying(key: String): Boolean {
+        Log.i(TAG, "key:$key playerKey:$playerKey")
+        if (playerKey != key) {
+            return false
+        }
+        val mediaItemCount = player.mediaItemCount
+        for (i in 0 until mediaItemCount) {
+            if (player.isPlaying && player.currentMediaItemIndex == i) {
+                Log.i(TAG, "player item[$i] isPlaying")
+                return true
+            }
+        }
+        return false
     }
 
     fun stop() {
@@ -61,14 +100,15 @@ object ExoPlayerManager {
 
     private fun playbackStateListener() = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
-            val stateString: String = when (playbackState) {
-                ExoPlayer.STATE_IDLE -> "ExoPlayer.STATE_IDLE      -"
-                ExoPlayer.STATE_BUFFERING -> "ExoPlayer.STATE_BUFFERING -"
-                ExoPlayer.STATE_READY -> "ExoPlayer.STATE_READY     -"
-                ExoPlayer.STATE_ENDED -> "ExoPlayer.STATE_ENDED     -"
-                else -> "UNKNOWN_STATE             -"
+            val playState = when (playbackState) {
+                ExoPlayer.STATE_BUFFERING -> PlayState.LOADING
+                ExoPlayer.STATE_READY -> PlayState.PLAYING
+                ExoPlayer.STATE_IDLE, ExoPlayer.STATE_ENDED -> PlayState.IDLE
+                else -> PlayState.IDLE
             }
-            Log.i(TAG, "changed state to $stateString")
+            val uri = if (playbackState < ExoPlayer.STATE_ENDED) currentPlayUri() else ""
+            Log.i(TAG, "changed state to $playbackState uri:${uri} key:${playerKey}")
+            onPlaybackStateChangedListener?.invoke(uri, playerKey ?: "", playState)
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -79,8 +119,8 @@ object ExoPlayerManager {
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
             val uri = currentPlayUri()
-            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${uri}")
-            onErrorListener?.invoke(uri, error.message ?: "")
+            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${uri} key:${playerKey}")
+            onErrorListener?.invoke(uri, playerKey ?: "", error.message ?: "")
         }
     }
 
