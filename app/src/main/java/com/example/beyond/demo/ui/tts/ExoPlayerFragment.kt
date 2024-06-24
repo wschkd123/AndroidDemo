@@ -170,7 +170,7 @@ class ExoPlayerFragment : BaseFragment() {
             }
             Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
         }
-        player.onPlaybackStateChangedListener = {  uri: String, playKey: String?, playState: Int ->
+        player.onPlaybackStateChangedListener = {  playKey: String?, playState: Int ->
             when (playState) {
                 PlayState.LOADING -> {
                     binding.tvPlayStatus.text = "loading"

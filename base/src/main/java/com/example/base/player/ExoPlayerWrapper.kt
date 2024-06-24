@@ -18,7 +18,7 @@ class ExoPlayerWrapper {
     private val player: Player
     private val playbackStateListener: Player.Listener = playbackStateListener()
     var onErrorListener: ((uri: String, playKey: String, desc: String) -> Unit)? = null
-    var onPlaybackStateChangedListener: ((uri: String, playKey: String, playState: Int) -> Unit)? = null
+    var onPlaybackStateChangedListener: ((playKey: String, playState: Int) -> Unit)? = null
 
     /**
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
@@ -108,7 +108,7 @@ class ExoPlayerWrapper {
             }
             val uri = if (playbackState < ExoPlayer.STATE_ENDED) currentPlayUri() else ""
             Log.i(TAG, "changed state to $playbackState uri:${uri} key:${playerKey}")
-            onPlaybackStateChangedListener?.invoke(uri, playerKey ?: "", playState)
+            onPlaybackStateChangedListener?.invoke(playerKey ?: "", playState)
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
