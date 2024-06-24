@@ -5,7 +5,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.example.base.AppContext
+import com.example.base.Init
+import java.lang.ref.WeakReference
+
 
 /**
  * exoPlayer 播放器封装
@@ -17,8 +19,7 @@ class ExoPlayerWrapper {
     private val TAG = "ExoPlayerWrapper"
     private val player: Player
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    var onErrorListener: ((uri: String, playKey: String, desc: String) -> Unit)? = null
-    var onPlaybackStateChangedListener: ((playKey: String, playState: Int) -> Unit)? = null
+    private var playerListenerList: MutableList<WeakReference<OnPlayerListener>> = mutableListOf()
 
     /**
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
@@ -26,7 +27,7 @@ class ExoPlayerWrapper {
     private var playerKey: String? = null
 
     init {
-        player = ExoPlayer.Builder(AppContext.application)
+        player = ExoPlayer.Builder(Init.application)
             .build()
             .also { exoPlayer ->
                 exoPlayer.playWhenReady = true
@@ -62,6 +63,26 @@ class ExoPlayerWrapper {
     fun clearMediaItems() {
         player.clearMediaItems()
         playerKey = null
+    }
+
+    fun addPlayerListener(listener: OnPlayerListener) {
+        if (!hasListener(listener)) {
+            playerListenerList.add(WeakReference<OnPlayerListener>(listener))
+        }
+    }
+
+    fun removePlayerListener(listener: OnPlayerListener) {
+        var weakRefToRemove: WeakReference<OnPlayerListener>? = null
+        for (weakRef in playerListenerList) {
+            val onPlayerListener: OnPlayerListener? = weakRef.get()
+            if (onPlayerListener == null || onPlayerListener === listener) {
+                weakRefToRemove = weakRef
+                break
+            }
+        }
+        if (weakRefToRemove != null) {
+            playerListenerList.remove(weakRefToRemove)
+        }
     }
 
     /**
@@ -108,7 +129,9 @@ class ExoPlayerWrapper {
             }
             val uri = if (playbackState < ExoPlayer.STATE_ENDED) currentPlayUri() else ""
             Log.i(TAG, "changed state to $playbackState uri:${uri} key:${playerKey}")
-            onPlaybackStateChangedListener?.invoke(playerKey ?: "", playState)
+            playerListenerList.forEach {
+                it.get()?.onPlaybackStateChanged(playerKey ?: "", playState)
+            }
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -120,8 +143,19 @@ class ExoPlayerWrapper {
             super.onPlayerError(error)
             val uri = currentPlayUri()
             Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${uri} key:${playerKey}")
-            onErrorListener?.invoke(uri, playerKey ?: "", error.message ?: "")
+            playerListenerList.forEach {
+                it.get()?.onPlayerError(uri, playerKey ?: "", error.message ?: "")
+            }
         }
     }
 
+    private fun hasListener(listener: OnPlayerListener): Boolean {
+        for (weakRef in playerListenerList) {
+            val onPlayerListener: OnPlayerListener? = weakRef.get()
+            if (listener === onPlayerListener) {
+                return true
+            }
+        }
+        return false
+    }
 }

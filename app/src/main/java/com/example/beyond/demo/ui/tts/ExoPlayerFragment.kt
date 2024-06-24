@@ -10,6 +10,7 @@ import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadManager
 import com.example.base.player.AudioFocusManager
 import com.example.base.player.ExoPlayerWrapper
+import com.example.base.player.OnPlayerListener
 import com.example.base.player.PlayState
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
@@ -163,26 +164,30 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onStart() {
         super.onStart()
         TTSStreamManager.listener = ttsStreamListener
-        player.onErrorListener = { uri: String, playKey: String?, desc: String ->
-            // 离线播放失败，删除缓存。方便下次通过在线播放
-            if (YWFileUtil.isLocalPath(uri)) {
-                File(uri).delete()
-            }
-            Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
-        }
-        player.onPlaybackStateChangedListener = {  playKey: String?, playState: Int ->
-            when (playState) {
-                PlayState.LOADING -> {
-                    binding.tvPlayStatus.text = "loading"
-                }
-                PlayState.PLAYING -> {
-                    binding.tvPlayStatus.text = "playing"
-                }
-                PlayState.IDLE -> {
-                    binding.tvPlayStatus.text = "default"
+        player.addPlayerListener(object : OnPlayerListener {
+            override fun onPlaybackStateChanged(playKey: String, playState: Int) {
+                when (playState) {
+                    PlayState.LOADING -> {
+//                    binding.tvPlayStatus.text = "loading"
+                    }
+                    PlayState.PLAYING -> {
+//                    binding.tvPlayStatus.text = "playing"
+                    }
+                    PlayState.IDLE -> {
+//                    binding.tvPlayStatus.text = "default"
+                    }
                 }
             }
-        }
+
+            override fun onPlayerError(uri: String, playKey: String, desc: String) {
+                // 离线播放失败，删除缓存。方便下次通过在线播放
+                if (YWFileUtil.isLocalPath(uri)) {
+                    File(uri).delete()
+                }
+                Toast.makeText(context, getString(R.string.net_error_toast), Toast.LENGTH_SHORT).show()
+            }
+
+        })
     }
 
     override fun onResume() {
