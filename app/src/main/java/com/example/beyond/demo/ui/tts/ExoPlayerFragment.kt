@@ -10,8 +10,10 @@ import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadManager
 import com.example.base.player.AudioFocusManager
 import com.example.base.player.ExoPlayerWrapper
+import com.example.base.player.Mock
 import com.example.base.player.OnPlayerListener
 import com.example.base.player.PlayState
+import com.example.base.player.audiotrack.AudioTrackerWrapper
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
@@ -54,8 +56,9 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvPlayLocal.setOnClickListener {
-//            ExoPlayerWrapper.clearMediaItems()
-//            ExoPlayerWrapper.addMediaItem(mp3Path, "")
+            player.clearMediaItems()
+//            player.playAudioTrack(Mock.decodeHex(Mock.pcmData))
+            AudioTrackerWrapper.startPlay(Mock.decodeHex(Mock.mp3Data))
         }
 
         binding.tvPlayNet.setOnClickListener {

@@ -1,4 +1,4 @@
-package com.example.base.player.core
+package com.example.base.player.mediaplayer
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer

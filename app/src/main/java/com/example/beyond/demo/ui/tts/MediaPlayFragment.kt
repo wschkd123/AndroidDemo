@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import com.example.base.AppContext
 import com.example.base.BaseFragment
 import com.example.base.player.AudioFocusManager
-import com.example.base.player.core.MediaPlayerController
+import com.example.base.player.mediaplayer.MediaPlayerController
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.databinding.FragmentPlayBinding
 

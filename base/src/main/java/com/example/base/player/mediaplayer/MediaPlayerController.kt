@@ -1,4 +1,4 @@
-package com.example.base.player.core
+package com.example.base.player.mediaplayer
 
 /**
  * 单实例播放器控制器
