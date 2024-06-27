@@ -3,7 +3,7 @@ ext {
     // 编译SDK的版本
     compileSdkVersion = 33
     // build tools的版本
-    buildToolsVersion = "33.0.3"
+    buildToolsVersion = "33.0.0"
     // minSdkVersion
     minSdkVersion = 22
     // targetSdkVersion
