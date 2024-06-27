@@ -238,7 +238,8 @@ object TTSStreamManager {
                 listener?.onReceiveChunk(ChunkDataSource(
                     traceId = traceId,
                     ttsKey = ttsKey,
-                    chunkPath = chunkPath
+                    chunkPath = chunkPath,
+                    byteArray
                 ))
             }
         }

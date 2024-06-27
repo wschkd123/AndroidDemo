@@ -75,9 +75,9 @@ public class AudioTracker {
         }
         Log.d(TAG, "===start===");
         mStatus = Status.STATUS_START;
-        mExecutorService.execute(new Runnable() {
-            @Override
-            public void run() {
+//        mExecutorService.execute(new Runnable() {
+//            @Override
+//            public void run() {
                 try {
                     playAudioData(byteArray);
                 } catch (IOException e) {
@@ -86,8 +86,8 @@ public class AudioTracker {
                         mAudioPlayListener.onError(e.getMessage());
                     }
                 }
-            }
-        });
+//            }
+//        });
     }
 
     /**
@@ -108,6 +108,10 @@ public class AudioTracker {
                 mAudioPlayListener.onStop();
             }
         }
+    }
+
+    public void appendAudioData(byte[] bytes) {
+        mAudioTrack.write(bytes, 0, bytes.length);
     }
 
     /**

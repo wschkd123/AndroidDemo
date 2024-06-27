@@ -20,4 +20,5 @@ data class ChunkDataSource(
      * 获取的音频片段缓存路径
      */
     val chunkPath: String,
+    val audioArray: ByteArray
 ) : IgnoreProguard()

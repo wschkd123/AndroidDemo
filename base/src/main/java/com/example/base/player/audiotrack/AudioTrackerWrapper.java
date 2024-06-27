@@ -11,17 +11,22 @@ import org.jetbrains.annotations.NotNull;
 public class AudioTrackerWrapper {
 
     public static final String TAG = "AudioTrackerWrapper";
+    private AudioTracker audioTracker = new AudioTracker();
 
     /**
      * 解码并播放mp3字节数组
      */
-    public static void startPlay(byte[] originByte) {
+    public void startPlay(byte[] originByte) {
         byte[] decodeArray = MP3Decoder.decodeMP3(originByte);
         playDecodeAudio(decodeArray);
     }
 
-    public static void playDecodeAudio(byte[] byteArray) {
-        final AudioTracker audioTracker = new AudioTracker();
+    public void appendPlay(byte[] originByte) {
+        byte[] decodeArray = MP3Decoder.decodeMP3(originByte);
+        audioTracker.appendAudioData(decodeArray);
+    }
+
+    public void playDecodeAudio(byte[] byteArray) {
         audioTracker.createAudioTrack();
         audioTracker.setAudioPlayListener(new AudioTracker.AudioPlayListener() {
             public void onStart() {

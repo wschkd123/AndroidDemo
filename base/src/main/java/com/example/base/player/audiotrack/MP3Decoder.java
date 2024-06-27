@@ -3,6 +3,7 @@ package com.example.base.player.audiotrack;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class MP3Decoder {
+    private static final String TAG = "MP3Decoder-AudioTrack";
     public static byte[] decodeMP3(byte[] mp3Data) {
         try {
             // 创建临时文件
@@ -27,6 +29,7 @@ public class MP3Decoder {
 
             MediaFormat format = extractor.getTrackFormat(trackIndex);
             String mime = format.getString(MediaFormat.KEY_MIME);
+            Log.i(TAG, "decodeMP3: format=" + format + " mime:" + mime);
             MediaCodec codec = MediaCodec.createDecoderByType(mime);
             codec.configure(format, null, null, 0);
             codec.start();
@@ -89,6 +92,7 @@ public class MP3Decoder {
             MediaFormat format = extractor.getTrackFormat(i);
             String mime = format.getString(MediaFormat.KEY_MIME);
             if (mime != null && mime.startsWith("audio/")) {
+                Log.i(TAG, "selectTrack: mime=" + mime);
                 return i;
             }
         }
