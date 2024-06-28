@@ -21,15 +21,22 @@ public class MP3Decoder {
             fileOutputStream.write(mp3Data);
             fileOutputStream.close();
 
+            // MediaExtractor 提取音频数据
             MediaExtractor extractor = new MediaExtractor();
             extractor.setDataSource(tempFile.getPath());
-
             int trackIndex = selectTrack(extractor);
             extractor.selectTrack(trackIndex);
-
             MediaFormat format = extractor.getTrackFormat(trackIndex);
             String mime = format.getString(MediaFormat.KEY_MIME);
+            int sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+            //TODO 采样率给播放器
             Log.i(TAG, "decodeMP3: format=" + format + " mime:" + mime);
+            if (!MediaFormat.MIMETYPE_AUDIO_MPEG.equals(mime)) {
+                Log.w(TAG, "decodeMP3: not support " + mime);
+                return mp3Data;
+            }
+
+            // MediaCodec 解码mp3
             MediaCodec codec = MediaCodec.createDecoderByType(mime);
             codec.configure(format, null, null, 0);
             codec.start();

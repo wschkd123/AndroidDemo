@@ -9,12 +9,12 @@ import android.widget.Toast
 import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadManager
 import com.example.base.player.AudioFocusManager
-import com.example.base.player.AudioPlayer
 import com.example.base.player.ExoPlayerWrapper
 import com.example.base.player.Mock
 import com.example.base.player.OnPlayerListener
 import com.example.base.player.PlayState
-import com.example.base.player.audiotrack.AudioTrackerWrapper
+import com.example.base.player.audiotrack.AudioTrackManager
+import com.example.base.player.audiotrack.MP3Decoder
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
@@ -36,8 +36,6 @@ class ExoPlayerFragment : BaseFragment() {
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context)?.path + "/test.mp3" }
     private val player = ExoPlayerWrapper()
     private var currentTtsKey: String? = ""
-    private var audioTrackerWrapper: AudioTrackerWrapper = AudioTrackerWrapper()
-    private var clickFirst: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,7 +49,7 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tvPlayStream1.setOnClickListener {
-            startTTSReq("支持非法字符检测")
+            startTTSReq("支持非法字符检测：非法字符不超过10%（包含10%），音频会正常生成并返回非法字符占比；非法字符超过10%，接口不返回结果（返回报错码）")
         }
 
         binding.tvPlayStream2.setOnClickListener {
@@ -60,8 +58,8 @@ class ExoPlayerFragment : BaseFragment() {
 
         binding.tvPlayLocal.setOnClickListener {
             player.clearMediaItems()
-//            player.playAudioTrack(Mock.decodeHex(Mock.pcmData))
-            audioTrackerWrapper.startPlay(Mock.decodeHex(Mock.mp3Data))
+//            audioTrackerWrapper.startPlay(Mock.decodeHex(Mock.mp3Data))
+            AudioTrackManager.getInstance().write(Mock.decodeHex(Mock.mp3Data))
         }
 
         binding.tvPlayNet.setOnClickListener {
@@ -97,8 +95,7 @@ class ExoPlayerFragment : BaseFragment() {
             val file = TTSFileUtil.createCacheFileFromUrl(key, mp3Url)
             FileDownloadManager.download(mp3Url, file.path)
         }
-        val audioPlayer = AudioPlayer()
-        audioPlayer.start()
+        AudioTrackManager.getInstance().prepareAudioTrack()
     }
 
     private fun startTTSReq(content: String) {
@@ -155,19 +152,16 @@ class ExoPlayerFragment : BaseFragment() {
             )
             // 仅播放最后一个被点击的内容
             if (currentTtsKey == ttsKey) {
-//                player.addMediaItem(dataSource.chunkPath, ttsKey)
-//                AudioTrackerWrapper.startPlay(dataSource.audioArray)
                 //TODO beyond
-                val originByte =  dataSource.audioArray // 获取音频数据
-//                val decodeArray = MP3Decoder.decodeMP3(originByte)
-//                val audioTracker = AudioTracker()
-//                audioTracker.createAudioTrack()
-                if (!clickFirst) {
-                    audioTrackerWrapper.startPlay(originByte)
-                    clickFirst = true
-                    return
-                }
-                audioTrackerWrapper.appendPlay(originByte)
+                // ExoPlayer 播放
+//                ThreadUtil.runOnUiThread {
+//                    player.addMediaItem(dataSource.chunkPath, ttsKey)
+//                }
+
+                // AudioTrack 播放
+                val originByte = dataSource.audioData
+                val decodeData = MP3Decoder.decodeMP3(originByte) ?: return
+                AudioTrackManager.getInstance().write(decodeData)
             }
         }
 
