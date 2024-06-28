@@ -29,9 +29,8 @@ public class MP3Decoder {
             extractor.selectTrack(trackIndex);
             MediaFormat format = extractor.getTrackFormat(trackIndex);
             String mime = format.getString(MediaFormat.KEY_MIME);
-            int sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE);
             //TODO 采样率给播放器
-            Log.i(TAG, "decodeMP3: format=" + format + " mime:" + mime);
+            Log.i(TAG, "decodeMP3: format=" + format);
             if (!MediaFormat.MIMETYPE_AUDIO_MPEG.equals(mime)) {
                 Log.w(TAG, "decodeMP3: not support " + mime);
                 return mp3Data;
@@ -58,7 +57,6 @@ public class MP3Decoder {
                     if (sampleSize < 0) {
                         codec.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         isEOS = true;
-                        Log.w(TAG, "decodeMP3: sampleSize=" + sampleSize);
                     } else {
                         presentationTimeUs = extractor.getSampleTime();
                         codec.queueInputBuffer(inputBufferIndex, 0, sampleSize, presentationTimeUs, 0);
@@ -77,7 +75,6 @@ public class MP3Decoder {
                 }
 
                 if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                    Log.w(TAG, "decodeMP3: flags");
                     isEOS = true;
                 }
             }
@@ -87,7 +84,7 @@ public class MP3Decoder {
             extractor.release();
             tempFile.delete(); // 删除临时文件
             outputStream.close();
-            Log.w(TAG, "decodeMP3: time=" + (System.currentTimeMillis() - startTime));
+            Log.w(TAG, "decodeMP3: cost time=" + (System.currentTimeMillis() - startTime));
             return outputStream.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();

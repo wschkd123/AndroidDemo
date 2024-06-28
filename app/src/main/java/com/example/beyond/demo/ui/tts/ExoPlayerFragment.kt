@@ -12,8 +12,8 @@ import com.example.base.player.AudioFocusManager
 import com.example.base.player.OnPlayerListener
 import com.example.base.player.PlayState
 import com.example.base.player.audiotrack.AudioTrackManager
-import com.example.base.player.audiotrack.MP3Decoder
 import com.example.base.player.exoplayer.ExoPlayerWrapper
+import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
@@ -33,6 +33,8 @@ class ExoPlayerFragment : BaseFragment() {
         "https://www.cambridgeenglish.org/images/153149-movers-sample-listening-test-vol2.mp3"
     private val mp3Url1 = "http://music.163.com/song/media/outer/url?id=447925558.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context)?.path + "/test.mp3" }
+    private val longStr = "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。"
+    private val shortStr = "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。"
     private val player = ExoPlayerWrapper()
     private var currentTtsKey: String? = ""
 
@@ -52,7 +54,7 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvPlayStream2.setOnClickListener {
-            startTTSReq("毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。")
+            startTTSReq(shortStr)
         }
 
         binding.tvPlayLocal.setOnClickListener {
@@ -153,14 +155,14 @@ class ExoPlayerFragment : BaseFragment() {
             // 仅播放最后一个被点击的内容
             if (currentTtsKey == ttsKey) {
                 // ExoPlayer 播放
-//                ThreadUtil.runOnUiThread {
-//                    player.addMediaItemWithByteArray(dataSource.audioData, ttsKey)
-//                }
+                ThreadUtil.runOnUiThread {
+                    player.addMediaItemWithByteArray(dataSource.audioData, ttsKey)
+                }
 
                 // AudioTrack 播放
-                val originByte = dataSource.audioData
-                val decodeData = MP3Decoder.decodeMP3(originByte) ?: return
-                AudioTrackManager.getInstance().write(decodeData)
+//                val originByte = dataSource.audioData
+//                val decodeData = MP3Decoder.decodeMP3(originByte) ?: return
+//                AudioTrackManager.getInstance().write(decodeData)
             }
         }
 

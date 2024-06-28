@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 
 public class AudioTrackManager {
 
-    private static final String TAG = "AudioTrackManager";
+    private static final String TAG = "AudioTrack-ExoPlayer";
     private AudioTrack mAudioTrack;
     private volatile static AudioTrackManager mInstance;
     private long bufferCount;
@@ -136,7 +136,7 @@ public class AudioTrackManager {
             int byteSize = bytes.length;
             bufferCount += byteSize;
             int write = mAudioTrack.write(bytes, 0, byteSize);
-            Log.d(TAG, "write: 接收到数据 " + byteSize + " b | 已写入 " + bufferCount + " b");
+            Log.d(TAG, "write: 接收到数据 " + byteSize/1000 + " kb | 已写入 " + bufferCount/1000 + " kb");
             if (write == 0 && null != iAudioPlayStateListener) {
                 //由于缓存的缘故，会先把缓存的bytes填满再播放，当write=0的时候存在没有播完的情况
                 try {
