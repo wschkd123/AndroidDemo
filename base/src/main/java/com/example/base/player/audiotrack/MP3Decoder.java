@@ -12,9 +12,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class MP3Decoder {
-    private static final String TAG = "MP3Decoder-AudioTrack";
+    private static final String TAG = "MP3Decoder-ExoPlayer";
     public static byte[] decodeMP3(byte[] mp3Data) {
         try {
+            long startTime = System.currentTimeMillis();
             // 创建临时文件
             File tempFile = File.createTempFile("temp", ".mp3");
             FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
@@ -57,6 +58,7 @@ public class MP3Decoder {
                     if (sampleSize < 0) {
                         codec.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         isEOS = true;
+                        Log.w(TAG, "decodeMP3: sampleSize=" + sampleSize);
                     } else {
                         presentationTimeUs = extractor.getSampleTime();
                         codec.queueInputBuffer(inputBufferIndex, 0, sampleSize, presentationTimeUs, 0);
@@ -75,6 +77,7 @@ public class MP3Decoder {
                 }
 
                 if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    Log.w(TAG, "decodeMP3: flags");
                     isEOS = true;
                 }
             }
@@ -84,7 +87,7 @@ public class MP3Decoder {
             extractor.release();
             tempFile.delete(); // 删除临时文件
             outputStream.close();
-
+            Log.w(TAG, "decodeMP3: time=" + (System.currentTimeMillis() - startTime));
             return outputStream.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();

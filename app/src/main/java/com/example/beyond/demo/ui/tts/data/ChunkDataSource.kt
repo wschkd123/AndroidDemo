@@ -16,10 +16,6 @@ data class ChunkDataSource(
      */
     val ttsKey: String,
 
-    /**
-     * 获取的音频片段缓存路径
-     */
-    val chunkPath: String,
     val audioData: ByteArray
 ) : IgnoreProguard() {
     override fun equals(other: Any?): Boolean {
@@ -30,14 +26,12 @@ data class ChunkDataSource(
 
         if (traceId != other.traceId) return false
         if (ttsKey != other.ttsKey) return false
-        if (chunkPath != other.chunkPath) return false
         return audioData.contentEquals(other.audioData)
     }
 
     override fun hashCode(): Int {
         var result = traceId?.hashCode() ?: 0
         result = 31 * result + ttsKey.hashCode()
-        result = 31 * result + chunkPath.hashCode()
         result = 31 * result + audioData.contentHashCode()
         return result
     }

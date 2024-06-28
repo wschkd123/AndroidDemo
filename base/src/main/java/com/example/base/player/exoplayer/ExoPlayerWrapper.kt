@@ -50,7 +50,7 @@ class ExoPlayerWrapper {
     }
 
     fun addMediaItemWithByteArray(data: ByteArray, key: String) {
-        Log.w(TAG, "addMediaItemWithByteArray: data=" + data.size)
+        Log.w(TAG, "addMediaItemWithByteArray: data=${data.size} key=${key}")
         val factory = DataSource.Factory { ByteArrayDataSource(data) }
         val audioByteUri = ByteArrayUriHelper().getUri(data)
         val mediaItem = MediaItem.fromUri(audioByteUri)

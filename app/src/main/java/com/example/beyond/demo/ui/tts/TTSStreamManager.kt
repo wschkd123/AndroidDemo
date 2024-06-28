@@ -2,7 +2,6 @@ package com.example.beyond.demo.ui.tts
 
 import android.util.Log
 import com.example.base.download.FileDownloadManager
-import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
@@ -47,7 +46,7 @@ object TTSStreamManager {
         OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.MINUTES)
             .readTimeout(10, TimeUnit.MINUTES)
-            .addNetworkInterceptor(HttpLogInterceptor())
+//            .addNetworkInterceptor(HttpLogInterceptor())
             .build()
 
     /**
@@ -238,7 +237,6 @@ object TTSStreamManager {
                 listener?.onReceiveChunk(ChunkDataSource(
                     traceId = traceId,
                     ttsKey = ttsKey,
-                    chunkPath = chunkPath,
                     byteArray
                 ))
             }
