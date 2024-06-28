@@ -1,6 +1,6 @@
 package com.example.base.player
 
-object Mock {
+object MockData {
 
     /**
      *

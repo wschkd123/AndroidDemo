@@ -1,11 +1,16 @@
-package com.example.base.player
+package com.example.base.player.exoplayer
 
 import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.ByteArrayDataSource
+import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.example.base.Init
+import com.example.base.player.OnPlayerListener
+import com.example.base.player.PlayState
 import java.lang.ref.WeakReference
 
 
@@ -17,7 +22,7 @@ import java.lang.ref.WeakReference
  */
 class ExoPlayerWrapper {
     private val TAG = "ExoPlayerWrapper"
-    private val player: Player
+    private val player: ExoPlayer
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private var playerListenerList: MutableList<WeakReference<OnPlayerListener>> = mutableListOf()
 
@@ -42,6 +47,21 @@ class ExoPlayerWrapper {
      */
     fun addMediaItem(uri: String) {
         addMediaItem(uri, uri)
+    }
+
+    fun addMediaItemWithByteArray(data: ByteArray, key: String) {
+        Log.w(TAG, "addMediaItemWithByteArray: data=" + data.size)
+        val factory = DataSource.Factory { ByteArrayDataSource(data) }
+        val audioByteUri = ByteArrayUriHelper().getUri(data)
+        val mediaItem = MediaItem.fromUri(audioByteUri)
+        val audioSource = ProgressiveMediaSource.Factory(factory)
+            .createMediaSource(mediaItem)
+        playerKey = key
+        player.apply {
+            player.addMediaSource(audioSource)
+            prepare()
+            playWhenReady = true
+        }
     }
 
     /**

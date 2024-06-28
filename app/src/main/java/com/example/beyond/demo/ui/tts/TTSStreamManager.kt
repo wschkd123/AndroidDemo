@@ -234,14 +234,14 @@ object TTSStreamManager {
             val chunkPath = "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
             takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
             Log.i(TAG, "parser content:${audio.length} path:$chunkPath")
-//            ThreadUtil.runOnUiThread {
+            ThreadUtil.runOnUiThread {
                 listener?.onReceiveChunk(ChunkDataSource(
                     traceId = traceId,
                     ttsKey = ttsKey,
                     chunkPath = chunkPath,
                     byteArray
                 ))
-//            }
+            }
         }
 
     }

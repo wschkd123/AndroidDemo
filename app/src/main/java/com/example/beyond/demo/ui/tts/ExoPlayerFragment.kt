@@ -9,12 +9,12 @@ import android.widget.Toast
 import com.example.base.BaseFragment
 import com.example.base.download.FileDownloadManager
 import com.example.base.player.AudioFocusManager
-import com.example.base.player.ExoPlayerWrapper
-import com.example.base.player.Mock
+import com.example.base.player.MockData
 import com.example.base.player.OnPlayerListener
 import com.example.base.player.PlayState
 import com.example.base.player.audiotrack.AudioTrackManager
-import com.example.base.player.audiotrack.MP3Decoder
+import com.example.base.player.exoplayer.ExoPlayerWrapper
+import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
@@ -49,7 +49,7 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tvPlayStream1.setOnClickListener {
-            startTTSReq("支持非法字符检测：非法字符不超过10%（包含10%），音频会正常生成并返回非法字符占比；非法字符超过10%，接口不返回结果（返回报错码）")
+            startTTSReq("支持非法字符检测：非法字符不超过10%（包含10%）")
         }
 
         binding.tvPlayStream2.setOnClickListener {
@@ -58,8 +58,9 @@ class ExoPlayerFragment : BaseFragment() {
 
         binding.tvPlayLocal.setOnClickListener {
             player.clearMediaItems()
-//            audioTrackerWrapper.startPlay(Mock.decodeHex(Mock.mp3Data))
-            AudioTrackManager.getInstance().write(Mock.decodeHex(Mock.mp3Data))
+//            audioTrackerWrapper.startPlay(MockData.decodeHex(MockData.mp3Data))
+//            AudioTrackManager.getInstance().write(MockData.decodeHex(MockData.mp3Data))
+            player.addMediaItemWithByteArray(MockData.decodeHex(MockData.mp3Data), "")
         }
 
         binding.tvPlayNet.setOnClickListener {
@@ -152,16 +153,15 @@ class ExoPlayerFragment : BaseFragment() {
             )
             // 仅播放最后一个被点击的内容
             if (currentTtsKey == ttsKey) {
-                //TODO beyond
                 // ExoPlayer 播放
-//                ThreadUtil.runOnUiThread {
-//                    player.addMediaItem(dataSource.chunkPath, ttsKey)
-//                }
+                ThreadUtil.runOnUiThread {
+                    player.addMediaItemWithByteArray(dataSource.audioData, ttsKey)
+                }
 
                 // AudioTrack 播放
-                val originByte = dataSource.audioData
-                val decodeData = MP3Decoder.decodeMP3(originByte) ?: return
-                AudioTrackManager.getInstance().write(decodeData)
+//                val originByte = dataSource.audioData
+//                val decodeData = MP3Decoder.decodeMP3(originByte) ?: return
+//                AudioTrackManager.getInstance().write(decodeData)
             }
         }
 
