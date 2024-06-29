@@ -19,6 +19,9 @@ import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
 import com.example.beyond.demo.ui.tts.data.ChunkDataSource
 import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * ExoPlayer播放
@@ -34,9 +37,15 @@ class ExoPlayerFragment : BaseFragment() {
     private val mp3Url1 = "http://music.163.com/song/media/outer/url?id=447925558.mp3"
     private val mp3Path by lazy { YWFileUtil.getStorageFileDir(context)?.path + "/test.mp3" }
     private val longStr = "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。"
-    private val shortStr = "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。"
+    private val shortStr = "毒鸡汤大魔王，会收集负面情绪"
     private val player = ExoPlayerWrapper()
     private var currentTtsKey: String? = ""
+    private val executorService = Executors.newSingleThreadExecutor(object : ThreadFactory {
+        private val mCount = AtomicInteger(1)
+        override fun newThread(r: Runnable): Thread {
+            return Thread(r, "Decode #" + mCount.getAndIncrement())
+        }
+    })
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,11 +59,21 @@ class ExoPlayerFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tvPlayStream1.setOnClickListener {
-            startTTSReq("支持非法字符检测")
+            player.clearMediaItems()
+//            startTTSReq(shortStr)
+            val content = longStr
+            val ttsKey = content.hashCode().toString()
+            currentTtsKey = ttsKey
+            TTSStreamManager.startWithMockData(ttsKey, content)
         }
 
         binding.tvPlayStream2.setOnClickListener {
-            startTTSReq(shortStr)
+//            startTTSReq(shortStr)
+            AudioTrackManager.getInstance().stopPlay()
+            val content = longStr
+            val ttsKey = content.hashCode().toString()
+            currentTtsKey = ttsKey
+            TTSStreamManager.startWithCompleteData(ttsKey, content)
         }
 
         binding.tvPlayLocal.setOnClickListener {
@@ -154,15 +173,20 @@ class ExoPlayerFragment : BaseFragment() {
             )
             // 仅播放最后一个被点击的内容
             if (currentTtsKey == ttsKey) {
+                val originByte = dataSource.audioData
+                //TODO 播放
                 // ExoPlayer 播放
                 ThreadUtil.runOnUiThread {
-                    player.addMediaItemWithByteArray(dataSource.audioData, ttsKey)
+                    player.addMediaItemWithByteArray(originByte, ttsKey)
                 }
 
                 // AudioTrack 播放
-//                val originByte = dataSource.audioData
-//                val decodeData = MP3Decoder.decodeMP3(originByte) ?: return
-//                AudioTrackManager.getInstance().write(decodeData)
+//                executorService.execute {
+//                    val decodeData = MP3Decoder.decodeMP3(originByte) ?: return@execute
+//                    Log.i(TAG, "decodeData=$originByte")
+//                    AudioTrackManager.getInstance().write(originByte)
+//                }
+
             }
         }
 

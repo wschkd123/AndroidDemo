@@ -8,8 +8,7 @@ import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.ui.tts.TTSStreamManager.startConnect
 import com.example.beyond.demo.ui.tts.data.ChunkDataSource
 import com.example.beyond.demo.ui.tts.data.TTSChunkResult
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.example.beyond.demo.ui.tts.mock.AudioData
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,7 +22,10 @@ import java.io.EOFException
 import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 通过sse协议实现文本流式输入语音流式输出（TTS）
@@ -54,12 +56,73 @@ object TTSStreamManager {
      */
     private val requestMap = ConcurrentHashMap<String, RealEventSource>()
     var listener: TTSStreamListener? = null
+    private val executorService = Executors.newCachedThreadPool(object : ThreadFactory {
+        private val mCount = AtomicInteger(1)
+        override fun newThread(r: Runnable): Thread {
+            return Thread(r, "tts_req #" + mCount.getAndIncrement())
+        }
+    })
 
     init {
         // 每次初始化删除片段缓存。考虑修改删除时机
-        GlobalScope.launch {
-            deleteAllChunkFile()
+//        GlobalScope.launch {
+//            deleteAllChunkFile()
+//        }
+    }
+
+    fun startWithCompleteData(ttsKey: String, content: String) {
+        Log.w(TAG, "startWithCompleteData content:${content} ttsKey:${ttsKey}")
+        val audioArrayList = mutableListOf(
+            AudioData.audioComplete,
+        )
+        audioArrayList.forEach {
+//            executorService.execute{
+                val byteArray = decodeHex(it)
+                receiveChunk(byteArray, ttsKey)
+//            }
         }
+    }
+
+    fun startWithMockData(ttsKey: String, content: String) {
+        Log.w(TAG, "startWithMockData content:${content} ttsKey:${ttsKey}")
+        val audioArrayList = mutableListOf(
+            AudioData.audio1,
+            AudioData.audio2,
+//            AudioData.audio3,
+//            AudioData.audio4,
+//            AudioData.audio5,
+//            AudioData.audio6,
+//            AudioData.audio7,
+//            AudioData.audio8,
+//            AudioData.audio9,
+//            AudioData.audio10,
+//            AudioData.audio11,
+//            AudioData.audio12,
+//            AudioData.audioComplete,
+        )
+        audioArrayList.forEach {
+//            executorService.execute{
+                val byteArray = decodeHex(it)
+                receiveChunk(byteArray, ttsKey)
+//            }
+        }
+    }
+
+    private fun receiveChunk(byteArray: ByteArray, ttsKey: String) {
+        // 音频片段保存在临时文件，然后回调路径等信息
+//        val chunkPath = "${TTSFileUtil.ttsChunkDir}${System.currentTimeMillis()}.$AUDIO_FORMAT"
+//        takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
+        Log.d(TAG, "receiveChunk: threadName=" + Thread.currentThread().name)
+        Log.i(TAG, "receiveChunk content:${byteArray.size/1000} kb")
+//            ThreadUtil.runOnUiThread {
+        listener?.onReceiveChunk(
+            ChunkDataSource(
+                traceId = "",
+                ttsKey = ttsKey,
+                byteArray
+            )
+        )
+//            }
     }
 
     /**
@@ -233,13 +296,14 @@ object TTSStreamManager {
             val chunkPath = "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
             takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
             Log.i(TAG, "parser content:${audio.length} path:$chunkPath")
-//            ThreadUtil.runOnUiThread {
+            ThreadUtil.runOnUiThread {
+                Log.d(TAG, "onReceiveChunk1: threadName=" + Thread.currentThread())
                 listener?.onReceiveChunk(ChunkDataSource(
                     traceId = traceId,
                     ttsKey = ttsKey,
                     byteArray
                 ))
-//            }
+            }
         }
 
     }

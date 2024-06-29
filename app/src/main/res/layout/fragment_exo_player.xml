@@ -34,7 +34,7 @@ limitations under the License. -->
             android:id="@+id/tv_play_stream1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="play stream1"
+            android:text="play mock stream"
             android:textColor="@color/colorAccent"
             android:textSize="38dp" />
 
@@ -42,7 +42,7 @@ limitations under the License. -->
             android:id="@+id/tv_play_stream2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="play stream2"
+            android:text="play complete stream"
             android:textColor="@color/colorAccent"
             android:textSize="38dp" />
 

@@ -30,6 +30,7 @@ public class MP3Decoder {
             MediaFormat format = extractor.getTrackFormat(trackIndex);
             String mime = format.getString(MediaFormat.KEY_MIME);
             //TODO 采样率给播放器
+            Log.d(TAG, "decodeMP3: threadName=" + Thread.currentThread().getName());
             Log.i(TAG, "decodeMP3: format=" + format);
             if (!MediaFormat.MIMETYPE_AUDIO_MPEG.equals(mime)) {
                 Log.w(TAG, "decodeMP3: not support " + mime);
@@ -84,8 +85,9 @@ public class MP3Decoder {
             extractor.release();
             tempFile.delete(); // 删除临时文件
             outputStream.close();
-            Log.w(TAG, "decodeMP3: cost time=" + (System.currentTimeMillis() - startTime));
-            return outputStream.toByteArray();
+            byte[] result = outputStream.toByteArray();
+            Log.w(TAG, "decodeMP3: cost time=" + (System.currentTimeMillis() - startTime)  + " originLength:" + mp3Data.length/100 + "kb decodeLength:" + result.length/1000 + " kb");
+            return result;
         } catch (IOException e) {
             e.printStackTrace();
         }
