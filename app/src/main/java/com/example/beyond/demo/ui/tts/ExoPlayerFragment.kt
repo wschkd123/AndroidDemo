@@ -78,6 +78,7 @@ class ExoPlayerFragment : BaseFragment() {
 
         binding.tvPlayLocal.setOnClickListener {
             player.clearMediaItems()
+            player.addMediaItem(mp3Path)
 //            audioTrackerWrapper.startPlay(MockData.decodeHex(MockData.mp3Data))
 //            AudioTrackManager.getInstance().write(MockData.decodeHex(MockData.mp3Data))
 //            player.addMediaItemWithByteArray(MockData.decodeHex(MockData.mp3Data), "")

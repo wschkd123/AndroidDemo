@@ -1,7 +1,6 @@
 package com.example.base.player.exoplayer
 
 import android.net.Uri
-import android.util.Log
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.net.MalformedURLException
@@ -30,7 +29,6 @@ class ByteArrayUriHelper {
 
     internal inner class BytesHandler(var byteArray: ByteArray?) : URLStreamHandler() {
         override fun openConnection(u: URL): URLConnection {
-            Log.e("ExoPlayer", "openConnection:$u")
             return ByteUrlConnection(u, byteArray)
         }
     }

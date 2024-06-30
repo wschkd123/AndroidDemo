@@ -4,8 +4,6 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.datasource.ByteArrayDataSource
-import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.example.base.Init
@@ -30,6 +28,8 @@ class ExoPlayerWrapper {
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
      */
     private var playerKey: String? = null
+    private var dataSourceFactory: StreamDataSource.Factory? = null
+
 
     init {
         player = ExoPlayer.Builder(Init.application)
@@ -51,7 +51,13 @@ class ExoPlayerWrapper {
 
     fun addMediaItemWithByteArray(data: ByteArray, key: String) {
         Log.w(TAG, "addMediaItemWithByteArray: data=${data.size} key=${key}")
-        val factory = DataSource.Factory { ByteArrayDataSource(data) }
+        // 正在播放的数据源追加数据
+        if (dataSourceFactory != null) {
+            dataSourceFactory!!.dataSource.increaseBytes(data)
+            return
+        }
+        val factory = StreamDataSource.Factory(data)
+        dataSourceFactory = factory
         val audioByteUri = ByteArrayUriHelper().getUri(data)
         val mediaItem = MediaItem.fromUri(audioByteUri)
         val audioSource = ProgressiveMediaSource.Factory(factory)
@@ -73,6 +79,7 @@ class ExoPlayerWrapper {
     fun addMediaItem(uri: String, key: String) {
         Log.w(TAG, "addMediaItem uri:${uri} key:${key}")
         playerKey = key
+        dataSourceFactory = null
         player.apply {
             addMediaItem(MediaItem.fromUri(uri))
             prepare()
@@ -83,6 +90,7 @@ class ExoPlayerWrapper {
     fun clearMediaItems() {
         player.clearMediaItems()
         playerKey = null
+        dataSourceFactory = null
     }
 
     fun addPlayerListener(listener: OnPlayerListener) {
