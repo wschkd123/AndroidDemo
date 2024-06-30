@@ -121,14 +121,14 @@ public final class StreamDataSource extends BaseDataSource {
     }
 
     /**
-     * 增加数据
+     * 追加数据
      */
-    public void increaseBytes(byte[] newData) {
+    public void appendBytes(byte[] newData) {
         int newLength = newData.length;
         for (byte newDatum : newData) {
             data.add(newDatum);
         }
         bytesRemaining += newLength;
-        Log.w("ExoPlayer", "increaseBytes: newData=" + newData.length + " bytesRemaining=" + bytesRemaining);
+        Log.w("ExoPlayer", "appendBytes: newData=" + newData.length + " bytesRemaining=" + bytesRemaining);
     }
 }

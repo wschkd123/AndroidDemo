@@ -178,7 +178,7 @@ class ExoPlayerFragment : BaseFragment() {
                 //TODO 播放
                 // ExoPlayer 播放
                 ThreadUtil.runOnUiThread {
-                    player.addMediaItemWithByteArray(originByte, ttsKey)
+                    player.addChunk(originByte, ttsKey)
                 }
 
                 // AudioTrack 播放

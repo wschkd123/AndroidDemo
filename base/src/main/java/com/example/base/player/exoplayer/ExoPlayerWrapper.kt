@@ -49,11 +49,14 @@ class ExoPlayerWrapper {
         addMediaItem(uri, uri)
     }
 
-    fun addMediaItemWithByteArray(data: ByteArray, key: String) {
-        Log.w(TAG, "addMediaItemWithByteArray: data=${data.size} key=${key}")
+    /**
+     * 增加音频片段
+     */
+    fun addChunk(data: ByteArray, key: String) {
+        Log.w(TAG, "addChunk: data=${data.size} key=${key}")
         // 正在播放的数据源追加数据
         if (dataSourceFactory != null) {
-            dataSourceFactory!!.dataSource.increaseBytes(data)
+            dataSourceFactory!!.dataSource.appendBytes(data)
             return
         }
         // 同一个key只有一个MediaItem
