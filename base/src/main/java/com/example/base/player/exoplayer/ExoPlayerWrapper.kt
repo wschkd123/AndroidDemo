@@ -56,6 +56,10 @@ class ExoPlayerWrapper {
             dataSourceFactory!!.dataSource.increaseBytes(data)
             return
         }
+        // 同一个key只有一个MediaItem
+        if (key == playerKey) {
+            return
+        }
         val factory = StreamDataSource.Factory(data)
         dataSourceFactory = factory
         val audioByteUri = ByteArrayUriHelper().getUri(data)
@@ -64,7 +68,7 @@ class ExoPlayerWrapper {
             .createMediaSource(mediaItem)
         playerKey = key
         player.apply {
-            player.addMediaSource(audioSource)
+            setMediaSource(audioSource)
             prepare()
             playWhenReady = true
         }
@@ -160,11 +164,6 @@ class ExoPlayerWrapper {
             playerListenerList.forEach {
                 it.get()?.onPlaybackStateChanged(playerKey ?: "", playState)
             }
-        }
-
-        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            super.onMediaItemTransition(mediaItem, reason)
-            Log.i(TAG, "onMediaItemTransition reason:$reason")
         }
 
         override fun onPlayerError(error: PlaybackException) {
