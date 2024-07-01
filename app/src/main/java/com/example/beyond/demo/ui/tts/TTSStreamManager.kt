@@ -287,6 +287,15 @@ object TTSStreamManager {
         val byteArray = decodeHex(audio)
 
         if (chunk.data.isLastComplete()) {
+            // 合成结束，回调空数据
+            ThreadUtil.runOnUiThread {
+                Log.d(TAG, "onReceiveChunk1: threadName=" + Thread.currentThread())
+                listener?.onReceiveChunk(ChunkDataSource(
+                    traceId = traceId,
+                    ttsKey = ttsKey,
+                    audioData = ByteArray(0)
+                ))
+            }
             // 最后一个完整音频缓存下来
             val chunkPath = TTSFileUtil.createCacheFileFromKey(ttsKey, AUDIO_FORMAT).path
             YWFileUtil.saveByteArrayToFile(byteArray, chunkPath)

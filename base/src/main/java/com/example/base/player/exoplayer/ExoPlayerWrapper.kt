@@ -56,7 +56,13 @@ class ExoPlayerWrapper {
         Log.w(TAG, "addChunk: data=${data.size} key=${key}")
         // 正在播放的数据源追加数据
         if (dataSourceFactory != null) {
-            dataSourceFactory!!.dataSource.appendBytes(data)
+            if (data.isEmpty()) {
+                // 没有更多数据
+                dataSourceFactory!!.dataSource.noMoreData()
+            } else {
+                // 追加数据
+                dataSourceFactory!!.dataSource.appendData(data)
+            }
             return
         }
         // 同一个key只有一个MediaItem
