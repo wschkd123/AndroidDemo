@@ -69,7 +69,8 @@ class ExoPlayerFragment : BaseFragment() {
 
         binding.tvPlayStream2.setOnClickListener {
             player.clearMediaItems()
-            startTTSReq(longStr)
+            val content = longStr
+            startTTSReq(content)
 //            AudioTrackManager.getInstance().stopPlay()
 //            val content = longStr
 //            val ttsKey = content.hashCode().toString()

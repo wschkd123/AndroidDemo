@@ -76,36 +76,90 @@ object TTSStreamManager {
             AudioData.audioComplete,
         )
         audioArrayList.forEach {
-//            executorService.execute{
-                val byteArray = decodeHex(it)
-                receiveChunk(byteArray, ttsKey)
-//            }
+            val byteArray = decodeHex(it)
+            receiveChunk(byteArray, ttsKey)
         }
     }
 
     fun startWithMockData(ttsKey: String, content: String) {
-        Log.w(TAG, "startWithMockData content:${content} ttsKey:${ttsKey}")
         val audioArrayList = mutableListOf(
-            AudioData.audio1,
-            AudioData.audio2,
-            AudioData.audio3,
-            AudioData.audio4,
-            AudioData.audio5,
-            AudioData.audio6,
-            AudioData.audio7,
-            AudioData.audio8,
-            AudioData.audio9,
-            AudioData.audio10,
-            AudioData.audio11,
-            AudioData.audio12,
-//            AudioData.audioComplete,
-        )
+//            AudioData.audio1,
+//            AudioData.audio2,
+//            AudioData.audio3,
+//            AudioData.audio4,
+//            AudioData.audio5,
+//            AudioData.audio6,
+//            AudioData.audio7,
+//            AudioData.audio8,
+//            AudioData.audio9,
+//            AudioData.audio10,
+//            AudioData.audio11,
+//            AudioData.audio12,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            AudioData.audioComplete,
+            )
+        val contentSb: StringBuilder = StringBuilder()
+//        audioArrayList.forEach {
+//            val byteArray = decodeHex(it)
+//            receiveChunk(byteArray, ttsKey)
+//        }
         audioArrayList.forEach {
-//            executorService.execute{
-                val byteArray = decodeHex(it)
-                receiveChunk(byteArray, ttsKey)
-//            }
+            contentSb.append(it)
         }
+        val byteArray = decodeHex(contentSb.toString())
+        receiveChunk(byteArray, ttsKey)
     }
 
     private fun receiveChunk(byteArray: ByteArray, ttsKey: String) {
@@ -113,7 +167,7 @@ object TTSStreamManager {
 //        val chunkPath = "${TTSFileUtil.ttsChunkDir}${System.currentTimeMillis()}.$AUDIO_FORMAT"
 //        takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
         Log.d(TAG, "receiveChunk: threadName=" + Thread.currentThread().name)
-        Log.i(TAG, "receiveChunk content:${byteArray.size/1000} kb")
+        Log.i(TAG, "receiveChunk content:${byteArray.size / 1000} kb")
 //            ThreadUtil.runOnUiThread {
         listener?.onReceiveChunk(
             ChunkDataSource(
@@ -222,7 +276,10 @@ object TTSStreamManager {
     private fun deleteAllChunkFile() {
         val startTime = System.currentTimeMillis()
         val deleteResult = File(TTSFileUtil.ttsChunkDir).deleteRecursively()
-        Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
+        Log.w(
+            TAG,
+            "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult"
+        )
     }
 
     private fun readStringFromBuffer(response: Response?): String {
@@ -284,34 +341,42 @@ object TTSStreamManager {
         }
 
         // 解码
-        val byteArray = decodeHex(audio)
+        val decodeData = decodeHex(audio)
 
         if (chunk.data.isLastComplete()) {
             // 合成结束，回调空数据
             ThreadUtil.runOnUiThread {
                 Log.d(TAG, "onReceiveChunk1: threadName=" + Thread.currentThread())
-                listener?.onReceiveChunk(ChunkDataSource(
-                    traceId = traceId,
-                    ttsKey = ttsKey,
-                    audioData = ByteArray(0)
-                ))
+                listener?.onReceiveChunk(
+                    ChunkDataSource(
+                        traceId = traceId,
+                        ttsKey = ttsKey,
+                        audioData = ByteArray(0)
+                    )
+                )
             }
             // 最后一个完整音频缓存下来
             val chunkPath = TTSFileUtil.createCacheFileFromKey(ttsKey, AUDIO_FORMAT).path
-            YWFileUtil.saveByteArrayToFile(byteArray, chunkPath)
-            Log.i(TAG, "parser last content:${audio.length} path:$chunkPath")
+            YWFileUtil.saveByteArrayToFile(decodeData, chunkPath)
+            Log.i(
+                TAG,
+                "parser last content:${audio.length} byteArray=${decodeData.size / 1000}kb path:$chunkPath"
+            )
         } else {
             // 音频片段保存在临时文件，然后回调路径等信息
-            val chunkPath = "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
-            takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
+            val chunkPath =
+                "${TTSFileUtil.ttsChunkDir}${traceId}_${System.currentTimeMillis()}.$AUDIO_FORMAT"
+            takeIf { YWFileUtil.saveByteArrayToFile(decodeData, chunkPath) } ?: return
             Log.i(TAG, "parser content:${audio.length} path:$chunkPath")
             ThreadUtil.runOnUiThread {
                 Log.d(TAG, "onReceiveChunk1: threadName=" + Thread.currentThread())
-                listener?.onReceiveChunk(ChunkDataSource(
-                    traceId = traceId,
-                    ttsKey = ttsKey,
-                    byteArray
-                ))
+                listener?.onReceiveChunk(
+                    ChunkDataSource(
+                        traceId = traceId,
+                        ttsKey = ttsKey,
+                        decodeData
+                    )
+                )
             }
         }
 
