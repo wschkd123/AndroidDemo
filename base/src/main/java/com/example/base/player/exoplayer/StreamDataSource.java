@@ -21,7 +21,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *  参考 {@link ByteArrayDataSource}
+ *  支持边播边（外部）加载的数据源。
+ *  see {@link #appendBytes(byte[])}
+ *
+ * @author wangshichao
+ * @date 2024/6/30
  */
 public final class StreamDataSource extends BaseDataSource {
 

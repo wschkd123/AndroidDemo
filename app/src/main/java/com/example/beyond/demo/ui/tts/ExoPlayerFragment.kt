@@ -68,12 +68,13 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvPlayStream2.setOnClickListener {
-//            startTTSReq(shortStr)
-            AudioTrackManager.getInstance().stopPlay()
-            val content = longStr
-            val ttsKey = content.hashCode().toString()
-            currentTtsKey = ttsKey
-            TTSStreamManager.startWithCompleteData(ttsKey, content)
+            player.clearMediaItems()
+            startTTSReq(longStr)
+//            AudioTrackManager.getInstance().stopPlay()
+//            val content = longStr
+//            val ttsKey = content.hashCode().toString()
+//            currentTtsKey = ttsKey
+//            TTSStreamManager.startWithCompleteData(ttsKey, content)
         }
 
         binding.tvPlayLocal.setOnClickListener {

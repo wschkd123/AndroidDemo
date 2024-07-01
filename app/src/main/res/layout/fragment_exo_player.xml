@@ -42,7 +42,7 @@ limitations under the License. -->
             android:id="@+id/tv_play_stream2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="play complete stream"
+            android:text="play chunk"
             android:textColor="@color/colorAccent"
             android:textSize="38dp" />
 
