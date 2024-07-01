@@ -13,7 +13,7 @@ import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.FileDataSource.FileDataSourceException
-import androidx.media3.datasource.TransferListener
+import com.example.base.util.YWFileUtil
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -27,23 +27,13 @@ import java.io.RandomAccessFile
  * @date 2024/6/30
  */
 internal class StreamDataSource(
-    val data: MutableList<Byte>
+    private val initData: ByteArray
 ) : BaseDataSource(false) {
-    class Factory(data: ByteArray, var listener: TransferListener? = null) : DataSource.Factory {
-        val dataSource: StreamDataSource
+    class Factory(data: ByteArray) : DataSource.Factory {
 
-        init {
-            val list: MutableList<Byte> = mutableListOf()
-            for (b in data) {
-                list.add(b)
-            }
-            dataSource = StreamDataSource(list)
-        }
+        val dataSource: StreamDataSource = StreamDataSource(data)
 
         override fun createDataSource(): DataSource {
-            listener?.let {
-                dataSource.addTransferListener(it)
-            }
             return dataSource
         }
     }
@@ -62,12 +52,17 @@ internal class StreamDataSource(
         this.uri = uri
         transferInitializing(dataSpec)
         file = openLocalFile(uri)
+        Log.i(TAG, "open: file.length=${file!!.length()}")
+        file!!.seek(file!!.length())
+        file!!.write(initData)
+        Log.i(TAG, "open: file.length=${file!!.length()}")
         bytesRemaining = try {
             file!!.seek(dataSpec.position)
             if (dataSpec.length == C.LENGTH_UNSET.toLong()) file!!.length() - dataSpec.position else dataSpec.length
         } catch (e: IOException) {
             throw FileDataSourceException(e, PlaybackException.ERROR_CODE_IO_UNSPECIFIED)
         }
+        Log.w(TAG, "open: readLength=${dataSpec.position} bytesRemaining=${bytesRemaining/1000}kb")
         if (bytesRemaining < 0) {
             throw FileDataSourceException( /* message= */
                 null,  /* cause= */
@@ -79,27 +74,33 @@ internal class StreamDataSource(
         opened = true
         transferStarted(dataSpec)
 
-        return bytesRemaining
+//        return bytesRemaining
+        return C.LENGTH_UNSET.toLong()
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        return if (length == 0) {
-            0
-        } else if (bytesRemaining == 0L) {
-            C.RESULT_END_OF_INPUT
-        } else {
-            val bytesRead: Int = try {
-                Util.castNonNull(file)
-                    .read(buffer, offset, Math.min(bytesRemaining, length.toLong()).toInt())
-            } catch (e: IOException) {
-                throw FileDataSourceException(e, PlaybackException.ERROR_CODE_IO_UNSPECIFIED)
-            }
-            if (bytesRead > 0) {
-                bytesRemaining -= bytesRead.toLong()
-                bytesTransferred(bytesRead)
-            }
-            bytesRead
+        Log.i(TAG, "read: length=${length} bytesRemaining=${bytesRemaining} noMoreData=${noMoreData}")
+        if (length == 0) {
+            return 0
         }
+        // 没有剩余数据且写入已完成，才返回结束
+        if (bytesRemaining == 0L && noMoreData) {
+            C.RESULT_END_OF_INPUT
+        }
+
+        val bytesRead: Int = try {
+            Util.castNonNull(file)
+                .read(buffer, offset, Math.min(bytesRemaining, length.toLong()).toInt())
+        } catch (e: IOException) {
+            throw FileDataSourceException(e, PlaybackException.ERROR_CODE_IO_UNSPECIFIED)
+        }
+        if (bytesRead > 0) {
+            bytesRemaining -= bytesRead.toLong()
+            bytesTransferred(bytesRead)
+        }
+        Log.i(TAG, "read: buffer=${buffer.size} bytesRead=${bytesRead} bytesRemaining=${bytesRemaining}b")
+        //TODO bytesRead等于-1，调用close
+        return bytesRead
     }
 
     override fun getUri(): Uri? {
@@ -108,6 +109,7 @@ internal class StreamDataSource(
 
     @Throws(FileDataSourceException::class)
     override fun close() {
+        Log.w(TAG, "close")
         uri = null
         try {
             if (file != null) {
@@ -128,14 +130,18 @@ internal class StreamDataSource(
      * 追加数据
      */
     fun appendData(newData: ByteArray) {
+        val fileLength = file?.length() ?: 0
+        Log.w(TAG, "appendBytes: fileLength=${fileLength}")
         val newLength = newData.size
-        for (newDatum in newData) {
-            data.add(newDatum)
+        file?.apply {
+            seek(fileLength)
+            write(newData)
         }
+//        for (newDatum in newData) {
+//            data.add(newDatum)
+//        }
         bytesRemaining += newLength
-        Log.w(TAG,
-            "appendBytes: newData=${newData.size/1000}kb bytesRemaining=${bytesRemaining/1000}kb dataLength=${data.size / 1000}kb"
-        )
+        Log.w(TAG, "appendBytes: newData=${newData.size/1000}kb bytesRemaining=${bytesRemaining/1000}kb file=${file?.length()}")
     }
 
     fun noMoreData() {
@@ -145,8 +151,10 @@ internal class StreamDataSource(
 
     @Throws(FileDataSourceException::class)
     private fun openLocalFile(uri: Uri): RandomAccessFile? {
+        val path = uri.path ?: return null
+        YWFileUtil.createNewFile(path) ?: return null
         try {
-            return RandomAccessFile(Assertions.checkNotNull(uri.path), "r")
+            return RandomAccessFile(Assertions.checkNotNull(path), "rw")
         } catch (e: FileNotFoundException) {
             if (!TextUtils.isEmpty(uri.query) || !TextUtils.isEmpty(uri.fragment)) {
                 throw FileDataSourceException(

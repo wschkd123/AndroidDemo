@@ -79,11 +79,14 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvPlayLocal.setOnClickListener {
-            player.clearMediaItems()
-            player.addMediaItem(mp3Path)
+//            player.clearMediaItems()
+//            player.addMediaItem(mp3Path)
 //            audioTrackerWrapper.startPlay(MockData.decodeHex(MockData.mp3Data))
 //            AudioTrackManager.getInstance().write(MockData.decodeHex(MockData.mp3Data))
 //            player.addMediaItemWithByteArray(MockData.decodeHex(MockData.mp3Data), "")
+            val startTime = System.currentTimeMillis()
+            val deleteResult = File(TTSFileUtil.ttsDir).deleteRecursively()
+            Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
         }
 
         binding.tvPlayNet.setOnClickListener {
@@ -138,12 +141,12 @@ class ExoPlayerFragment : BaseFragment() {
         currentTtsKey = ttsKey
 
         // 有缓存直接播放
-//        val cacheFile = TTSFileUtil.checkCacheFileFromKey(ttsKey)
-//        if (cacheFile != null) {
-//            Log.w(TAG, "exist cache ${cacheFile.path}")
-//            player.addMediaItem(cacheFile.path, ttsKey)
-//            return
-//        }
+        val cacheFile = TTSFileUtil.checkCacheFileFromKey(ttsKey)
+        if (cacheFile != null) {
+            Log.w(TAG, "exist cache ${cacheFile.path}")
+            player.addMediaItem(cacheFile.path, ttsKey)
+            return
+        }
 
         // tts流式请求分片播放
         TTSStreamManager.startConnect(content, ttsKey)
@@ -180,7 +183,8 @@ class ExoPlayerFragment : BaseFragment() {
                 //TODO 播放
                 // ExoPlayer 播放
                 ThreadUtil.runOnUiThread {
-                    player.addChunk(originByte, ttsKey)
+                    val path = TTSFileUtil.createCacheFileFromKey(ttsKey, "mp3").path
+                    player.addChunk(originByte, ttsKey, path)
                 }
 
                 // AudioTrack 播放

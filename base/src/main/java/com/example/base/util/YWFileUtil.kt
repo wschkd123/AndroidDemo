@@ -703,7 +703,8 @@ object YWFileUtil {
         return uri != null && (uri.startsWith("/") || uri.startsWith("file://"))
     }
 
-    fun createNewFile(path: String): File? {
+    fun createNewFile(path: String?): File? {
+        path ?: return null
         val file = File(path)
         if (!file.exists()) {
             file.parentFile?.mkdirs()

@@ -17,7 +17,7 @@ object TTSFileUtil {
     /**
      * tts完整音频目录
      */
-    private val ttsDir =
+    val ttsDir =
         YWFileUtil.getStorageFileDir(AppContext.application)?.path + "/tts/"
 
     /**

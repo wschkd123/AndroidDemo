@@ -50,7 +50,7 @@ limitations under the License. -->
             android:id="@+id/tv_play_local"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="play local"
+            android:text="clear cache"
             android:textColor="@color/colorAccent"
             android:textSize="38dp" />
 

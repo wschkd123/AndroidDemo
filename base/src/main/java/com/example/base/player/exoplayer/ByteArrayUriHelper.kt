@@ -19,6 +19,7 @@ class ByteArrayUriHelper {
     fun getUri(byteArray: ByteArray?): Uri {
         return try {
             val url = URL(null, "bytes:///audio", BytesHandler(byteArray))
+//            /storage/emulated/0/Android/data/com.example.beyond.demo/files/tts/-1828286107.mp3
             Uri.parse(url.toURI().toString())
         } catch (e: MalformedURLException) {
             throw RuntimeException(e)

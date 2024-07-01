@@ -52,8 +52,8 @@ class ExoPlayerWrapper {
     /**
      * 增加音频片段
      */
-    fun addChunk(data: ByteArray, key: String) {
-        Log.w(TAG, "addChunk: data=${data.size} key=${key}")
+    fun addChunk(data: ByteArray, key: String, path: String) {
+        Log.w(TAG, "addChunk: data=${data.size} key=${key} path=${path}")
         // 正在播放的数据源追加数据
         if (dataSourceFactory != null) {
             if (data.isEmpty()) {
@@ -71,8 +71,8 @@ class ExoPlayerWrapper {
         }
         val factory = StreamDataSource.Factory(data)
         dataSourceFactory = factory
-        val audioByteUri = ByteArrayUriHelper().getUri(data)
-        val mediaItem = MediaItem.fromUri(audioByteUri)
+//        val audioByteUri = ByteArrayUriHelper().getUri(data)
+        val mediaItem = MediaItem.fromUri(path)
         val audioSource = ProgressiveMediaSource.Factory(factory)
             .createMediaSource(mediaItem)
         playerKey = key
