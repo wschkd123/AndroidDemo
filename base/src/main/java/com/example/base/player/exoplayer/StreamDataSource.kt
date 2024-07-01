@@ -13,6 +13,7 @@ import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.FileDataSource.FileDataSourceException
+import androidx.media3.datasource.FileDataSource
 import com.example.base.util.YWFileUtil
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -41,7 +42,7 @@ internal class StreamDataSource(
     private val TAG = "ExoPlayer-DataSource"
     private var file: RandomAccessFile? = null
     private var uri: Uri? = null
-//    private var readPosition = 0
+//TODO 原子性    private var bytesRemaining = AtomicLong(0L)
     private var bytesRemaining = 0L
     private var opened = false
     private var noMoreData = false
@@ -52,10 +53,12 @@ internal class StreamDataSource(
         this.uri = uri
         transferInitializing(dataSpec)
         file = openLocalFile(uri)
-        Log.i(TAG, "open: file.length=${file!!.length()}")
-        file!!.seek(file!!.length())
+        val fileLength = file!!.length()
+        Log.i(TAG, "open: file.length=${fileLength}")
+        // 写入初始化数据
+        file!!.seek(fileLength)
         file!!.write(initData)
-        Log.i(TAG, "open: file.length=${file!!.length()}")
+        Log.i(TAG, "open: file.length=${fileLength}")
         bytesRemaining = try {
             file!!.seek(dataSpec.position)
             if (dataSpec.length == C.LENGTH_UNSET.toLong()) file!!.length() - dataSpec.position else dataSpec.length
@@ -79,15 +82,19 @@ internal class StreamDataSource(
     }
 
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-        Log.i(TAG, "read: length=${length} bytesRemaining=${bytesRemaining} noMoreData=${noMoreData}")
+        Log.i(TAG, "read: offset=${offset} length=${length} bytesRemaining=${bytesRemaining} noMoreData=${noMoreData}")
         if (length == 0) {
             return 0
         }
         // 没有剩余数据且写入已完成，才返回结束
         if (bytesRemaining == 0L && noMoreData) {
-            C.RESULT_END_OF_INPUT
+            return C.RESULT_END_OF_INPUT
+        }
+        if (bytesRemaining == 0L) {
+            return 0
         }
 
+        file!!.seek(0)
         val bytesRead: Int = try {
             Util.castNonNull(file)
                 .read(buffer, offset, Math.min(bytesRemaining, length.toLong()).toInt())
@@ -98,7 +105,7 @@ internal class StreamDataSource(
             bytesRemaining -= bytesRead.toLong()
             bytesTransferred(bytesRead)
         }
-        Log.i(TAG, "read: buffer=${buffer.size} bytesRead=${bytesRead} bytesRemaining=${bytesRemaining}b")
+        Log.i(TAG, "read: bytesRead=${bytesRead} bytesRemaining=${bytesRemaining}b")
         //TODO bytesRead等于-1，调用close
         return bytesRead
     }
@@ -124,6 +131,7 @@ internal class StreamDataSource(
                 transferEnded()
             }
         }
+        //TODO 原文件，close后继续播放
     }
 
     /**
@@ -131,7 +139,7 @@ internal class StreamDataSource(
      */
     fun appendData(newData: ByteArray) {
         val fileLength = file?.length() ?: 0
-        Log.w(TAG, "appendBytes: fileLength=${fileLength}")
+        Log.w(TAG, "appendData: fileLength=${fileLength}")
         val newLength = newData.size
         file?.apply {
             seek(fileLength)
@@ -141,7 +149,7 @@ internal class StreamDataSource(
 //            data.add(newDatum)
 //        }
         bytesRemaining += newLength
-        Log.w(TAG, "appendBytes: newData=${newData.size/1000}kb bytesRemaining=${bytesRemaining/1000}kb file=${file?.length()}")
+        Log.w(TAG, "appendData: newData=${newData.size/1000}kb bytesRemaining=${bytesRemaining/1000}kb file=${file?.length()}")
     }
 
     fun noMoreData() {
@@ -153,6 +161,7 @@ internal class StreamDataSource(
     private fun openLocalFile(uri: Uri): RandomAccessFile? {
         val path = uri.path ?: return null
         YWFileUtil.createNewFile(path) ?: return null
+        //TODO 首次打开应该是空的
         try {
             return RandomAccessFile(Assertions.checkNotNull(path), "rw")
         } catch (e: FileNotFoundException) {

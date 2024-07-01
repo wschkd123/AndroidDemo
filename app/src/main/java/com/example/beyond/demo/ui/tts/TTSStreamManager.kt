@@ -148,6 +148,7 @@ object TTSStreamManager {
 //            AudioData.audioComplete,
 //            AudioData.audioComplete,
 //            AudioData.audioComplete,
+                "",
             )
         audioArrayList.forEach {
             val byteArray = decodeHex(it)

@@ -61,7 +61,7 @@ class ExoPlayerFragment : BaseFragment() {
         binding.tvPlayStream1.setOnClickListener {
             player.clearMediaItems()
 //            startTTSReq(shortStr)
-            val content = longStr
+            val content = shortStr
             val ttsKey = content.hashCode().toString()
             currentTtsKey = ttsKey
             TTSStreamManager.startWithMockData(ttsKey, content)
@@ -79,14 +79,11 @@ class ExoPlayerFragment : BaseFragment() {
         }
 
         binding.tvPlayLocal.setOnClickListener {
-//            player.clearMediaItems()
-//            player.addMediaItem(mp3Path)
-//            audioTrackerWrapper.startPlay(MockData.decodeHex(MockData.mp3Data))
-//            AudioTrackManager.getInstance().write(MockData.decodeHex(MockData.mp3Data))
-//            player.addMediaItemWithByteArray(MockData.decodeHex(MockData.mp3Data), "")
-            val startTime = System.currentTimeMillis()
-            val deleteResult = File(TTSFileUtil.ttsDir).deleteRecursively()
-            Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
+            player.clearMediaItems()
+            player.addMediaItem(mp3Path)
+//            val startTime = System.currentTimeMillis()
+//            val deleteResult = File(TTSFileUtil.ttsDir).deleteRecursively()
+//            Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
         }
 
         binding.tvPlayNet.setOnClickListener {
@@ -182,10 +179,10 @@ class ExoPlayerFragment : BaseFragment() {
                 val originByte = dataSource.audioData
                 //TODO 播放
                 // ExoPlayer 播放
-                ThreadUtil.runOnUiThread {
+                ThreadUtil.runOnUiThread({
                     val path = TTSFileUtil.createCacheFileFromKey(ttsKey, "mp3").path
                     player.addChunk(originByte, ttsKey, path)
-                }
+                }, 300)
 
                 // AudioTrack 播放
 //                executorService.execute {
