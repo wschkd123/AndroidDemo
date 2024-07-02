@@ -11,9 +11,7 @@ import com.example.base.download.FileDownloadManager
 import com.example.base.player.AudioFocusManager
 import com.example.base.player.OnPlayerListener
 import com.example.base.player.PlayState
-import com.example.base.player.audiotrack.AudioTrackManager
 import com.example.base.player.exoplayer.ExoPlayerWrapper
-import com.example.base.util.ThreadUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentExoPlayerBinding
@@ -29,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * @author wangshichao
  * @date 2024/6/15
  */
-class ExoPlayerFragment : BaseFragment() {
+class ExoPlayerFragment : BaseFragment(), View.OnClickListener {
     private var _binding: FragmentExoPlayerBinding? = null
     private val binding get() = _binding!!
     private val mp3Url =
@@ -58,68 +56,83 @@ class ExoPlayerFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tvPlayStream1.setOnClickListener {
-            player.clearMediaItems()
-//            startTTSReq(shortStr)
-            val content = shortStr
-            val ttsKey = content.hashCode().toString()
-            currentTtsKey = ttsKey
-            TTSStreamManager.startWithMockData(ttsKey, content)
-        }
+        binding.tvPlayStream1.setOnClickListener(this)
+        binding.tvPlayStream2.setOnClickListener(this)
+        binding.tvPlayLocal.setOnClickListener(this)
+        binding.tvCleanCache.setOnClickListener(this)
+        binding.tvPlayNet.setOnClickListener(this)
+        binding.tvDownUrl.setOnClickListener(this)
+    }
 
-        binding.tvPlayStream2.setOnClickListener {
-            player.clearMediaItems()
-            val content = longStr
-            startTTSReq(content)
-//            AudioTrackManager.getInstance().stopPlay()
+    override fun onClick(v: View?) {
+        when(v) {
+            binding.tvPlayStream1 -> {
+                player.clearMediaItems()
+//            startTTSReq(shortStr)
+                val content = shortStr
+                val ttsKey = content.hashCode().toString()
+                currentTtsKey = ttsKey
+                TTSStreamManager.startWithMockData(ttsKey, content)
+            }
+
+            binding.tvPlayStream2 -> {
+                player.clearMediaItems()
+                val content = longStr
+                startTTSReq(content)
 //            val content = longStr
 //            val ttsKey = content.hashCode().toString()
 //            currentTtsKey = ttsKey
 //            TTSStreamManager.startWithCompleteData(ttsKey, content)
-        }
-
-        binding.tvPlayLocal.setOnClickListener {
-            player.clearMediaItems()
-            player.addMediaItem(mp3Path)
-//            val startTime = System.currentTimeMillis()
-//            val deleteResult = File(TTSFileUtil.ttsDir).deleteRecursively()
-//            Log.w(TAG, "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult")
-        }
-
-        binding.tvPlayNet.setOnClickListener {
-            val key = mp3Url
-            val url = mp3Url
-            currentTtsKey = key
-            if (verifyPlaying(key)) {
-                return@setOnClickListener
             }
-            player.clearMediaItems()
-            player.addMediaItem(url, key)
-        }
 
-        binding.tvDownUrl.setOnClickListener {
-            val key = "mp3Url"
-            currentTtsKey = key
-            if (verifyPlaying(key)) {
-                return@setOnClickListener
+            binding.tvPlayLocal -> {
+                player.clearMediaItems()
+                player.addMediaItem(mp3Path)
             }
-            player.clearMediaItems()
 
-            // 有缓存直接播放
-            val cachePath = TTSFileUtil.checkCacheFileFromKey(key)?.path
-            if (cachePath != null) {
-                Log.i(TAG, "exist cache cachePath:${cachePath}")
-                player.addMediaItem(cachePath, key)
-                return@setOnClickListener
+            binding.tvCleanCache -> {
+                val startTime = System.currentTimeMillis()
+                val deleteResult = File(TTSFileUtil.ttsDir).deleteRecursively()
+                Log.w(
+                    TAG,
+                    "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult"
+                )
             }
-            // 在线播放
-            player.addMediaItem(mp3Url, key)
 
-            // 离线下载
-            val file = TTSFileUtil.createCacheFileFromUrl(key, mp3Url)
-            FileDownloadManager.download(mp3Url, file.path)
+            binding.tvPlayNet -> {
+                val key = mp3Url
+                val url = mp3Url
+                currentTtsKey = key
+                if (verifyPlaying(key)) {
+                    return
+                }
+                player.clearMediaItems()
+                player.addMediaItem(url, key)
+            }
+
+            binding.tvDownUrl -> {
+                val key = "mp3Url"
+                currentTtsKey = key
+                if (verifyPlaying(key)) {
+                    return
+                }
+                player.clearMediaItems()
+
+                // 有缓存直接播放
+                val cachePath = TTSFileUtil.checkCacheFileFromKey(key)?.path
+                if (cachePath != null) {
+                    Log.i(TAG, "exist cache cachePath:${cachePath}")
+                    player.addMediaItem(cachePath, key)
+                    return
+                }
+                // 在线播放
+                player.addMediaItem(mp3Url, key)
+
+                // 离线下载
+                val file = TTSFileUtil.createCacheFileFromUrl(key, mp3Url)
+                FileDownloadManager.download(mp3Url, file.path)
+            }
         }
-        AudioTrackManager.getInstance().prepareAudioTrack()
     }
 
     private fun startTTSReq(content: String) {
@@ -179,10 +192,9 @@ class ExoPlayerFragment : BaseFragment() {
                 val originByte = dataSource.audioData
                 //TODO 播放
                 // ExoPlayer 播放
-                ThreadUtil.runOnUiThread({
-                    val path = TTSFileUtil.createCacheFileFromKey(ttsKey, "mp3").path
-                    player.addChunk(originByte, ttsKey, path)
-                }, 300)
+                val path = TTSFileUtil.createCacheFileFromKey(ttsKey, "mp3").path
+                player.addChunk(originByte, ttsKey, path)
+
 
                 // AudioTrack 播放
 //                executorService.execute {

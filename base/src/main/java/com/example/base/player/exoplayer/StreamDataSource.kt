@@ -50,6 +50,9 @@ internal class StreamDataSource(
         bytesRemaining.set(data.size.toLong())
     }
 
+    /**
+     * 打开数据源以读取指定的数据
+     */
     @Throws(IOException::class)
     override fun open(dataSpec: DataSpec): Long {
         uri = dataSpec.uri
@@ -70,6 +73,9 @@ internal class StreamDataSource(
         return C.LENGTH_UNSET.toLong()
     }
 
+    /**
+     * 从输入中读取最多length字节的数据，从buffer的offset位置开始填充length长度。
+     */
     override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
         Log.i(TAG, "read: offset=$offset readLength=$length bytesRemaining=$bytesRemaining noMoreData=$noMoreData")
         val startTime = System.currentTimeMillis()
@@ -77,10 +83,12 @@ internal class StreamDataSource(
         if (readLength == 0) {
             return 0
         }
-        // 没有剩余数据且写入已完成，才返回结束
+        // 没有可用数据且没有更多数据加载，输入结束
         if (bytesRemaining.get() == 0L && noMoreData.get()) {
             return C.RESULT_END_OF_INPUT
         }
+
+        // 从buffer的offset位置开始填充readLength长度的数据
         readLength = Math.min(readLength, bytesRemaining.get().toInt())
         synchronized(lock) {
             for (i in 0 until readLength) {
@@ -92,6 +100,8 @@ internal class StreamDataSource(
                 buffer[offset + i] = data[readPosition + i]
             }
         }
+
+        // 更新可用数据
         readPosition += readLength
         bytesRemaining.set(bytesRemaining.get() - readLength)
         bytesTransferred(readLength)
@@ -103,6 +113,9 @@ internal class StreamDataSource(
         return uri
     }
 
+    /**
+     * 关闭源
+     */
     override fun close() {
         if (opened) {
             opened = false
