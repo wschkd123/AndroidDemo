@@ -28,7 +28,7 @@ class ExoPlayerWrapper {
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
      */
     private var playerKey: String? = null
-    private var dataSourceFactory: StreamDataSource.Factory? = null
+    private var dataSourceFactory: ChannelFileDataSource.Factory? = null
 
 
     init {
@@ -61,7 +61,7 @@ class ExoPlayerWrapper {
                 dataSourceFactory!!.dataSource.noMoreData()
             } else {
                 // 追加数据
-                dataSourceFactory!!.dataSource.appendData(data)
+                dataSourceFactory!!.dataSource.appendData(data, path)
             }
             return
         }
@@ -69,10 +69,10 @@ class ExoPlayerWrapper {
         if (key == playerKey) {
             return
         }
-        val factory = StreamDataSource.Factory(data)
+        val factory = ChannelFileDataSource.Factory()
         dataSourceFactory = factory
-//        val audioByteUri = ByteArrayUriHelper().getUri(data)
-        val mediaItem = MediaItem.fromUri(path)
+        val audioByteUri = ByteArrayUriHelper().getUri()
+        val mediaItem = MediaItem.fromUri(audioByteUri)
         val audioSource = ProgressiveMediaSource.Factory(factory)
             .createMediaSource(mediaItem)
         playerKey = key

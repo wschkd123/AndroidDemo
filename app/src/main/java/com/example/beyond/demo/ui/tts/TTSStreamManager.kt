@@ -344,7 +344,7 @@ object TTSStreamManager {
         if (chunk.data.isLastComplete()) {
             // 合成结束，回调空数据
             ThreadUtil.runOnUiThread {
-                Log.d(TAG, "onReceiveChunk1: threadName=" + Thread.currentThread())
+                Log.w(TAG, "parser content last ")
                 listener?.onReceiveChunk(
                     ChunkDataSource(
                         traceId = traceId,

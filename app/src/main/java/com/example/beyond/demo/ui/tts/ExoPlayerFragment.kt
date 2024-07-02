@@ -72,6 +72,13 @@ class ExoPlayerFragment : BaseFragment(), View.OnClickListener {
                 val content = shortStr
                 val ttsKey = content.hashCode().toString()
                 currentTtsKey = ttsKey
+                // 有缓存直接播放
+                val cachePath = TTSFileUtil.checkCacheFileFromKey(ttsKey)?.path
+                if (cachePath != null) {
+                    Log.i(TAG, "exist cache cachePath:${cachePath}")
+                    player.addMediaItem(cachePath, ttsKey)
+                    return
+                }
                 TTSStreamManager.startWithMockData(ttsKey, content)
             }
 
@@ -100,18 +107,26 @@ class ExoPlayerFragment : BaseFragment(), View.OnClickListener {
             }
 
             binding.tvPlayNet -> {
-                val key = mp3Url
-                val url = mp3Url
+                val url = mp3Url1
+                val key = url.hashCode().toString()
                 currentTtsKey = key
                 if (verifyPlaying(key)) {
                     return
                 }
                 player.clearMediaItems()
+                // 有缓存直接播放
+                val cachePath = TTSFileUtil.checkCacheFileFromKey(key)?.path
+                if (cachePath != null) {
+                    Log.i(TAG, "exist cache cachePath:${cachePath}")
+                    player.addMediaItem(cachePath, key)
+                    return
+                }
                 player.addMediaItem(url, key)
             }
 
             binding.tvDownUrl -> {
-                val key = "mp3Url"
+                val url = mp3Url
+                val key = url.hashCode().toString()
                 currentTtsKey = key
                 if (verifyPlaying(key)) {
                     return
@@ -126,11 +141,11 @@ class ExoPlayerFragment : BaseFragment(), View.OnClickListener {
                     return
                 }
                 // 在线播放
-                player.addMediaItem(mp3Url, key)
+                player.addMediaItem(url, key)
 
                 // 离线下载
-                val file = TTSFileUtil.createCacheFileFromUrl(key, mp3Url)
-                FileDownloadManager.download(mp3Url, file.path)
+                val file = TTSFileUtil.createCacheFileFromUrl(key, url)
+                FileDownloadManager.download(url, file.path)
             }
         }
     }
@@ -194,7 +209,6 @@ class ExoPlayerFragment : BaseFragment(), View.OnClickListener {
                 // ExoPlayer 播放
                 val path = TTSFileUtil.createCacheFileFromKey(ttsKey, "mp3").path
                 player.addChunk(originByte, ttsKey, path)
-
 
                 // AudioTrack 播放
 //                executorService.execute {

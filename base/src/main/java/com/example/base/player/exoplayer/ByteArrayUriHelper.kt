@@ -16,10 +16,9 @@ import java.net.URLStreamHandler
  * @date 2024/6/28
  */
 class ByteArrayUriHelper {
-    fun getUri(byteArray: ByteArray?): Uri {
+    fun getUri(): Uri {
         return try {
-            val url = URL(null, "bytes:///audio", BytesHandler(byteArray))
-//            /storage/emulated/0/Android/data/com.example.beyond.demo/files/tts/-1828286107.mp3
+            val url = URL(null, "bytes:///audio", BytesHandler())
             Uri.parse(url.toURI().toString())
         } catch (e: MalformedURLException) {
             throw RuntimeException(e)
@@ -28,16 +27,16 @@ class ByteArrayUriHelper {
         }
     }
 
-    internal inner class BytesHandler(var byteArray: ByteArray?) : URLStreamHandler() {
+    internal inner class BytesHandler : URLStreamHandler() {
         override fun openConnection(u: URL): URLConnection {
-            return ByteUrlConnection(u, byteArray)
+            return ByteUrlConnection(u)
         }
     }
 
-    internal class ByteUrlConnection(url: URL?, var byteArray: ByteArray?) : URLConnection(url) {
+    internal class ByteUrlConnection(url: URL?) : URLConnection(url) {
         override fun connect() {}
         override fun getInputStream(): InputStream {
-            return ByteArrayInputStream(byteArray)
+            return ByteArrayInputStream(ByteArray(0))
         }
     }
 }

@@ -88,6 +88,10 @@ internal class StreamDataSource(
             return C.RESULT_END_OF_INPUT
         }
 
+        if (bytesRemaining.get() == 0L) {
+            return 0
+        }
+
         // 从buffer的offset位置开始填充readLength长度的数据
         readLength = Math.min(readLength, bytesRemaining.get().toInt())
         synchronized(lock) {
