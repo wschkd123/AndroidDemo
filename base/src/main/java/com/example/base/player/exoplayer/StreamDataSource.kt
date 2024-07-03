@@ -1,4 +1,4 @@
-package com.example.base.player.exoplayer
+package com.yuewen.dreamer.player.exoplayer
 
 import android.net.Uri
 import android.util.Log
@@ -11,30 +11,27 @@ import androidx.media3.datasource.DataSourceException
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.TransferListener
 import java.io.IOException
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 支持边播边（外部）加载的数据源。参考 [ByteArrayDataSource]
  *
- * 1. 使用可变列表 [data] 读写数据
+ * 1. 使用字节数组 [data] 读写数据
  * 2. 读 [read] 和写 [appendData] 在不同的线程，需要保证线程安全
  *
  * @author wangshichao
  * @date 2024/6/30
  */
 internal class StreamDataSource(
-    val data: MutableList<Byte>
+    initData: ByteArray
 ) : BaseDataSource(false) {
     class Factory(byteArray: ByteArray, var listener: TransferListener? = null) : DataSource.Factory {
         val dataSource: StreamDataSource
 
         init {
-            val list: MutableList<Byte> = mutableListOf()
-            for (byte in byteArray) {
-                list.add(byte)
-            }
-            dataSource = StreamDataSource(list)
+            dataSource = StreamDataSource(byteArray)
         }
 
         override fun createDataSource(): DataSource {
@@ -52,8 +49,11 @@ internal class StreamDataSource(
     private var opened = false
     private var noMoreData = AtomicBoolean(false)
     private val lock = Object()
+    private var data: ByteArray = ByteArray(0)
+    private val appendExecutor = Executors.newSingleThreadExecutor()
 
     init {
+        data = initData
         bytesRemaining.set(data.size.toLong())
     }
 
@@ -100,21 +100,13 @@ internal class StreamDataSource(
         }
 
         // 从buffer的offset位置开始填充readLength长度的数据
-        readLength = Math.min(readLength, bytesRemaining.get().toInt())
         synchronized(lock) {
-            for (i in 0 until readLength) {
-                if (readPosition + i >= data.size) {
-                    readLength = i + 1
-                    Log.e(TAG, "readPosition and dataSize is ${readPosition + i} readLength=$readLength")
-                    break
-                }
-                buffer[offset + i] = data[readPosition + i]
-            }
+            readLength = Math.min(readLength, bytesRemaining.get().toInt())
+            System.arraycopy(data, readPosition, buffer, offset, readLength)
+            // 更新可用数据
+            readPosition += readLength
+            bytesRemaining.set(bytesRemaining.get() - readLength)
         }
-
-        // 更新可用数据
-        readPosition += readLength
-        bytesRemaining.set(bytesRemaining.get() - readLength)
         bytesTransferred(readLength)
         Log.i(TAG, "read: readPosition=${readPosition} bytesRemaining:${bytesRemaining} cost=${System.currentTimeMillis() - startTime}")
         return readLength
@@ -136,20 +128,27 @@ internal class StreamDataSource(
         uri = null
     }
 
+    fun appendDataAsync(newData: ByteArray) {
+        appendExecutor.execute {
+            appendData(newData)
+        }
+    }
+
     /**
      * 追加数据
      *
      * 1. 可能在[open]之前执行
      * 2. 注意多线程同步
      */
-    fun appendData(newData: ByteArray) {
+    private fun appendData(newData: ByteArray) {
         val newLength = newData.size
         Log.i(TAG, "appendData: newData=${newLength} bytesRemaining=$bytesRemaining}")
         val startTime = System.currentTimeMillis()
         synchronized(lock) {
-            data.addAll(newData.toList())
+            val lastData = data
+            data = lastData.plus(newData)
+            bytesRemaining.set(bytesRemaining.get() + newLength)
         }
-        bytesRemaining.set(bytesRemaining.get() + newLength)
         Log.w(TAG, "appendData: newData=${newLength} bytesRemaining=$bytesRemaining cost=${System.currentTimeMillis() - startTime}")
     }
 

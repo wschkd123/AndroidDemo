@@ -236,7 +236,8 @@ class TTSPlayerFragment : Fragment(), OnPlayerListener, TTSStreamListener, View.
             "onReceiveChunk clickTtsKey=${currentTtsKey} ttsKey=$ttsKey"
         )
         if (currentTtsKey == ttsKey) {
-            player.addChunk(dataSource.audioData, ttsKey)
+            val chunkPath = TTSFileUtil.createCacheFileFromKey(ttsKey, "mp3").path
+            player.addChunk(dataSource.audioData, ttsKey, chunkPath)
         } else {
             resetTTSState(ttsKey)
         }

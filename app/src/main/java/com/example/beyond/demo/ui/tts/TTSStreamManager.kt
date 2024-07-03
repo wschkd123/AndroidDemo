@@ -59,6 +59,7 @@ object TTSStreamManager {
         Log.w(TAG, "startWithCompleteData content:${content} ttsKey:${ttsKey}")
         val audioArrayList = mutableListOf(
             AudioData.audioComplete,
+            ""
         )
         audioArrayList.forEach {
             val byteArray = decodeHex(it)
@@ -76,16 +77,21 @@ object TTSStreamManager {
             AudioData.audio6,
             AudioData.audio7,
             AudioData.audio8,
-            AudioData.audio9,
-            AudioData.audio10,
-            AudioData.audio11,
-            AudioData.audio12,
-            "",
+            AudioData.audio7,
+            AudioData.audio7,
+            ""
         )
-        audioArrayList.forEach {
-            val byteArray = decodeHex(it)
+        val chunkSb = StringBuilder()
+        for (i in 0..20) {
+            chunkSb.append(AudioData.audioComplete)
+        }
+        for (i in 0..10) {
+            val byteArray = decodeHex(chunkSb.toString())
             receiveChunk(byteArray, ttsKey)
         }
+
+        // 合成结束，回调空数据
+        receiveChunk(ByteArray(0), ttsKey)
     }
 
     private fun receiveChunk(byteArray: ByteArray, ttsKey: String) {
