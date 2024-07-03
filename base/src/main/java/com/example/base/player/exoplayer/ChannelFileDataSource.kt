@@ -18,6 +18,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
@@ -46,14 +47,15 @@ internal class ChannelFileDataSource(
         }
     }
 
-    private val TAG = "ExoPlayer-DataSource"
+    private val TAG = "ChannelFile-ExoPlayer"
     private var file: RandomAccessFile? = null
     private var fileChannel: FileChannel?= null
     private var uri: Uri? = null
-    private var readPosition = 0L
+    private var readPosition = AtomicLong(0L)
     private val bytesRemaining = AtomicLong(0L)
     private var opened = false
     private val noMoreData = AtomicBoolean(false)
+    private val appendExecutor = Executors.newSingleThreadExecutor()
 
     init {
         initFileWithData(path, initData)
@@ -67,7 +69,7 @@ internal class ChannelFileDataSource(
     override fun open(dataSpec: DataSpec): Long {
         uri = dataSpec.uri
         transferInitializing(dataSpec)
-        readPosition = dataSpec.position
+        readPosition.set(dataSpec.position)
         Log.w(TAG, "open: readPosition=${readPosition} bytesRemaining=${bytesRemaining}")
         opened = true
         transferStarted(dataSpec)
@@ -93,7 +95,7 @@ internal class ChannelFileDataSource(
         }
 
         // 从上次读取文件位置开始
-        fileChannel?.position(readPosition)
+        fileChannel?.position(readPosition.get())
 
         // 从ChannelFile中读取readLength长度的数据填充到buffer中
         readLength = Math.min(readLength.toLong(), bytesRemaining.get()).toInt()
@@ -106,7 +108,7 @@ internal class ChannelFileDataSource(
             System.arraycopy(readData, 0, buffer, offset, readLength)
 
             // 更新可用数据
-            readPosition += readLength
+            readPosition.set(readPosition.get() + readLength)
             bytesRemaining.set(bytesRemaining.get() - readLength)
             bytesTransferred(readLength)
         }
@@ -136,6 +138,12 @@ internal class ChannelFileDataSource(
                 opened = false
                 transferEnded()
             }
+        }
+    }
+
+    fun appendDataAsync(newData: ByteArray) {
+        appendExecutor.execute {
+            appendData(newData)
         }
     }
 

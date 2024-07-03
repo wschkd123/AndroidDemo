@@ -77,19 +77,15 @@ object TTSStreamManager {
             AudioData.audio6,
             AudioData.audio7,
             AudioData.audio8,
-            AudioData.audio7,
-            AudioData.audio7,
-            ""
+            AudioData.audio9,
+            AudioData.audio10,
         )
-        val chunkSb = StringBuilder()
-        for (i in 0..20) {
-            chunkSb.append(AudioData.audioComplete)
-        }
         for (i in 0..10) {
-            val byteArray = decodeHex(chunkSb.toString())
-            receiveChunk(byteArray, ttsKey)
+            audioArrayList.forEach {
+                val byteArray = decodeHex(it)
+                receiveChunk(byteArray, ttsKey)
+            }
         }
-
         // 合成结束，回调空数据
         receiveChunk(ByteArray(0), ttsKey)
     }

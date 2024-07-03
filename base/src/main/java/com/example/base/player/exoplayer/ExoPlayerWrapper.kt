@@ -31,7 +31,7 @@ class ExoPlayerWrapper {
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
      */
     private var playerKey: String? = null
-    private var dataSourceFactory: StreamDataSource.Factory? = null
+    private var dataSourceFactory: ChannelFileDataSource.Factory? = null
 
 
     init {
@@ -72,7 +72,7 @@ class ExoPlayerWrapper {
     /**
      * 增加音频片段
      */
-    fun addChunk(data: ByteArray, key: String, path: String? = null) {
+    fun addChunk(data: ByteArray, key: String, path: String) {
         Log.w(TAG, "addChunk: data=${data.size} key=${key} path=$path")
         // 正在播放的数据源追加数据
         if (dataSourceFactory != null) {
@@ -81,7 +81,7 @@ class ExoPlayerWrapper {
                 dataSourceFactory!!.dataSource.noMoreData()
             } else {
                 // 追加数据
-                dataSourceFactory!!.dataSource.appendData(data)
+                dataSourceFactory!!.dataSource.appendDataAsync(data)
             }
             return
         }
@@ -89,7 +89,7 @@ class ExoPlayerWrapper {
         if (key == playerKey) {
             return
         }
-        val factory = StreamDataSource.Factory(data, object : TransferListener {
+        val factory = ChannelFileDataSource.Factory(path, data, object : TransferListener {
             override fun onTransferInitializing(
                 source: DataSource,
                 dataSpec: DataSpec,

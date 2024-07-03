@@ -1,4 +1,4 @@
-package com.yuewen.dreamer.player.exoplayer
+package com.example.base.player.exoplayer
 
 import android.net.Uri
 import android.util.Log
@@ -42,7 +42,7 @@ internal class StreamDataSource(
         }
     }
 
-    private val TAG = "ExoPlayer-DataSource"
+    private val TAG = "Stream-ExoPlayer"
     private var uri: Uri? = null
     private var readPosition = 0
     private var bytesRemaining = AtomicLong(0L)
