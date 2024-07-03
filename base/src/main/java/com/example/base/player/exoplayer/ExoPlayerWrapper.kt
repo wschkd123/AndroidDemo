@@ -25,13 +25,13 @@ class ExoPlayerWrapper {
     private val TAG = "ExoPlayerWrapper"
     private val player: ExoPlayer
     private val playbackStateListener: Player.Listener = playbackStateListener()
-    private var playerListenerList: MutableList<WeakReference<OnPlayerListener>> = mutableListOf()
+    private val playerListenerList: MutableList<WeakReference<OnPlayerListener>> = mutableListOf()
 
     /**
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
      */
     private var playerKey: String? = null
-    private var dataSourceFactory: ChannelFileDataSource.Factory? = null
+    private var dataSourceFactory: StreamDataSource.Factory? = null
 
 
     init {
@@ -53,10 +53,27 @@ class ExoPlayerWrapper {
     }
 
     /**
+     * 将媒体项添加到播放列表的末尾
+     *
+     * @param uri 资源地址
+     * @param key 资源key
+     */
+    fun addMediaItem(uri: String, key: String) {
+        Log.w(TAG, "addMediaItem uri=${uri} key=${key}")
+        playerKey = key
+        dataSourceFactory = null
+        player.apply {
+            addMediaItem(MediaItem.fromUri(uri))
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    /**
      * 增加音频片段
      */
-    fun addChunk(data: ByteArray, key: String, path: String) {
-        Log.w(TAG, "addChunk: data=${data.size} key=${key} path=${path}")
+    fun addChunk(data: ByteArray, key: String, path: String? = null) {
+        Log.w(TAG, "addChunk: data=${data.size} key=${key} path=$path")
         // 正在播放的数据源追加数据
         if (dataSourceFactory != null) {
             if (data.isEmpty()) {
@@ -72,7 +89,7 @@ class ExoPlayerWrapper {
         if (key == playerKey) {
             return
         }
-        val factory = ChannelFileDataSource.Factory(path, data, object : TransferListener {
+        val factory = StreamDataSource.Factory(data, object : TransferListener {
             override fun onTransferInitializing(
                 source: DataSource,
                 dataSpec: DataSpec,
@@ -116,23 +133,6 @@ class ExoPlayerWrapper {
         }
     }
 
-    /**
-     * 将媒体项添加到播放列表的末尾
-     *
-     * @param uri 资源地址
-     * @param key 资源key
-     */
-    fun addMediaItem(uri: String, key: String) {
-        Log.w(TAG, "addMediaItem uri:${uri} key:${key}")
-        playerKey = key
-        dataSourceFactory = null
-        player.apply {
-            addMediaItem(MediaItem.fromUri(uri))
-            prepare()
-            playWhenReady = true
-        }
-    }
-
     fun clearMediaItems() {
         player.clearMediaItems()
         playerKey = null
@@ -160,19 +160,42 @@ class ExoPlayerWrapper {
     }
 
     /**
+     * 是否播放中
+     */
+    fun isPlaying(): Boolean {
+        return isPlaying(playerKey)
+    }
+
+    /**
      * 指定资源是否播放中
      *
      * @param key 资源key
      */
-    fun isPlaying(key: String): Boolean {
-        Log.i(TAG, "key:$key playerKey:$playerKey")
+    fun isPlaying(key: String?): Boolean {
         if (playerKey != key) {
             return false
         }
         val mediaItemCount = player.mediaItemCount
         for (i in 0 until mediaItemCount) {
             if (player.isPlaying && player.currentMediaItemIndex == i) {
-                Log.i(TAG, "player item[$i] isPlaying")
+                Log.i(TAG, "key=$key player item[$i] isPlaying")
+                return true
+            }
+        }
+        return false
+    }
+
+    fun isLoading(key: String?):Boolean{
+        if (isPlaying(key)){
+            return true
+        }
+        if (playerKey != key) {
+            return false
+        }
+        val mediaItemCount = player.mediaItemCount
+        for (i in 0 until mediaItemCount) {
+            if (player.isLoading && player.currentMediaItemIndex == i) {
+                Log.i(TAG, "key=$key player item[$i] isPlaying")
                 return true
             }
         }
@@ -191,7 +214,14 @@ class ExoPlayerWrapper {
         }
     }
 
-    private fun currentPlayUri() = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration?.uri.toString()
+    private fun currentPlayUri(): String? {
+        val index = player.currentMediaItemIndex
+        return if (index >= 0 && index < player.mediaItemCount) {
+            player.getMediaItemAt(index).localConfiguration?.uri?.toString()
+        } else {
+            null
+        }
+    }
 
     private fun playbackStateListener() = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -201,8 +231,7 @@ class ExoPlayerWrapper {
                 ExoPlayer.STATE_IDLE, ExoPlayer.STATE_ENDED -> PlayState.IDLE
                 else -> PlayState.IDLE
             }
-            val uri = if (playbackState < ExoPlayer.STATE_ENDED) currentPlayUri() else ""
-            Log.i(TAG, "changed state to $playbackState uri:${uri} key:${playerKey}")
+            Log.i(TAG, "changed state to originPlayState=$playbackState realPlayState=${playState} key=${playerKey}")
             playerListenerList.forEach {
                 it.get()?.onPlaybackStateChanged(playerKey ?: "", playState)
             }
@@ -210,8 +239,8 @@ class ExoPlayerWrapper {
 
         override fun onPlayerError(error: PlaybackException) {
             super.onPlayerError(error)
-            val uri = currentPlayUri()
-            Log.e(TAG, "Playback code:${error.errorCode} msg:${error.message} uri:${uri} key:${playerKey}")
+            val uri = currentPlayUri() ?: ""
+            Log.e(TAG, "Playback code=${error.errorCode} msg=${error.message} uri=${uri} key=${playerKey}")
             playerListenerList.forEach {
                 it.get()?.onPlayerError(uri, playerKey ?: "", error.message ?: "")
             }

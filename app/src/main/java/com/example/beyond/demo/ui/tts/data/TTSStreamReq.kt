@@ -97,6 +97,17 @@ data class TTSChunkResult(
         val status_msg: String? = null
     ) : IgnoreProguard() {
         fun isSuccess() = status_code == 0
+        /**
+         * 登录态失效
+         */
+        fun isLoginInvalid() = status_code == -3
+
+        /**
+         * 触发速率限制
+         * 1. 1041 conn limit
+         * 2. 1002 rate limit
+         */
+        fun onRateLimit() = status_code == 1041 || status_code == 1002
     }
 
     data class Data(

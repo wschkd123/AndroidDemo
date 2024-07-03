@@ -2,8 +2,10 @@ package com.example.beyond.demo.ui.tts
 
 import android.util.Log
 import com.example.base.download.FileDownloadManager
+import com.example.base.util.HttpLogInterceptor
 import com.example.base.util.JsonUtilKt
 import com.example.base.util.ThreadUtil
+import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.ui.tts.TTSStreamManager.startConnect
 import com.example.beyond.demo.ui.tts.data.ChunkDataSource
 import com.example.beyond.demo.ui.tts.data.TTSChunkResult
@@ -18,13 +20,9 @@ import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
 import okio.Buffer
 import java.io.EOFException
-import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 通过sse协议实现文本流式输入语音流式输出（TTS）
@@ -47,6 +45,7 @@ object TTSStreamManager {
         OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.MINUTES)
             .readTimeout(10, TimeUnit.MINUTES)
+            .addNetworkInterceptor(HttpLogInterceptor())
 //            .addNetworkInterceptor(HttpLogInterceptor())
             .build()
 
@@ -54,20 +53,7 @@ object TTSStreamManager {
      * ttsKey列表。用于请求唯一标识，避免重复请求。
      */
     private val requestMap = ConcurrentHashMap<String, RealEventSource>()
-    var listener: TTSStreamListener? = null
-    private val executorService = Executors.newCachedThreadPool(object : ThreadFactory {
-        private val mCount = AtomicInteger(1)
-        override fun newThread(r: Runnable): Thread {
-            return Thread(r, "tts_req #" + mCount.getAndIncrement())
-        }
-    })
-
-    init {
-        // 每次初始化删除片段缓存。考虑修改删除时机
-//        GlobalScope.launch {
-//            deleteAllChunkFile()
-//        }
-    }
+    private val ttsStreamListenerList: MutableList<TTSStreamListener> = mutableListOf()
 
     fun startWithCompleteData(ttsKey: String, content: String) {
         Log.w(TAG, "startWithCompleteData content:${content} ttsKey:${ttsKey}")
@@ -95,101 +81,66 @@ object TTSStreamManager {
             AudioData.audio11,
             AudioData.audio12,
             "",
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-//            AudioData.audioComplete,
-            )
+        )
         audioArrayList.forEach {
             val byteArray = decodeHex(it)
             receiveChunk(byteArray, ttsKey)
         }
-//        val contentSb: StringBuilder = StringBuilder()
-//        audioArrayList.forEach {
-//            contentSb.append(it)
-//        }
     }
 
     private fun receiveChunk(byteArray: ByteArray, ttsKey: String) {
         // 音频片段保存在临时文件，然后回调路径等信息
-//        val chunkPath = "${TTSFileUtil.ttsChunkDir}${System.currentTimeMillis()}.$AUDIO_FORMAT"
-//        takeIf { YWFileUtil.saveByteArrayToFile(byteArray, chunkPath) } ?: return
         Log.d(TAG, "receiveChunk: threadName=" + Thread.currentThread().name)
         Log.i(TAG, "receiveChunk content:${byteArray.size / 1000} kb")
-//            ThreadUtil.runOnUiThread {
-        listener?.onReceiveChunk(
-            ChunkDataSource(
-                traceId = "",
-                ttsKey = ttsKey,
-                byteArray
+        ttsStreamListenerList.forEach {
+            it.onReceiveChunk(
+                ChunkDataSource(
+                    traceId = "",
+                    ttsKey = ttsKey,
+                    byteArray
+                )
             )
-        )
-//            }
+        }
+    }
+
+    /**
+     * 取消连接
+     */
+    fun cancelConnect(ttsKey: String?) {
+        ttsKey ?: return
+        if (requestMap.containsKey(ttsKey).not()) {
+            return
+        }
+        Log.w(TAG, "cancelConnect ttsKey=$ttsKey")
+        requestMap[ttsKey]?.cancel()
+        requestMap.remove(ttsKey)
+    }
+
+    fun addTTSStreamListener(listener: TTSStreamListener) {
+        if (!ttsStreamListenerList.contains(listener)) {
+            ttsStreamListenerList.add(listener)
+            Log.i(TAG, "add $listener size: ${ttsStreamListenerList.size}")
+        }
+    }
+
+    fun removeTTSStreamListener(listener: TTSStreamListener) {
+        Log.i(TAG, "remove $listener")
+        ttsStreamListenerList.remove(listener)
     }
 
     /**
      * 开始连接
      */
     fun startConnect(
-        content: String = "你好",
-        ttsKey: String
+        ttsKey: String,
+        content: String,
     ) {
         // 是否正在请求
         if (requestMap.containsKey(ttsKey)) {
-            Log.w(TAG, "is requesting $content $ttsKey")
+            Log.w(TAG, "is requesting content=$content ttsKey=$ttsKey")
             return
         }
-        Log.w(TAG, "ttsStreamFetch content:${content} ttsKey:${ttsKey}")
+        Log.w(TAG, "startConnect content=${content} ttsKey=${ttsKey}")
         val json = "{\n" +
                 "    \"timber_weights\": [\n" +
                 "      {\n" +
@@ -249,7 +200,7 @@ object TTSStreamManager {
             ) {
                 super.onFailure(eventSource, t, response)
                 requestMap.remove(ttsKey)
-                Log.w(TAG, "连接失败 ${t?.message} ttsKey:$ttsKey")
+                Log.w(TAG, "连接失败 ${t?.message} ttsKey=$ttsKey")
                 val data = readStringFromBuffer(response)
                 parserMessageContent(ttsKey, data)
             }
@@ -257,27 +208,6 @@ object TTSStreamManager {
         requestMap[ttsKey] = realEventSource
         realEventSource.connect(okHttpClient)
 
-    }
-
-    /**
-     * 取消连接
-     */
-    fun cancelConnect(ttsKey: String) {
-        Log.w(TAG, "cancelConnect ttsKey:$ttsKey")
-        requestMap[ttsKey]?.cancel()
-        requestMap.remove(ttsKey)
-    }
-
-    /**
-     * 删除分片缓存临时文件夹
-     */
-    private fun deleteAllChunkFile() {
-        val startTime = System.currentTimeMillis()
-        val deleteResult = File(TTSFileUtil.ttsChunkDir).deleteRecursively()
-        Log.w(
-            TAG,
-            "deleteChunkFile cost ${System.currentTimeMillis() - startTime} deleteResult:$deleteResult"
-        )
     }
 
     private fun readStringFromBuffer(response: Response?): String {
@@ -299,71 +229,113 @@ object TTSStreamManager {
         val chunk = JsonUtilKt.toObject(data, TTSChunkResult::class.java)
         if (chunk == null) {
             Log.w(TAG, "chunk is null")
-            ThreadUtil.runOnUiThread {
-                listener?.onNetError("")
-            }
-            return
-        }
-        // 存在完整音频地址
-        if (chunk.isCompleteUrl()) {
-            val url = chunk.url ?: ""
-            Log.w(TAG, "server exist cache, play and download $url")
-            val file = TTSFileUtil.createCacheFileFromUrl(ttsKey, url)
-            FileDownloadManager.download(url, file.path)
-            ThreadUtil.runOnUiThread {
-                listener?.onReceiveCompleteUrl(ttsKey, url)
-            }
+            netErrorOnUiThread(ttsKey)
             return
         }
 
+        // 不同网络状态处理
         val baseResp = chunk.base_resp
-        if (baseResp?.isSuccess() != true) {
-            val code = baseResp?.status_code ?: 0
-            val msg = baseResp?.status_msg ?: ""
-            Log.w(TAG, "receive limit code:$code msg:$msg")
-            ThreadUtil.runOnUiThread {
-                listener?.onRateLimit(code, msg)
+        val code = baseResp?.status_code ?: -1
+        val msg = baseResp?.status_msg
+        when {
+            // 后端调用minimax出错 {"type":2,"url":null,"baseResp":null,"data":null,"extraInfo":null,"traceId":null}
+            baseResp == null -> {
+                Log.w(TAG, "baseResp is null $chunk")
+                netErrorOnUiThread(ttsKey)
             }
-            return
+
+            // 登录态失效
+            baseResp.isLoginInvalid() -> {
+                Log.w(TAG, "login invalid code=$code msg=$msg")
+                ThreadUtil.runOnUiThread {
+                    ttsStreamListenerList.forEach {
+                        it.onLoginInvalid(ttsKey, code, msg ?: "")
+                    }
+                }
+            }
+
+            // minimax触发速率限制等错误
+            baseResp.onRateLimit() -> {
+                Log.w(TAG, "receive limit code=$code msg=$msg")
+                ThreadUtil.runOnUiThread {
+                    ttsStreamListenerList.forEach {
+                        it.onRateLimit(ttsKey, code, msg ?: "")
+                    }
+                }
+            }
+
+            // 成功
+            baseResp.isSuccess() -> {
+                if (chunk.isCompleteUrl()) {
+                    // 存在完整音频地址
+                    val url = chunk.url ?: ""
+                    Log.w(TAG, "server exist cache, play and download $url")
+                    val file = TTSFileUtil.createCacheFileFromUrl(ttsKey, url)
+                    FileDownloadManager.download(url, file.path)
+                    ThreadUtil.runOnUiThread {
+                        ttsStreamListenerList.forEach {
+                            it.onReceiveCompleteUrl(ttsKey, url)
+                        }
+                    }
+                } else {
+                    // 解码音频片段
+                    decodeAudioChunkAndSave(chunk, ttsKey)
+                }
+            }
+
+            else -> {
+                Log.w(TAG, "net error code=$code msg=$msg")
+                netErrorOnUiThread(ttsKey, msg ?: "")
+            }
+
         }
-        decodeAudioAndSave(chunk, ttsKey)
     }
 
-    private fun decodeAudioAndSave(chunk: TTSChunkResult, ttsKey: String) {
+    /**
+     * 解码音频片段并缓存
+     */
+    private fun decodeAudioChunkAndSave(chunk: TTSChunkResult, ttsKey: String) {
         val traceId = chunk.trace_id
         val audio = chunk.data?.audio
         // 存在片段内容为空，直接忽略
         if (audio.isNullOrEmpty()) {
-            Log.i(TAG, "audio is empty, trace_id:$traceId")
+            Log.i(TAG, "audio is empty, trace_id=$traceId")
             return
         }
 
-        // 解码
+        // 解码源数据为字节数组
         val decodeData = decodeHex(audio)
 
         if (chunk.data.isLastComplete()) {
             // 合成结束，回调空数据
             ThreadUtil.runOnUiThread {
-                Log.w(TAG, "parser content last ")
-                listener?.onReceiveChunk(
-                    ChunkDataSource(
-                        traceId = traceId,
-                        ttsKey = ttsKey,
-                        audioData = ByteArray(0)
+                ttsStreamListenerList.forEach {
+                    it.onReceiveChunk(
+                        ChunkDataSource(
+                            traceId = traceId,
+                            ttsKey = ttsKey,
+                            audioData = ByteArray(0)
+                        )
                     )
-                )
+                }
             }
+            // 最后一个完整音频缓存下来
+            val chunkPath = TTSFileUtil.createCacheFileFromKey(ttsKey, AUDIO_FORMAT).path
+            YWFileUtil.saveByteArrayToFile(decodeData, chunkPath)
+            Log.i(TAG, "parser last content=${audio.length} path=$chunkPath")
         } else {
             // 音频片段回调给业务方播放
             Log.i(TAG, "parser content=${audio.length}")
             ThreadUtil.runOnUiThread {
-                listener?.onReceiveChunk(
-                    ChunkDataSource(
-                        traceId = traceId,
-                        ttsKey = ttsKey,
-                        audioData = decodeData
+                ttsStreamListenerList.forEach {
+                    it.onReceiveChunk(
+                        ChunkDataSource(
+                            traceId = traceId,
+                            ttsKey = ttsKey,
+                            audioData = decodeData
+                        )
                     )
-                )
+                }
             }
         }
 
@@ -381,6 +353,14 @@ object TTSStreamManager {
             i += 2
         }
         return byteArray
+    }
+
+    private fun netErrorOnUiThread(ttsKey: String, msg: String? = null) {
+        ThreadUtil.runOnUiThread {
+            ttsStreamListenerList.forEach {
+                it.onNetError(ttsKey, msg)
+            }
+        }
     }
 
 }
@@ -402,10 +382,15 @@ interface TTSStreamListener {
      * 1. 1041 conn limit
      * 2. 1002 rate limit
      */
-    fun onRateLimit(code: Int, msg: String)
+    fun onRateLimit(ttsKey: String, code: Int, msg: String)
+
+    /**
+     * 登录态失效
+     */
+    fun onLoginInvalid(ttsKey: String, code: Int, msg: String)
 
     /**
      * 网络错误
      */
-    fun onNetError(msg: String)
+    fun onNetError(ttsKey: String, msg: String?)
 }
