@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.TransferListener
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.example.base.Init
@@ -61,7 +64,7 @@ class ExoPlayerWrapper {
                 dataSourceFactory!!.dataSource.noMoreData()
             } else {
                 // 追加数据
-                dataSourceFactory!!.dataSource.appendData(data, path)
+                dataSourceFactory!!.dataSource.appendData(data)
             }
             return
         }
@@ -69,9 +72,39 @@ class ExoPlayerWrapper {
         if (key == playerKey) {
             return
         }
-        val factory = ChannelFileDataSource.Factory()
+        val factory = ChannelFileDataSource.Factory(path, data, object : TransferListener {
+            override fun onTransferInitializing(
+                source: DataSource,
+                dataSpec: DataSpec,
+                isNetwork: Boolean
+            ) {
+                Log.i(TAG, "onTransferInitializing dataSpec=$dataSpec")
+            }
+
+            override fun onTransferStart(
+                source: DataSource,
+                dataSpec: DataSpec,
+                isNetwork: Boolean
+            ) {
+                Log.i(TAG, "onTransferStart dataSpec=$dataSpec")
+            }
+
+            override fun onBytesTransferred(
+                source: DataSource,
+                dataSpec: DataSpec,
+                isNetwork: Boolean,
+                bytesTransferred: Int
+            ) {
+                Log.i(TAG, "onBytesTransferred dataSpec=$dataSpec")
+            }
+
+            override fun onTransferEnd(source: DataSource, dataSpec: DataSpec, isNetwork: Boolean) {
+                Log.i(TAG, "onTransferEnd dataSpec=$dataSpec")
+            }
+
+        })
         dataSourceFactory = factory
-        val audioByteUri = ByteArrayUriHelper().getUri()
+        val audioByteUri = ByteArrayUriUtil.getUri()
         val mediaItem = MediaItem.fromUri(audioByteUri)
         val audioSource = ProgressiveMediaSource.Factory(factory)
             .createMediaSource(mediaItem)

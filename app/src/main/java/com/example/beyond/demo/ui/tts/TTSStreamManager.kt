@@ -94,6 +94,7 @@ object TTSStreamManager {
             AudioData.audio10,
             AudioData.audio11,
             AudioData.audio12,
+            "",
 //            AudioData.audioComplete,
 //            AudioData.audioComplete,
 //            AudioData.audioComplete,
@@ -148,7 +149,6 @@ object TTSStreamManager {
 //            AudioData.audioComplete,
 //            AudioData.audioComplete,
 //            AudioData.audioComplete,
-                "",
             )
         audioArrayList.forEach {
             val byteArray = decodeHex(it)

@@ -15,7 +15,7 @@ import java.net.URLStreamHandler
  * @author wangshichao
  * @date 2024/6/28
  */
-class ByteArrayUriHelper {
+object ByteArrayUriUtil {
     fun getUri(): Uri {
         return try {
             val url = URL(null, "bytes:///audio", BytesHandler())
@@ -27,7 +27,7 @@ class ByteArrayUriHelper {
         }
     }
 
-    internal inner class BytesHandler : URLStreamHandler() {
+    internal class BytesHandler : URLStreamHandler() {
         override fun openConnection(u: URL): URLConnection {
             return ByteUrlConnection(u)
         }

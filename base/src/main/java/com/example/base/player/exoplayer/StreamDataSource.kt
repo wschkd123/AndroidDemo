@@ -5,16 +5,20 @@ import android.util.Log
 import androidx.media3.common.C
 import androidx.media3.common.PlaybackException
 import androidx.media3.datasource.BaseDataSource
+import androidx.media3.datasource.ByteArrayDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSourceException
 import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.TransferListener
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * 支持边播边（外部）加载的数据源
- * see [appendData]
+ * 支持边播边（外部）加载的数据源。参考 [ByteArrayDataSource]
+ *
+ * 1. 使用可变列表 [data] 读写数据
+ * 2. 读 [read] 和写 [appendData] 在不同的线程，需要保证线程安全
  *
  * @author wangshichao
  * @date 2024/6/30
@@ -22,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong
 internal class StreamDataSource(
     val data: MutableList<Byte>
 ) : BaseDataSource(false) {
-    class Factory(byteArray: ByteArray) : DataSource.Factory {
+    class Factory(byteArray: ByteArray, var listener: TransferListener? = null) : DataSource.Factory {
         val dataSource: StreamDataSource
 
         init {
@@ -34,6 +38,9 @@ internal class StreamDataSource(
         }
 
         override fun createDataSource(): DataSource {
+            listener?.let {
+                dataSource.addTransferListener(it)
+            }
             return dataSource
         }
     }
@@ -121,6 +128,7 @@ internal class StreamDataSource(
      * 关闭源
      */
     override fun close() {
+        Log.w(TAG, "close")
         if (opened) {
             opened = false
             transferEnded()
@@ -132,17 +140,17 @@ internal class StreamDataSource(
      * 追加数据
      *
      * 1. 可能在[open]之前执行
-     * 2. 多线程同步
+     * 2. 注意多线程同步
      */
     fun appendData(newData: ByteArray) {
-        Log.i(TAG, "appendData: newData=${newData.size} bytesRemaining=$bytesRemaining}")
-        val startTime = System.currentTimeMillis()
         val newLength = newData.size
+        Log.i(TAG, "appendData: newData=${newLength} bytesRemaining=$bytesRemaining}")
+        val startTime = System.currentTimeMillis()
         synchronized(lock) {
             data.addAll(newData.toList())
         }
         bytesRemaining.set(bytesRemaining.get() + newLength)
-        Log.w(TAG, "appendData: newData=${newData.size} bytesRemaining=$bytesRemaining cost=${System.currentTimeMillis() - startTime}")
+        Log.w(TAG, "appendData: newData=${newLength} bytesRemaining=$bytesRemaining cost=${System.currentTimeMillis() - startTime}")
     }
 
     fun noMoreData() {
