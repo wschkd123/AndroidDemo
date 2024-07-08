@@ -15,12 +15,13 @@ import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.example.beyond.demo.R
-import com.example.beyond.demo.ui.appwidget.bean.AppRecResult
-import com.example.beyond.demo.net.NetResult
-import com.example.beyond.demo.ui.MainActivity
+import com.example.base.util.YWNetUtil
 import com.example.base.util.ext.dpToPx
 import com.example.base.util.ext.dpToPxFloat
+import com.example.beyond.demo.R
+import com.example.beyond.demo.net.NetResult
+import com.example.beyond.demo.ui.MainActivity
+import com.example.beyond.demo.ui.appwidget.bean.AppRecResult
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -60,6 +61,11 @@ class CharacterWorker(context: Context, val workerParams: WorkerParameters) :
         //刷新widget
         if (appWidgetIds == null || appWidgetIds.isEmpty() || appWidgetIds[0] == 0) {
             Log.w("AppWidget", "$TAG appWidgetIds is empty, return")
+            return Result.success()
+        }
+
+        if (!YWNetUtil.isNetworkAvailable(applicationContext)) {
+            Log.w("AppWidget", "$TAG doWork network not available")
             return Result.success()
         }
 
