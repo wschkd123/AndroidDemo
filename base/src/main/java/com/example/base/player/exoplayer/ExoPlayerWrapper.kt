@@ -31,7 +31,7 @@ class ExoPlayerWrapper {
      * 播放资源key。除了分片播放音频，其它场景key与uri保持一致
      */
     private var playerKey: String? = null
-    private var dataSourceFactory: ChannelFileDataSource.Factory? = null
+    private var dataSourceFactory: FileChannelDataSource.Factory? = null
 
 
     init {
@@ -89,7 +89,7 @@ class ExoPlayerWrapper {
         if (key == playerKey) {
             return
         }
-        val factory = ChannelFileDataSource.Factory(path, data, object : TransferListener {
+        val factory = FileChannelDataSource.Factory(path, data, object : TransferListener {
             override fun onTransferInitializing(
                 source: DataSource,
                 dataSpec: DataSpec,

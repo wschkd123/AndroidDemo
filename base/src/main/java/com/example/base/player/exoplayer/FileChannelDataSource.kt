@@ -32,12 +32,12 @@ import java.util.concurrent.atomic.AtomicLong
  * @author wangshichao
  * @date 2024/6/30
  */
-internal class ChannelFileDataSource(
+internal class FileChannelDataSource(
     path: String,
     initData: ByteArray,
 ): BaseDataSource(false) {
     class Factory(path: String, byteArray: ByteArray, var listener: TransferListener? = null) : DataSource.Factory {
-        val dataSource = ChannelFileDataSource(path, byteArray)
+        val dataSource = FileChannelDataSource(path, byteArray)
 
         override fun createDataSource(): DataSource {
             listener?.let {
@@ -55,6 +55,7 @@ internal class ChannelFileDataSource(
     private val bytesRemaining = AtomicLong(0L)
     private var opened = false
     private val noMoreData = AtomicBoolean(false)
+    private val lock = Object()
     private val appendExecutor = Executors.newSingleThreadExecutor()
 
     init {
@@ -95,7 +96,9 @@ internal class ChannelFileDataSource(
         }
 
         // 从上次读取文件位置开始
-        fileChannel?.position(readPosition.get())
+        synchronized(lock) {
+            fileChannel?.position(readPosition.get())
+        }
 
         // 从ChannelFile中读取readLength长度的数据填充到buffer中
         readLength = Math.min(readLength.toLong(), bytesRemaining.get()).toInt()
@@ -159,7 +162,9 @@ internal class ChannelFileDataSource(
         val startTime = System.currentTimeMillis()
 
         // 文件位置移到末尾，并写入新数据
-        fileChannel?.position(fileChannel?.size() ?: 0)
+        synchronized(lock) {
+            fileChannel?.position(fileChannel?.size() ?: 0)
+        }
         FileChannelUtils.write(fileChannel, newData)
 
         bytesRemaining.set(bytesRemaining.get() + newLength)
