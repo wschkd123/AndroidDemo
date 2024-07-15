@@ -24,7 +24,7 @@ android {
     }
 }
 
-def mediaVersion = "1.1.1"
+def media3_version = "1.1.1"
 def okhttpVersion = "3.12.13"
 def coroutines_version = "1.4.2"
 dependencies {
@@ -58,6 +58,7 @@ dependencies {
     api "com.github.bumptech.glide:glide:4.9.0"
 
     // exoplayer
-    api "androidx.media3:media3-exoplayer:$mediaVersion"
+    api "androidx.media3:media3-exoplayer:$media3_version"
+    api "androidx.media3:media3-ui:$media3_version"
     api "com.squareup.okhttp3:okhttp-sse:$okhttpVersion"
 }

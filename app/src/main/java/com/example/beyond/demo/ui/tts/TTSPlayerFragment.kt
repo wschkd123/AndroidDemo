@@ -79,6 +79,7 @@ class TTSPlayerFragment : Fragment(), OnPlayerListener, TTSStreamListener, View.
         binding.tvCleanCache.setOnClickListener(this)
         binding.tvPlayNet.setOnClickListener(this)
         binding.tvDownUrl.setOnClickListener(this)
+        binding.playerView.player = player.player
     }
 
     override fun onStart() {

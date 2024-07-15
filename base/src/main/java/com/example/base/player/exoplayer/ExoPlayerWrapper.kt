@@ -23,7 +23,7 @@ import java.lang.ref.WeakReference
  */
 class ExoPlayerWrapper {
     private val TAG = "ExoPlayerWrapper"
-    private val player: ExoPlayer
+    val player: ExoPlayer
     private val playbackStateListener: Player.Listener = playbackStateListener()
     private val playerListenerList: MutableList<WeakReference<OnPlayerListener>> = mutableListOf()
 
