@@ -40,7 +40,7 @@ class TransformerFragment : Fragment() {
     companion object {
         private const val TAG = "TransformerFragment"
         private const val MP4_ASSET_URI_STRING = "asset:///media/mp4/sample.mp4"
-        private const val MP4_ASSET_URI_STRING1 = "asset:///media/mp4/hdr10-720p.mp4"
+//        private const val MP4_ASSET_URI_STRING1 = "asset:///media/mp4/hdr10-720p.mp4"
         private const val FILE_AUDIO_ONLY = "asset:///media/mp3/test-cbr-info-header.mp3"
         const val JPG_ASSET_URI_STRING = "asset:///media/jpeg/london.jpg"
     }
@@ -105,7 +105,7 @@ class TransformerFragment : Fragment() {
         )
         val audioSequence = EditedMediaItemSequence(
             mutableListOf(audioItem),
-            true
+            false
         )
         val imageSequence = EditedMediaItemSequence(
             mutableListOf(imageItem)

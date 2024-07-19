@@ -50,6 +50,7 @@ object YWFileUtil {
      * @return 缓存文件夹 如果没有SD卡或SD卡有问题则返回内部存储目录，/data/data/app_package_name/files
      * 否则优先返回SD卡缓存目录
      */
+    @JvmStatic
     fun getStorageFileDir(context: Context?): File? {
         return getStorageFileDir(context, null)
     }
