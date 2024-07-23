@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.opengl.Matrix;
 import android.util.DisplayMetrics;
 import android.util.Pair;
 import android.view.WindowManager;
@@ -15,6 +16,7 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.media3.common.C;
+import androidx.media3.common.util.GlUtil;
 import androidx.media3.common.util.Log;
 import androidx.media3.common.util.Size;
 import androidx.media3.common.util.UnstableApi;
@@ -29,72 +31,75 @@ import com.example.beyond.demo.R;
  */
 @UnstableApi
 public class BgOverlay extends DrawableOverlay {
-  protected String TAG = getClass().getSimpleName();
+    protected String TAG = getClass().getSimpleName();
 
-  private Context context;
-  private @NonNull Bitmap lastBitmap;
-  private @NonNull Drawable lastDrawable;
-  private int screenWidth = 0;
-  private int screenHeight = 0;
-  private OverlaySettings overlaySettings;
-  private long period = C.MILLIS_PER_SECOND * TransformerConstant.REFRESH_PERIOD;
+    private Context context;
+    private @NonNull Bitmap lastBitmap;
+    private @NonNull Drawable lastDrawable;
+    private int screenWidth = 0;
+    private int screenHeight = 0;
+    private OverlaySettings overlaySettings;
+    private long period = C.MILLIS_PER_SECOND * TransformerConstant.REFRESH_PERIOD;
 
 
-  public BgOverlay(Context context) {
-    this.context = context;
-    screenWidth = getScreenWidth(context);
-    screenHeight = getScreenHeight(context);
-    overlaySettings = new OverlaySettings.Builder()
-//        .setScale(/* x= */ 2, /* y= */ 2)
-//        .setAlpha(0.5f)
-//        .setRotationDegrees(90f)
-//        .setAnchor(/* x= */ 0f, /* y= */ 1f)
-//        .setBackgroundFrameAnchor(/* x= */ -0.95f, /* y= */ -0.95f)
-//            .setMatrix()
-        .build();
-  }
+    public BgOverlay(Context context) {
+        this.context = context;
+        screenWidth = getScreenWidth(context);
+        screenHeight = getScreenHeight(context);
 
-  @Override
-  public Size getTextureSize(long presentationTimeUs) {
-    return new Size(screenWidth, screenHeight);
-  }
+        float[] positioningMatrix = GlUtil.create4x4IdentityMatrix();
+        // 0，0在视频中心，1，1在右上角
+        Matrix.translateM(
+                positioningMatrix, /* mOffset= */ 0, /* x= */ 0f, /* y= */ 0f, /* z= */ 1);
+        overlaySettings = new OverlaySettings.Builder()
+                .setMatrix(positioningMatrix)
+                .setAlpha(1f)
+                // -1 -1 在原覆盖物右上角的位置，1 1 在原覆盖物左下角的位置
+//                .setAnchor(-1f, -1f)
+                .build();
+    }
 
-  @Override
-  public Drawable getDrawable(long presentationTimeUs) {
-    Drawable drawable = ContextCompat.getDrawable(context, R.drawable.ic_launcher);
-    drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-    return drawable;
-  }
+//  @Override
+//  public Size getTextureSize(long presentationTimeUs) {
+//    return new Size(screenWidth, screenHeight);
+//  }
 
-  @Override
-  public Bitmap getBitmap(long presentationTimeUs) {
-    float index =  presentationTimeUs * 1f / period;
-    Log.i(TAG, "getBitmap presentationTimeUs=" + presentationTimeUs + " index=" + index);
-    Drawable overlayDrawable = getDrawable(presentationTimeUs);
-    // TODO(b/227625365): Drawable doesn't implement the equals method, so investigate other methods
-    //   of detecting the need to redraw the bitmap.
-    if (index >= 0 && index <= 300) {
+    @Override
+    public Drawable getDrawable(long presentationTimeUs) {
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.ic_launcher);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        return drawable;
+    }
+
+    @Override
+    public Bitmap getBitmap(long presentationTimeUs) {
+        float index = presentationTimeUs * 1f / period;
+        Log.i(TAG, "getBitmap presentationTimeUs=" + presentationTimeUs + " index=" + index);
+        Drawable overlayDrawable = getDrawable(presentationTimeUs);
+        // TODO(b/227625365): Drawable doesn't implement the equals method, so investigate other methods
+        //   of detecting the need to redraw the bitmap.
+        if (index >= 0 && index <= 300) {
 //      overlaySettings.scale = Pair.create(index / 100, index / 100);
 
-    }
-    if (!overlayDrawable.equals(lastDrawable)) {
-      lastDrawable = overlayDrawable;
-      if (lastBitmap == null
-          || lastBitmap.getWidth() != lastDrawable.getIntrinsicWidth()
-          || lastBitmap.getHeight() != lastDrawable.getIntrinsicHeight()) {
-        lastBitmap =
-            Bitmap.createBitmap(
-                lastDrawable.getIntrinsicWidth(),
-                lastDrawable.getIntrinsicHeight(),
-                Bitmap.Config.ARGB_8888);
-      }
-      Canvas canvas = new Canvas(lastBitmap);
-      canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-      lastDrawable.draw(canvas);
-      Log.w(TAG, "getBitmap draw presentationTimeUs=" + presentationTimeUs / C.MILLIS_PER_SECOND);
-    } else {
+        }
+        if (!overlayDrawable.equals(lastDrawable)) {
+            lastDrawable = overlayDrawable;
+            if (lastBitmap == null
+                    || lastBitmap.getWidth() != lastDrawable.getIntrinsicWidth()
+                    || lastBitmap.getHeight() != lastDrawable.getIntrinsicHeight()) {
+                lastBitmap =
+                        Bitmap.createBitmap(
+                                lastDrawable.getIntrinsicWidth(),
+                                lastDrawable.getIntrinsicHeight(),
+                                Bitmap.Config.ARGB_8888);
+            }
+            Canvas canvas = new Canvas(lastBitmap);
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            lastDrawable.draw(canvas);
+            Log.w(TAG, "getBitmap draw presentationTimeUs=" + presentationTimeUs / C.MILLIS_PER_SECOND);
+        } else {
 //      lastBitmap
-      int dy = 100;
+            int dy = 100;
 //      lastBitmap =
 //          Bitmap.createBitmap(
 //              lastDrawable.getIntrinsicWidth() - 100,
@@ -103,26 +108,26 @@ public class BgOverlay extends DrawableOverlay {
 //      Canvas canvas = new Canvas(lastBitmap);
 //      canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 //      lastDrawable.draw(canvas);
+        }
+        return checkNotNull(lastBitmap);
     }
-    return checkNotNull(lastBitmap);
-  }
 
-  @Override
-  public OverlaySettings getOverlaySettings(long presentationTimeUs) {
-    return overlaySettings;
-  }
+    @Override
+    public OverlaySettings getOverlaySettings(long presentationTimeUs) {
+        return overlaySettings;
+    }
 
-  public static int getScreenWidth(Context context) {
-    DisplayMetrics metric = new DisplayMetrics();
-    WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-    wm.getDefaultDisplay().getMetrics(metric);
-    return metric.widthPixels;
-  }
+    public static int getScreenWidth(Context context) {
+        DisplayMetrics metric = new DisplayMetrics();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(metric);
+        return metric.widthPixels;
+    }
 
-  public static int getScreenHeight(Context context) {
-    DisplayMetrics metric = new DisplayMetrics();
-    WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-    wm.getDefaultDisplay().getMetrics(metric);
-    return metric.heightPixels;
-  }
+    public static int getScreenHeight(Context context) {
+        DisplayMetrics metric = new DisplayMetrics();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getMetrics(metric);
+        return metric.heightPixels;
+    }
 }

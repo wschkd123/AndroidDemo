@@ -7,12 +7,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.Util
+import androidx.media3.effect.OverlayEffect
+import androidx.media3.effect.TextureOverlay
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.EditedMediaItemSequence
+import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
@@ -22,8 +26,12 @@ import com.example.base.player.exoplayer.ExoPlayerWrapper
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
+import com.example.beyond.demo.ui.transformer.overlay.BgOverlay
+import com.example.beyond.demo.ui.transformer.overlay.ChatContentOverlay
+import com.example.beyond.demo.ui.transformer.overlay.ImageSettingsOverlay
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
+import com.google.common.collect.ImmutableList
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -40,7 +48,8 @@ class TransformerFragment : Fragment() {
     companion object {
         private const val TAG = "TransformerFragment"
         private const val MP4_ASSET_URI_STRING = "asset:///media/mp4/sample.mp4"
-//        private const val MP4_ASSET_URI_STRING1 = "asset:///media/mp4/hdr10-720p.mp4"
+
+        //        private const val MP4_ASSET_URI_STRING1 = "asset:///media/mp4/hdr10-720p.mp4"
         private const val FILE_AUDIO_ONLY = "asset:///media/mp3/test-cbr-info-header.mp3"
         const val JPG_ASSET_URI_STRING = "asset:///media/jpeg/london.jpg"
     }
@@ -50,11 +59,9 @@ class TransformerFragment : Fragment() {
     private val audioItem = EditedMediaItem.Builder(MediaItem.fromUri(FILE_AUDIO_ONLY))
         .build()
     private val videoItem = EditedMediaItem.Builder(MediaItem.fromUri(MP4_ASSET_URI_STRING))
-        .build()
     private val imageItem = EditedMediaItem.Builder(MediaItem.fromUri(JPG_ASSET_URI_STRING))
         .setDurationUs(5_000_000)
         .setFrameRate(30)
-        .build()
     private val playerWrapper = ExoPlayerWrapper()
     private lateinit var exportStopwatch: Stopwatch
     private var outputFile: File? = null
@@ -89,6 +96,7 @@ class TransformerFragment : Fragment() {
         val outputFilePath = outputFile!!.absolutePath
         val transformer: Transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
+
         exportStopwatch.reset()
         exportStopwatch.start()
         transformer.start(composition, outputFilePath)
@@ -100,45 +108,29 @@ class TransformerFragment : Fragment() {
     }
 
     private fun createComposition(): Composition {
+        // video
+        val videoEffects = createVideoEffects()
+        videoItem.setEffects(Effects(ImmutableList.of(), videoEffects))
         val videoSequence = EditedMediaItemSequence(
-            mutableListOf(videoItem)
+            mutableListOf(videoItem.build(), videoItem.build(), videoItem.build())
         )
         val audioSequence = EditedMediaItemSequence(
             mutableListOf(audioItem),
             false
         )
+
+        // image
+        imageItem.setEffects(Effects(ImmutableList.of(), videoEffects))
         val imageSequence = EditedMediaItemSequence(
-            mutableListOf(imageItem)
+            mutableListOf(imageItem.build())
         )
         val compositionBuilder =
-            Composition.Builder(mutableListOf(videoSequence, audioSequence, imageSequence))
+            Composition.Builder(mutableListOf(/*videoSequence, audioSequence, */imageSequence))
         return compositionBuilder.build()
     }
 
     private fun createTransformer(filePath: String): Transformer {
         val transformerBuilder: Transformer.Builder = Transformer.Builder(AppContext.application)
-//        transformerBuilder.setAudioMimeType(audioMimeType)
-//        transformerBuilder.setVideoMimeType(videoMimeType)
-//        transformerBuilder.setEncoderFactory(
-//            DefaultEncoderFactory.Builder(this.getApplicationContext())
-//                .setEnableFallback(bundle.getBoolean(ConfigurationActivity.ENABLE_FALLBACK))
-//                .build()
-//        )
-//        var maxDelayBetweenSamplesMs = DefaultMuxer.Factory.DEFAULT_MAX_DELAY_BETWEEN_SAMPLES_MS
-//        if (!bundle.getBoolean(ConfigurationActivity.ABORT_SLOW_EXPORT)) {
-//            maxDelayBetweenSamplesMs = C.TIME_UNSET
-//        }
-//        var muxerFactory: Muxer.Factory = DefaultMuxer.Factory(maxDelayBetweenSamplesMs)
-//        if (bundle.getBoolean(ConfigurationActivity.PRODUCE_FRAGMENTED_MP4)) {
-//            muxerFactory = Builder()
-//                .setMaxDelayBetweenSamplesMs(maxDelayBetweenSamplesMs)
-//                .setFragmentedMp4Enabled(true)
-//                .build()
-//        }
-//        transformerBuilder.setMuxerFactory(muxerFactory)
-//        if (bundle.getBoolean(ConfigurationActivity.ENABLE_DEBUG_PREVIEW)) {
-//            transformerBuilder.setDebugViewProvider(androidx.media3.demo.transformer.TransformerActivity.DemoDebugViewProvider())
-//        }
         return transformerBuilder
             .addListener(
                 object : Transformer.Listener {
@@ -156,6 +148,39 @@ class TransformerFragment : Fragment() {
                 })
             .build()
     }
+
+    private fun createVideoEffects(): ImmutableList<Effect> {
+        val effects = ImmutableList.Builder<Effect>()
+        val overlayEffect: OverlayEffect? = createOverlayEffect()
+        if (overlayEffect != null) {
+            effects.add(overlayEffect)
+        }
+//        val scaleX = bundle.getFloat(ConfigurationActivity.SCALE_X,  /* defaultValue= */1f)
+//        val scaleY = bundle.getFloat(ConfigurationActivity.SCALE_Y,  /* defaultValue= */1f)
+//        val rotateDegrees =
+//            bundle.getFloat(ConfigurationActivity.ROTATE_DEGREES,  /* defaultValue= */0f)
+//        if (scaleX != 1f || scaleY != 1f || rotateDegrees != 0f) {
+//            effects.add(
+//                ScaleAndRotateTransformation.Builder()
+//                    .setScale(scaleX, scaleY)
+//                    .setRotationDegrees(rotateDegrees)
+//                    .build()
+//            )
+//        }
+        return effects.build()
+    }
+
+    private fun createOverlayEffect(): OverlayEffect? {
+        val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
+        overlaysBuilder.add(
+            ImageSettingsOverlay(context),
+            ChatContentOverlay(),
+            BgOverlay(context)
+        )
+        val overlays: ImmutableList<TextureOverlay> = overlaysBuilder.build()
+        return (if (overlays.isEmpty()) null else OverlayEffect(overlays))
+    }
+
 
     private fun onCompleted(filePath: String, exportResult: ExportResult) {
         exportStopwatch.stop()
