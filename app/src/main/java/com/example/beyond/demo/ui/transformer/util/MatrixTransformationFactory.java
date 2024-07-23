@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.beyond.demo.ui.transformer;
+package com.example.beyond.demo.ui.transformer.util;
 
 import android.graphics.Matrix;
+import android.util.Log;
 
 import androidx.media3.common.C;
 import androidx.media3.common.util.Util;
@@ -27,7 +28,7 @@ import androidx.media3.effect.MatrixTransformation;
  * MatrixTransformation MatrixTransformations} that create video effects by applying transformation
  * matrices to the individual video frames.
  */
-/* package */ final class MatrixTransformationFactory {
+/* package */ public class MatrixTransformationFactory {
   /**
    * Returns a {@link MatrixTransformation} that rescales the frames over the first {@link
    * #ZOOM_DURATION_SECONDS} seconds, such that the rectangle filled with the input frame increases
@@ -35,6 +36,10 @@ import androidx.media3.effect.MatrixTransformation;
    */
   public static MatrixTransformation createZoomInTransition() {
     return MatrixTransformationFactory::calculateZoomInTransitionMatrix;
+  }
+
+  public static MatrixTransformation createTransition() {
+    return MatrixTransformationFactory::calculateTransitionMatrix;
   }
 
   /**
@@ -55,11 +60,20 @@ import androidx.media3.effect.MatrixTransformation;
 
   private static final float ZOOM_DURATION_SECONDS = 2f;
   private static final float DIZZY_CROP_ROTATION_PERIOD_US = 1_500_000f;
+  private static final float TRANSLATE_DURATION_SECONDS = 5f;
 
   private static Matrix calculateZoomInTransitionMatrix(long presentationTimeUs) {
     Matrix transformationMatrix = new Matrix();
     float scale = Math.min(1, presentationTimeUs / (C.MICROS_PER_SECOND * ZOOM_DURATION_SECONDS));
     transformationMatrix.postScale(/* sx= */ scale, /* sy= */ scale);
+    return transformationMatrix;
+  }
+
+  private static Matrix calculateTransitionMatrix(long presentationTimeUs) {
+    Matrix transformationMatrix = new Matrix();
+    float centerX = Math.min(1, presentationTimeUs / (C.MICROS_PER_SECOND * TRANSLATE_DURATION_SECONDS));
+    Log.i("MatrixTransformation", "presentationTimeUs=" + presentationTimeUs + " centerX=" + centerX);
+    transformationMatrix.postTranslate(centerX, 0f);
     return transformationMatrix;
   }
 

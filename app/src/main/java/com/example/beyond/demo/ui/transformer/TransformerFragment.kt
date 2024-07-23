@@ -12,7 +12,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.Util
 import androidx.media3.effect.OverlayEffect
-import androidx.media3.effect.ScaleAndRotateTransformation
+import androidx.media3.effect.Presentation
 import androidx.media3.effect.TextureOverlay
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.EditedMediaItem
@@ -27,9 +27,8 @@ import com.example.base.player.exoplayer.ExoPlayerWrapper
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
-import com.example.beyond.demo.ui.transformer.overlay.BgOverlay
-import com.example.beyond.demo.ui.transformer.overlay.ChatContentOverlay
-import com.example.beyond.demo.ui.transformer.overlay.ImageSettingsOverlay
+import com.example.beyond.demo.ui.transformer.overlay.AlphaInOverlay
+import com.example.beyond.demo.ui.transformer.util.JsonUtil
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.common.collect.ImmutableList
@@ -62,7 +61,7 @@ class TransformerFragment : Fragment() {
     private val videoItem = EditedMediaItem.Builder(MediaItem.fromUri(MP4_ASSET_URI_STRING))
     private val imageItem = EditedMediaItem.Builder(MediaItem.fromUri(JPG_ASSET_URI_STRING))
         .setDurationUs(5_000_000)
-        .setFrameRate(30)
+        .setFrameRate(TransformerConstant.FRAME_RATE)
     private val playerWrapper = ExoPlayerWrapper()
     private lateinit var exportStopwatch: Stopwatch
     private var outputFile: File? = null
@@ -92,7 +91,7 @@ class TransformerFragment : Fragment() {
 
     private fun start() {
         outputFile =
-            YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/out.mp4")
+            YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/" + System.currentTimeMillis() + ".mp4")
                 ?: return
         val outputFilePath = outputFile!!.absolutePath
         val transformer: Transformer = createTransformer(outputFilePath)
@@ -111,7 +110,7 @@ class TransformerFragment : Fragment() {
     private fun createComposition(): Composition {
         // video
         val videoEffects = createVideoEffects()
-        videoItem.setEffects(Effects(ImmutableList.of(), videoEffects))
+//        videoItem.setEffects(Effects(ImmutableList.of(), videoEffects))
         val videoSequence = EditedMediaItemSequence(
             mutableListOf(videoItem.build(), videoItem.build(), videoItem.build())
         )
@@ -132,6 +131,10 @@ class TransformerFragment : Fragment() {
 
     private fun createTransformer(filePath: String): Transformer {
         val transformerBuilder: Transformer.Builder = Transformer.Builder(AppContext.application)
+        // mp4格式
+//        transformerBuilder.setTransformationRequest(
+//            TransformationRequest.Builder().setVideoMimeType(MimeTypes.VIDEO_MP4).build()
+//        )
         return transformerBuilder
             .addListener(
                 object : Transformer.Listener {
@@ -152,31 +155,26 @@ class TransformerFragment : Fragment() {
 
     private fun createVideoEffects(): ImmutableList<Effect> {
         val effects = ImmutableList.Builder<Effect>()
+//        effects.add(MatrixTransformationFactory.createTransition())
         val overlayEffect: OverlayEffect? = createOverlayEffect()
         if (overlayEffect != null) {
             effects.add(overlayEffect)
         }
-//        val scaleX = bundle.getFloat(ConfigurationActivity.SCALE_X,  /* defaultValue= */1f)
-//        val scaleY = bundle.getFloat(ConfigurationActivity.SCALE_Y,  /* defaultValue= */1f)
-//        val rotateDegrees =
-//            bundle.getFloat(ConfigurationActivity.ROTATE_DEGREES,  /* defaultValue= */0f)
-//        if (scaleX != 1f || scaleY != 1f || rotateDegrees != 0f) {
-//            effects.add(
-//                ScaleAndRotateTransformation.Builder()
-//                    .setScale(scaleX, scaleY)
-//                    .setRotationDegrees(rotateDegrees)
-//                    .build()
-//            )
-//        }
+        // 视频分辨率
+        effects.add(Presentation.createForWidthAndHeight(
+            TransformerConstant.OUT_VIDEO_WIDTH, TransformerConstant.OUT_VIDEO_HEIGHT, Presentation.LAYOUT_SCALE_TO_FIT
+        ))
         return effects.build()
     }
 
     private fun createOverlayEffect(): OverlayEffect? {
+        if (context == null) return null
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
         overlaysBuilder.add(
-            ImageSettingsOverlay(context),
-            ChatContentOverlay(),
-            BgOverlay(context)
+            AlphaInOverlay(requireContext(), 5f),
+//            AlphaOutOverlay(requireContext(), 2f),
+//            ChatContentOverlay(),
+//            BgOverlay(context)
         )
         val overlays: ImmutableList<TextureOverlay> = overlaysBuilder.build()
         return (if (overlays.isEmpty()) null else OverlayEffect(overlays))

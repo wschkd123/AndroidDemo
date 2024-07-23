@@ -10,7 +10,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.opengl.Matrix;
 import android.util.DisplayMetrics;
-import android.util.Pair;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
@@ -18,12 +17,12 @@ import androidx.core.content.ContextCompat;
 import androidx.media3.common.C;
 import androidx.media3.common.util.GlUtil;
 import androidx.media3.common.util.Log;
-import androidx.media3.common.util.Size;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.effect.DrawableOverlay;
 import androidx.media3.effect.OverlaySettings;
 
 import com.example.beyond.demo.R;
+import com.example.beyond.demo.ui.transformer.TransformerConstant;
 
 /**
  * @author wangshichao
@@ -50,7 +49,7 @@ public class BgOverlay extends DrawableOverlay {
         float[] positioningMatrix = GlUtil.create4x4IdentityMatrix();
         // 0，0在视频中心，1，1在右上角
         Matrix.translateM(
-                positioningMatrix, /* mOffset= */ 0, /* x= */ 0f, /* y= */ 0f, /* z= */ 1);
+                positioningMatrix, /* mOffset= */ 0, /* x= */ 1f, /* y= */ 1f, /* z= */ 1);
         overlaySettings = new OverlaySettings.Builder()
                 .setMatrix(positioningMatrix)
                 .setAlpha(1f)
