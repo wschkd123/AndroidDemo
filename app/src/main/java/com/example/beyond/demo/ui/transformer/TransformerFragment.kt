@@ -52,7 +52,7 @@ class TransformerFragment : Fragment() {
         //        private const val MP4_ASSET_URI_STRING1 = "asset:///media/mp4/hdr10-720p.mp4"
         private const val FILE_AUDIO_ONLY = "asset:///media/mp3/bear-cbr-variable-frame-size-no-seek-table.mp3"
         private const val JPG_ASSET_URI_STRING = "asset:///media/img/london.jpg"
-        private const val PNG_ASSET_URI_STRING = "asset:///media/img/hd_avatar.png"
+        private const val PNG_ASSET_URI_STRING = "asset:///media/img/img_background.png"
         private const val ONE_ONE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/2365d825482a71b62b59a7db80b88fa2.jpg"
         private const val NINE_SIXTEEN_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34240905461361049670.png"
         private const val NINE_SIXTEEN_AVATAR2 = "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
@@ -194,7 +194,7 @@ class TransformerFragment : Fragment() {
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
         overlaysBuilder.add(
 //            CoverOverlay(requireContext(), NINE_SIXTEEN_AVATAR2),
-            AlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, 0, 4000),
+            AlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, 0, 3000),
 //            AlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, 400, 400),
 //            ChatContentOverlay(),
 //            BgOverlay(context)

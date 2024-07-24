@@ -2,9 +2,10 @@ package com.example.beyond.demo.ui.transformer.util
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.Shader
 import android.util.Log
 import com.example.beyond.demo.ui.transformer.TransformerConstant
@@ -27,7 +28,7 @@ object TransformerUtil {
         src: Bitmap,
         dstWidth: Int = TransformerConstant.OUT_VIDEO_WIDTH,
         dstHeight: Int = TransformerConstant.OUT_VIDEO_HEIGHT,
-        maskTop: Int = 690
+        maskTop: Float = TransformerConstant.OUT_VIDEO_HEIGHT / 3f
     ): Bitmap {
         // 矩阵变换用于绘制新的Bitmap
         val dx: Float
@@ -53,31 +54,32 @@ object TransformerUtil {
         matrix.setScale(scale, scale)
         matrix.postTranslate(dx, dy)
 
-        // 渐变画笔
-        val maskPaint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+        // 渐变蒙层画笔
+        val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             val shader: Shader = LinearGradient(
                 0f,
-                0f,
+                maskTop,
                 0f,
                 dstHeight.toFloat(),
-                Color.TRANSPARENT,
-                Color.parseColor("#1F1730"),
+                0x00FF4081,
+                0xFFFF4081.toInt(),
                 Shader.TileMode.CLAMP
             )
             setShader(shader)
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
         }
         val targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
         try {
             val canvas = Canvas(targetBitmap)
-            canvas.drawBitmap(src, matrix, Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG))
             // 添加渐变蒙层
+            canvas.drawBitmap(src, matrix, Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG))
             canvas.drawRect(
                 0f,
-                maskTop.toFloat(),
+                maskTop,
                 targetBitmap.width.toFloat(),
                 targetBitmap.height.toFloat(),
                 maskPaint
-            );
+            )
             canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
