@@ -1,5 +1,6 @@
 package com.example.beyond.demo.ui.transformer
 
+import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.LayoutInflater
@@ -7,11 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.Util
+import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlayEffect
+import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.Presentation
 import androidx.media3.effect.TextureOverlay
 import androidx.media3.transformer.Composition
@@ -28,6 +32,7 @@ import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
 import com.example.beyond.demo.ui.transformer.overlay.AlphaInOverlay
+import com.example.beyond.demo.ui.transformer.overlay.AlphaOutOverlay
 import com.example.beyond.demo.ui.transformer.util.JsonUtil
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
@@ -171,11 +176,17 @@ class TransformerFragment : Fragment() {
         if (context == null) return null
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
         overlaysBuilder.add(
-            AlphaInOverlay(requireContext(), 5f),
-//            AlphaOutOverlay(requireContext(), 2f),
+            AlphaInOverlay(requireContext(), 0f, 2f),
+            AlphaOutOverlay(requireContext(), 2f * C.MICROS_PER_SECOND, 3f),
 //            ChatContentOverlay(),
 //            BgOverlay(context)
         )
+        val bitmapOverlay = BitmapOverlay.createStaticBitmapOverlay(
+            getApplicationContext(),
+            Uri.parse("https://zmdcharactercdn.zhumengdao.com/92f03872cb959f4a763727e19d70ae38.png"),
+            OverlaySettings.Builder().build()
+        )
+        overlaysBuilder.add(bitmapOverlay)
         val overlays: ImmutableList<TextureOverlay> = overlaysBuilder.build()
         return (if (overlays.isEmpty()) null else OverlayEffect(overlays))
     }
