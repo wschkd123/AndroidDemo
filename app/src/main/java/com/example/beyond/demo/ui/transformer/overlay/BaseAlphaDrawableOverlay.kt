@@ -14,11 +14,12 @@ import androidx.media3.effect.OverlaySettings
 import com.example.beyond.demo.R
 
 /**
+ * 支持透明度动画的drawable覆盖物
  *
  * @author wangshichao
  * @date 2024/7/24
  */
-abstract class BaseAlphaOverlay(
+abstract class BaseAlphaDrawableOverlay(
     private val context: Context,
     private val startTimeUs: Float,
     private val durationSeconds: Float
@@ -96,8 +97,8 @@ abstract class BaseAlphaOverlay(
         )
         Log.i(TAG, "adapterVideoSize: scale=$scale")
         Matrix.scaleM(
-            scaleMatrix,  /* mOffset= */
-            0,  /* x= */
+            scaleMatrix,
+            0,
             scale,
             scale,
             1f
