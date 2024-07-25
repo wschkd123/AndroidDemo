@@ -28,9 +28,7 @@ import com.example.base.util.YWDeviceUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
-import com.example.beyond.demo.ui.transformer.overlay.AlphaInOverlay
-import com.example.beyond.demo.ui.transformer.overlay.AlphaOutOverlay
-import com.example.beyond.demo.ui.transformer.overlay.CoverOverlay
+import com.example.beyond.demo.ui.transformer.overlay.ChatFrameOverlay
 import com.example.beyond.demo.ui.transformer.util.JsonUtil
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
@@ -109,8 +107,8 @@ class TransformerFragment : Fragment() {
         val transformer: Transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
 
-        exportStopwatch.reset()
-        exportStopwatch.start()
+//        exportStopwatch.reset()
+//        exportStopwatch.start()
         transformer.start(composition, outputFilePath)
     }
 
@@ -198,27 +196,24 @@ class TransformerFragment : Fragment() {
         var startTime: Long = 0
         val coverDuration = 400_000L
         val characterBgDuration = 800_000L
-        // 视频封面
+/*        // 视频封面
         overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
         startTime += coverDuration
         // A背景图渐隐
-        overlaysBuilder.add(AlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
+        overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
         startTime += characterBgDuration
         // B背景图渐显
-        overlaysBuilder.add(AlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
-        startTime += characterBgDuration
+        overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
+        startTime += characterBgDuration*/
 
-        overlaysBuilder.add(
-//            ChatContentOverlay(),
-//            BgOverlay(context)
-        )
-        val overlays: ImmutableList<TextureOverlay> = overlaysBuilder.build()
-        return (if (overlays.isEmpty()) null else OverlayEffect(overlays))
+//        overlaysBuilder.add(ImageOverlay(requireContext()))
+        overlaysBuilder.add(ChatFrameOverlay(startTime, 5_000_000L))
+        return OverlayEffect(overlaysBuilder.build())
     }
 
 
     private fun onCompleted(filePath: String, exportResult: ExportResult) {
-        exportStopwatch.stop()
+//        exportStopwatch.stop()
         val elapsedTimeMs: Long = exportStopwatch.elapsed(TimeUnit.MILLISECONDS)
         binding.informationTextView.text =
             getString(R.string.export_completed, elapsedTimeMs / 1000f, filePath)
@@ -244,7 +239,7 @@ class TransformerFragment : Fragment() {
     }
 
     private fun onError(exportException: ExportException) {
-        exportStopwatch.stop()
+//        exportStopwatch.stop()
         binding.informationTextView.text = "Export error"
         Toast.makeText(getApplicationContext(), "Export error: $exportException", Toast.LENGTH_LONG)
             .show()

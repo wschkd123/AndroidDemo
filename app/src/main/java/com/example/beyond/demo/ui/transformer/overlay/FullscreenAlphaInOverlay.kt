@@ -7,12 +7,12 @@ import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
 /**
- * 渐隐
+ * 全屏渐显
  *
  * @author wangshichao
  * @date 2024/7/23
  */
-class AlphaOutOverlay(
+class FullscreenAlphaInOverlay(
     context: Context,
     url: String,
     private val startTimeUs: Long,
@@ -31,7 +31,7 @@ class AlphaOutOverlay(
             "updateAnimation: animatedValue=$animatedValue presentationTimeMs=$presentationTimeUs"
         )
         if (animatedValue in 0.0..1.0) {
-            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", 1 - animatedValue)
+            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", animatedValue)
         }
     }
 
