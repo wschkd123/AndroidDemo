@@ -13,9 +13,9 @@ import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 class AlphaInOverlay(
     context: Context,
     url: String,
-    startTimeMs: Long,
-    durationMs: Long
-) : BaseAlphaBitmapOverlay(context, url, startTimeMs, durationMs) {
+    startTimeUs: Long,
+    durationUs: Long
+) : BaseAlphaBitmapOverlay(context, url, startTimeUs, durationUs) {
 
     override val initAlpha: Float
         get() = 0f

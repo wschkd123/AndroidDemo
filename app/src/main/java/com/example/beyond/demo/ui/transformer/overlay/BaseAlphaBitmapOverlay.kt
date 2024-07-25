@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import androidx.media3.common.C
 import androidx.media3.common.VideoFrameProcessingException
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.Size
@@ -23,8 +22,8 @@ import java.util.concurrent.ExecutionException
 abstract class BaseAlphaBitmapOverlay(
     private val context: Context,
     private val url: String,
-    private val startTimeMs: Long,
-    private val durationMs: Long
+    private val startTimeUs: Long,
+    private val durationUs: Long
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
     open val initAlpha: Float
@@ -35,11 +34,16 @@ abstract class BaseAlphaBitmapOverlay(
             .build()
     }
     private var lastBitmap: Bitmap? = null
+    private val endTimeUs: Long = startTimeUs + durationUs
 
     abstract fun updateAlpha(overlaySettings: OverlaySettings, curAlpha: Float)
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         if (lastBitmap == null) {
+            Log.w(
+                TAG,
+                "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} endTimeUs=${endTimeUs} durationUs=${durationUs}"
+            )
             val bitmapLoader: BitmapLoader = DataSourceBitmapLoader(context)
             val future = bitmapLoader.loadBitmap(Uri.parse(url))
             val bitmap = try {
@@ -54,7 +58,7 @@ abstract class BaseAlphaBitmapOverlay(
              */
             lastBitmap = TransformerUtil.createCharacterBgWithMask(bitmap)
         }
-//        updateAnimation(presentationTimeUs)
+        updateAnimation(presentationTimeUs)
         return lastBitmap!!
     }
 
@@ -63,7 +67,7 @@ abstract class BaseAlphaBitmapOverlay(
      */
     override fun configure(videoSize: Size) {
         super.configure(videoSize)
-        Log.d(TAG, "configure: videoWidth=${videoSize.width} videoHeight=${videoSize.height}")
+//        Log.d(TAG, "configure: videoWidth=${videoSize.width} videoHeight=${videoSize.height}")
     }
 
     override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
@@ -71,12 +75,9 @@ abstract class BaseAlphaBitmapOverlay(
     }
 
     private fun updateAnimation(presentationTimeUs: Long) {
-        val startTimeUs = startTimeMs * C.MILLIS_PER_SECOND
-        val endTimeUs = (startTimeMs + durationMs) * C.MILLIS_PER_SECOND
-        val durationUs = durationMs * C.MILLIS_PER_SECOND
         Log.i(
             TAG,
-            "updateAnimation: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} endTimeUs=${endTimeUs}"
+            "updateAnimation: presentationTimeMs=$presentationTimeUs"
         )
         // 动画时间
         if (presentationTimeUs in startTimeUs..endTimeUs) {

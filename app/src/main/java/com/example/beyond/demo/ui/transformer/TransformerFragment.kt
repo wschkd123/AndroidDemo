@@ -28,7 +28,9 @@ import com.example.base.util.YWDeviceUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
+import com.example.beyond.demo.ui.transformer.overlay.AlphaInOverlay
 import com.example.beyond.demo.ui.transformer.overlay.AlphaOutOverlay
+import com.example.beyond.demo.ui.transformer.overlay.CoverOverlay
 import com.example.beyond.demo.ui.transformer.util.JsonUtil
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
@@ -54,8 +56,8 @@ class TransformerFragment : Fragment() {
         private const val JPG_ASSET_URI_STRING = "asset:///media/img/london.jpg"
         private const val PNG_ASSET_URI_STRING = "asset:///media/img/img_background.png"
         private const val ONE_ONE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/2365d825482a71b62b59a7db80b88fa2.jpg"
-        private const val NINE_SIXTEEN_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34240905461361049670.png"
-        private const val NINE_SIXTEEN_AVATAR2 = "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
+        private const val THREE_THREE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
+        private const val NINE_SIXTEEN_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
     }
 
     private var _binding: FragmentTransformerBinding? = null
@@ -118,9 +120,10 @@ class TransformerFragment : Fragment() {
     }
 
     private fun createComposition(): Composition {
-        val videoEffects = createVideoEffects()
+        val durationUs = 10_000_000L
+        val videoEffects = createVideoEffects(durationUs)
         val imageItem = EditedMediaItem.Builder(MediaItem.fromUri(PNG_ASSET_URI_STRING))
-            .setDurationUs(5_000_000)
+            .setDurationUs(durationUs)
             .setFrameRate(TransformerConstant.FRAME_RATE)
             .setEffects(Effects(ImmutableList.of(), videoEffects))
 
@@ -174,7 +177,7 @@ class TransformerFragment : Fragment() {
             .build()
     }
 
-    private fun createVideoEffects(): ImmutableList<Effect> {
+    private fun createVideoEffects(durationUs: Long): ImmutableList<Effect> {
         val effects = ImmutableList.Builder<Effect>()
 //        effects.add(MatrixTransformationFactory.createTransition())
         // 配置输出视频分辨率。需要放前面，后续Overlay中configure尺寸才生效
@@ -182,20 +185,30 @@ class TransformerFragment : Fragment() {
             Presentation.createForWidthAndHeight(
             TransformerConstant.OUT_VIDEO_WIDTH, TransformerConstant.OUT_VIDEO_HEIGHT, Presentation.LAYOUT_SCALE_TO_FIT
         ))
-        val overlayEffect: OverlayEffect? = createOverlayEffect()
+        val overlayEffect: OverlayEffect? = createOverlayEffect(durationUs)
         if (overlayEffect != null) {
             effects.add(overlayEffect)
         }
         return effects.build()
     }
 
-    private fun createOverlayEffect(): OverlayEffect? {
+    private fun createOverlayEffect(durationUs: Long): OverlayEffect? {
         if (context == null) return null
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
+        var startTime: Long = 0
+        val coverDuration = 400_000L
+        val characterBgDuration = 800_000L
+        // 视频封面
+        overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
+        startTime += coverDuration
+        // A背景图渐隐
+        overlaysBuilder.add(AlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
+        startTime += characterBgDuration
+        // B背景图渐显
+        overlaysBuilder.add(AlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
+        startTime += characterBgDuration
+
         overlaysBuilder.add(
-//            CoverOverlay(requireContext(), NINE_SIXTEEN_AVATAR2),
-            AlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, 0, 3000),
-//            AlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, 400, 400),
 //            ChatContentOverlay(),
 //            BgOverlay(context)
         )
