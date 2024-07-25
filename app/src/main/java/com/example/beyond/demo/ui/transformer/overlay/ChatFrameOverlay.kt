@@ -27,17 +27,26 @@ class ChatFrameOverlay(
     private var overlaySettings: OverlaySettings
     private val endTimeUs: Long = startTimeUs + durationUs
     private val translateMatrix: FloatArray = GlUtil.create4x4IdentityMatrix()
-    private var frameBitmap: Bitmap
-    private val canvas: Canvas
-    private val matrix: android.graphics.Matrix = android.graphics.Matrix()
+    // 文本框背景
     private val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val matrix: android.graphics.Matrix = android.graphics.Matrix()
+    private var frameBitmap: Bitmap? = null
+    private var canvas: Canvas? = null
+
+    /**
+     * 原背景图
+     */
     private var srcBitmap: Bitmap? = null
+
+    /**
+     * 上一帧图
+     */
     private var lastBitmap: Bitmap? = null
 
     companion object {
         private const val FRAME_WIDTH = 1029
         private const val FRAME_HEIGHT = 354
-        private const val TRANSLATE_DISTANCE = 100
+        private const val TRANSLATE_DISTANCE = 354 * 2
     }
 
     init {
@@ -47,18 +56,12 @@ class ChatFrameOverlay(
             .setMatrix(translateMatrix)
             .setAnchor(0f, -1f)
             .build()
-        frameBitmap = Bitmap.createBitmap(
-            FRAME_WIDTH,
-            TRANSLATE_DISTANCE,
-            Bitmap.Config.ARGB_8888
-        )
-        canvas = Canvas(frameBitmap)
     }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         // 不在指定的时间范围，返回最后一帧
         val emptyBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        if (presentationTimeUs !in startTimeUs..endTimeUs || lastBitmap != null) {
+        if (presentationTimeUs !in startTimeUs..endTimeUs) {
             Log.d(TAG, "getBitmap: use last frame")
             return lastBitmap ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
         }
@@ -95,24 +98,24 @@ class ChatFrameOverlay(
         animatedValue: Float
     ): Bitmap {
         val offset = TRANSLATE_DISTANCE * animatedValue
-//        val frameBitmap = Bitmap.createBitmap(
-//            srcBitmap.width,
-//            TRANSLATE_DISTANCE,
-//            Bitmap.Config.ARGB_8888
-//        )
         val dy = TRANSLATE_DISTANCE - offset
+        matrix.setTranslate(0f, dy)
         try {
-//            val canvas = Canvas(frameBitmap)
-//            val matrix = android.graphics.Matrix()
-//            matrix.postTranslate(0f, dy)
-//            val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
-            //                alpha = (animatedValue * 100).toInt()
-            canvas.drawBitmap(srcBitmap, matrix, paint)
-//            canvas.setBitmap(null)
+            frameBitmap = Bitmap.createBitmap(
+                FRAME_WIDTH,
+                TRANSLATE_DISTANCE,
+                Bitmap.Config.ARGB_8888
+            )
+            canvas = Canvas(frameBitmap!!)
+            val start = System.currentTimeMillis()
+            //TODO 平均耗时6ms
+            canvas!!.drawBitmap(srcBitmap, matrix, paint)
+            Log.d(TAG, "createNewBitmap: drawBitmap cost=${System.currentTimeMillis() - start} dy=$dy")
+            canvas!!.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return frameBitmap
+        return frameBitmap!!
     }
 
 }

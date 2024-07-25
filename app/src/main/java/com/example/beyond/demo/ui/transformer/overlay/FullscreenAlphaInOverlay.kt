@@ -3,8 +3,8 @@ package com.example.beyond.demo.ui.transformer.overlay
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import com.example.beyond.demo.ui.transformer.util.BitmapHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
-import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
 /**
  * 全屏渐显
@@ -19,8 +19,10 @@ class FullscreenAlphaInOverlay(
     private val durationUs: Long
 ) : BaseBitmapOverlay(context, url, startTimeUs, durationUs) {
 
+    private val bitmapHelper: BitmapHelper = BitmapHelper()
+
     override fun cropBitmap(srcBitmap: Bitmap): Bitmap {
-        return TransformerUtil.createCharacterBgWithMask(srcBitmap)
+        return bitmapHelper.createCharacterBgWithMask(srcBitmap)
     }
 
     override fun updateAnimation(presentationTimeUs: Long) {

@@ -10,7 +10,7 @@ import androidx.media3.common.util.Size
 import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
-import com.example.beyond.demo.ui.transformer.util.TransformerUtil
+import com.example.beyond.demo.ui.transformer.util.BitmapHelper
 import java.util.concurrent.ExecutionException
 
 /**
@@ -35,6 +35,7 @@ abstract class BaseAlphaBitmapOverlay(
     }
     private var lastBitmap: Bitmap? = null
     private val endTimeUs: Long = startTimeUs + durationUs
+    private val bitmapHelper: BitmapHelper = BitmapHelper()
 
     abstract fun updateAlpha(overlaySettings: OverlaySettings, curAlpha: Float)
 
@@ -56,7 +57,7 @@ abstract class BaseAlphaBitmapOverlay(
             /**
              * [androidx.media3.effect.Presentation]配置的输出视频分辨率
              */
-            lastBitmap = TransformerUtil.createCharacterBgWithMask(bitmap)
+            lastBitmap = bitmapHelper.createCharacterBgWithMask(bitmap)
         }
         updateAnimation(presentationTimeUs)
         return lastBitmap!!
