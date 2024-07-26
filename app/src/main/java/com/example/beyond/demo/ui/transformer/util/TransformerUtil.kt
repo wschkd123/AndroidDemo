@@ -1,6 +1,8 @@
 package com.example.beyond.demo.ui.transformer.util
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
@@ -10,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.request.RequestOptions
 import com.example.base.Init
+import com.example.base.util.YWBitmapUtil
 
 
 /**
@@ -47,16 +50,21 @@ internal object TransformerUtil {
         return bitmap
     }
 
-    fun createRoundedBitmapWithColor(width: Int, height: Int, cornerRadius: Float, color: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.color = color
-        val rect = RectF(0f, 0f, width.toFloat(), height.toFloat())
-        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
-        return bitmap
+    /**
+     * 加载本地图片
+     *
+     * @param width 指定宽度
+     */
+    fun loadImage(context: Context, resId: Int, width: Int): Bitmap? {
+        val bitmap = BitmapFactory.decodeResource(context.resources, resId)
+        return YWBitmapUtil.scaleBitmapByWidth(bitmap, width)
     }
 
+    /**
+     * @param srcBitmap 源Bitmap
+     * @param newBitmap 添加的Bitmap
+     * @return 两者混合的Bitmap
+     */
     fun addBitmap(
         srcBitmap: Bitmap,
         newBitmap: Bitmap
@@ -68,7 +76,7 @@ internal object TransformerUtil {
             val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG)
             canvas.drawBitmap(newBitmap, 54f, 0f, paint)
             Log.d(TAG, "addBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
-//            canvas.setBitmap(null)
+            canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
         }
