@@ -10,6 +10,7 @@ import androidx.media3.common.util.Size
 import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
+import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 import java.util.concurrent.ExecutionException
 
 /**
@@ -26,7 +27,7 @@ open class BaseBitmapOverlay(
 ) : BitmapOverlay() {
     protected val TAG = javaClass.simpleName
     protected val overlaySettings: OverlaySettings = OverlaySettings.Builder().build()
-    private var lastBitmap: Bitmap? = null
+    protected var lastBitmap: Bitmap? = null
     private val endTimeUs: Long = startTimeUs + durationUs
 
     /**
@@ -43,13 +44,17 @@ open class BaseBitmapOverlay(
 
     }
 
+    open fun animationEnd(): Bitmap {
+        return TransformerUtil.createEmptyBitmap()
+    }
+
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         // 不在指定的时间范围，返回空Bitmap
         if (presentationTimeUs !in startTimeUs..endTimeUs) {
             Log.d(TAG, "getBitmap: not time range")
 //            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", 0)
-            return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+            return animationEnd()
         }
         if (lastBitmap == null) {
             Log.w(

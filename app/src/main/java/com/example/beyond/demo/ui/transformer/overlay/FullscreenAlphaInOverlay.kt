@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
+import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
 /**
  * 全屏渐显
@@ -35,6 +36,10 @@ class FullscreenAlphaInOverlay(
         if (animatedValue in 0.0..1.0) {
             ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", animatedValue)
         }
+    }
+
+    override fun animationEnd(): Bitmap {
+        return lastBitmap ?: TransformerUtil.createEmptyBitmap()
     }
 
 }

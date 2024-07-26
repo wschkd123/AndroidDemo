@@ -28,10 +28,10 @@ import com.example.base.util.YWDeviceUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
-import com.example.beyond.demo.ui.transformer.overlay.ChatFrameOverlay
 import com.example.beyond.demo.ui.transformer.overlay.CoverOverlay
 import com.example.beyond.demo.ui.transformer.overlay.FullscreenAlphaInOverlay
 import com.example.beyond.demo.ui.transformer.overlay.FullscreenAlphaOutOverlay
+import com.example.beyond.demo.ui.transformer.overlay.TextBoxOverlay
 import com.example.beyond.demo.ui.transformer.util.JsonUtil
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
@@ -205,12 +205,12 @@ class TransformerFragment : Fragment() {
         // A背景图渐隐
         overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
         startTime += characterBgDuration
-        // B背景图渐显
+        // B背景图渐显，且切换对话文本框
         overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
+        overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
         startTime += characterBgDuration
 
 //        overlaysBuilder.add(ImageOverlay(requireContext()))
-        overlaysBuilder.add(ChatFrameOverlay(startTime, characterBgDuration))
         return OverlayEffect(overlaysBuilder.build())
     }
 

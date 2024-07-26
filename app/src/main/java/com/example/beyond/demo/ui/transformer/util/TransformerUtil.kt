@@ -18,7 +18,7 @@ import com.example.base.Init
  * @date 2024/7/24
  */
 internal object TransformerUtil {
-    private val TAG = "TransformerUtil"
+    private val TAG = "TransformerUtil-Overlay"
 
     /**
      * 同步加载本地图片
@@ -55,5 +55,27 @@ internal object TransformerUtil {
         val rect = RectF(0f, 0f, width.toFloat(), height.toFloat())
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
         return bitmap
+    }
+
+    fun addBitmap(
+        srcBitmap: Bitmap,
+        newBitmap: Bitmap
+    ): Bitmap {
+        val targetBitmap = srcBitmap.copy(srcBitmap.config, true)
+        try {
+            val canvas = Canvas(targetBitmap)
+            val start = System.currentTimeMillis()
+            val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG)
+            canvas.drawBitmap(newBitmap, 54f, 0f, paint)
+            Log.d(TAG, "addBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
+//            canvas.setBitmap(null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return targetBitmap
+    }
+
+    fun createEmptyBitmap(): Bitmap {
+        return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
     }
 }

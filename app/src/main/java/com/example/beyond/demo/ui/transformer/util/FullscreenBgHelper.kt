@@ -54,7 +54,7 @@ internal class FullscreenBgHelper {
             "createCharacterBgWithMask: dstWidth=$dstWidth dstHeight=$dstHeight bitmapWidth=${src.width}" +
                     " bitmapHeight=${src.height} scale=$scale dx=$dx dy=$dy"
         )
-        matrix.setScale(scale, scale)
+        matrix.postScale(scale, scale)
         matrix.postTranslate(dx, dy)
 
         // 渐变蒙层画笔
@@ -64,8 +64,8 @@ internal class FullscreenBgHelper {
                 maskTop,
                 0f,
                 dstHeight.toFloat(),
-                0x00FF4081,
-                0xFFFF4081.toInt(),
+                0x001B1625,
+                0xFF1B1625.toInt(),
                 Shader.TileMode.CLAMP
             )
             setShader(shader)
