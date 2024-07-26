@@ -2,7 +2,7 @@ package com.example.beyond.demo.ui.transformer.overlay
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.example.beyond.demo.ui.transformer.util.BitmapHelper
+import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 
 /**
  * 视频封面-第一帧
@@ -17,7 +17,7 @@ class CoverOverlay(
     durationUs: Long
 ) : BaseBitmapOverlay(context, url, startTimeUs, durationUs) {
 
-    private val bitmapHelper: BitmapHelper = BitmapHelper()
+    private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
 
     override fun cropBitmap(srcBitmap: Bitmap): Bitmap {
         return bitmapHelper.createCharacterBgWithMask(srcBitmap)

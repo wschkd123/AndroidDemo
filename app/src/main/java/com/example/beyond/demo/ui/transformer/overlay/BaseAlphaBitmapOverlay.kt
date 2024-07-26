@@ -10,7 +10,7 @@ import androidx.media3.common.util.Size
 import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
-import com.example.beyond.demo.ui.transformer.util.BitmapHelper
+import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 import java.util.concurrent.ExecutionException
 
 /**
@@ -35,7 +35,7 @@ abstract class BaseAlphaBitmapOverlay(
     }
     private var lastBitmap: Bitmap? = null
     private val endTimeUs: Long = startTimeUs + durationUs
-    private val bitmapHelper: BitmapHelper = BitmapHelper()
+    private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
 
     abstract fun updateAlpha(overlaySettings: OverlaySettings, curAlpha: Float)
 

@@ -15,25 +15,25 @@ import com.example.beyond.demo.ui.transformer.TransformerConstant
  * @author beyond
  * @date 2024/7/26
  */
-internal class BitmapHelper {
-    private val TAG = "BitmapHelper"
+internal class FullscreenBgHelper {
+    private val TAG = "FullscreenBgHelper"
     private val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val matrix: android.graphics.Matrix = android.graphics.Matrix()
-    private var targetBitmap: Bitmap? = null
-    private var canvas: Canvas? = null
+    private val dstWidth: Int = TransformerConstant.OUT_VIDEO_WIDTH
+    private val dstHeight: Int = TransformerConstant.OUT_VIDEO_HEIGHT
+
+    /**
+     * 蒙层距上部的距离
+     */
+    private val maskTop: Float = TransformerConstant.OUT_VIDEO_HEIGHT / 3f
+    private var targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
+
 
     /**
      * 带蒙层的人物背景图片。图片“高宽比”比目标视图高时，缩放图像保留顶部内容裁掉底部内容，反之，缩放裁掉左右内容
-     *
-     * @param maskTop 蒙层位置
      */
-    fun createCharacterBgWithMask(
-        src: Bitmap,
-        dstWidth: Int = TransformerConstant.OUT_VIDEO_WIDTH,
-        dstHeight: Int = TransformerConstant.OUT_VIDEO_HEIGHT,
-        maskTop: Float = TransformerConstant.OUT_VIDEO_HEIGHT / 3f
-    ): Bitmap {
+    fun createCharacterBgWithMask(src: Bitmap): Bitmap {
         // 矩阵变换用于绘制新的Bitmap
         val dx: Float
         val dy: Float
@@ -51,11 +51,11 @@ internal class BitmapHelper {
         }
         Log.i(
             TAG,
-            "adapterBitmapSize: dstWidth=$dstWidth dstHeight=$dstHeight bitmapWidth=${src.width}" +
+            "createCharacterBgWithMask: dstWidth=$dstWidth dstHeight=$dstHeight bitmapWidth=${src.width}" +
                     " bitmapHeight=${src.height} scale=$scale dx=$dx dy=$dy"
         )
         matrix.setScale(scale, scale)
-        matrix.setTranslate(dx, dy)
+        matrix.postTranslate(dx, dy)
 
         // 渐变蒙层画笔
         maskPaint.apply {
@@ -68,13 +68,13 @@ internal class BitmapHelper {
                 0xFFFF4081.toInt(),
                 Shader.TileMode.CLAMP
             )
-            maskPaint.setShader(shader)
-            maskPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
+            setShader(shader)
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
         }
 
-        targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
+//        targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
         try {
-            canvas = Canvas(targetBitmap!!).let {
+            Canvas(targetBitmap!!).let {
                 it.drawBitmap(src, matrix, paint)
                 // 添加渐变蒙层
                 it.drawRect(

@@ -119,7 +119,7 @@ class ChatFrameOverlay(
     ): Bitmap {
         val offset = TRANSLATE_DISTANCE * animatedValue
         val dy = TRANSLATE_DISTANCE - offset
-        matrix.setTranslate(0f, dy)
+        matrix.postTranslate(0f, dy)
         try {
             frameBitmap = Bitmap.createBitmap(
                 FRAME_WIDTH,
