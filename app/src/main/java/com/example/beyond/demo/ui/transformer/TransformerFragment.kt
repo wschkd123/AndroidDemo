@@ -52,9 +52,7 @@ class TransformerFragment : Fragment() {
     companion object {
         private const val TAG = "TransformerFragment"
         private const val MP4_ASSET_URI_STRING = "asset:///media/mp4/sample.mp4"
-        //        private const val MP4_ASSET_URI_STRING1 = "asset:///media/mp4/hdr10-720p.mp4"
-        private const val FILE_AUDIO_ONLY = "asset:///media/mp3/bear-cbr-variable-frame-size-no-seek-table.mp3"
-        private const val JPG_ASSET_URI_STRING = "asset:///media/img/london.jpg"
+        private const val FILE_AUDIO_ONLY = "asset:///media/mp3/long_tts.mp3"
         private const val PNG_ASSET_URI_STRING = "asset:///media/img/img_background.png"
         private const val ONE_ONE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/2365d825482a71b62b59a7db80b88fa2.jpg"
         private const val THREE_THREE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
@@ -63,16 +61,9 @@ class TransformerFragment : Fragment() {
 
     private var _binding: FragmentTransformerBinding? = null
     private val binding get() = _binding!!
-//    private val videoItem: EditedMediaItem.Builder
-//    private val imageItem: EditedMediaItem.Builder
-//    private val audioItem: EditedMediaItem.Builder
     private val playerWrapper = ExoPlayerWrapper()
     private lateinit var exportStopwatch: Stopwatch
     private var outputFile: File? = null
-
-    init {
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -109,9 +100,6 @@ class TransformerFragment : Fragment() {
         val outputFilePath = outputFile!!.absolutePath
         val transformer: Transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
-
-//        exportStopwatch.reset()
-//        exportStopwatch.start()
         transformer.start(composition, outputFilePath)
     }
 
@@ -149,7 +137,7 @@ class TransformerFragment : Fragment() {
             mutableListOf(imageItem.build())
         )
         val compositionBuilder =
-            Composition.Builder(mutableListOf(imageSequence))
+            Composition.Builder(mutableListOf(imageSequence, audioSequence))
 //            Composition.Builder(mutableListOf(videoSequence, audioSequence, imageSequence))
         return compositionBuilder.build()
     }
@@ -180,7 +168,6 @@ class TransformerFragment : Fragment() {
 
     private fun createVideoEffects(durationUs: Long): ImmutableList<Effect> {
         val effects = ImmutableList.Builder<Effect>()
-//        effects.add(MatrixTransformationFactory.createTransition())
         // 配置输出视频分辨率。需要放前面，后续Overlay中configure尺寸才生效
         effects.add(
             Presentation.createForWidthAndHeight(
@@ -197,8 +184,8 @@ class TransformerFragment : Fragment() {
         if (context == null) return null
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
         var startTime: Long = 0
-        val coverDuration = 400_000L
-        val characterBgDuration = 800_000L
+        val coverDuration = 200_000L
+        val characterBgDuration = 400_000L
         // 视频封面
         overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
         startTime += coverDuration
@@ -216,7 +203,6 @@ class TransformerFragment : Fragment() {
 
 
     private fun onCompleted(filePath: String, exportResult: ExportResult) {
-//        exportStopwatch.stop()
         val elapsedTimeMs: Long = exportStopwatch.elapsed(TimeUnit.MILLISECONDS)
         binding.informationTextView.text =
             getString(R.string.export_completed, elapsedTimeMs / 1000f, filePath)
@@ -242,7 +228,6 @@ class TransformerFragment : Fragment() {
     }
 
     private fun onError(exportException: ExportException) {
-//        exportStopwatch.stop()
         binding.informationTextView.text = "Export error"
         Toast.makeText(getApplicationContext(), "Export error: $exportException", Toast.LENGTH_LONG)
             .show()

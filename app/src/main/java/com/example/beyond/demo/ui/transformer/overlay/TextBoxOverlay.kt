@@ -37,9 +37,20 @@ class TextBoxOverlay(
     private var overlaySettings: OverlaySettings
     private val endTimeUs: Long = startTimeUs + durationUs
     private val translateMatrix: FloatArray = GlUtil.create4x4IdentityMatrix()
-    // 文本框背景
+
+    // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val matrix: android.graphics.Matrix = android.graphics.Matrix()
+    private val bubbleRectF: RectF
+    private val bubbleLeft: Float = 54f
+    private val bubblePaddingHorizontal = 30f
+    private val audioLeft: Float
+    private val audioTop: Float
+
+    // 音频动画
+    private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
+    private var isPlaying: Boolean = true
+    private var lastAudioTimeUs: Long = 0
 
     /**
      * 原背景图
@@ -50,12 +61,7 @@ class TextBoxOverlay(
      * 上一帧图
      */
     private var lastBitmap: Bitmap? = null
-
-    // 音频动画
-    private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
-    private var isPlaying: Boolean = true
-    private var lastAudioTimeUs: Long = 0
-    private val text = "林泽林泽林泽"
+    private val nickname = "林泽林泽林泽"
 
     companion object {
         // 文本框整体宽高
@@ -73,6 +79,24 @@ class TextBoxOverlay(
         srcBitmap =
             TransformerUtil.loadImage(context, R.drawable.user_text_bg, FRAME_WIDTH)
                 ?: TransformerUtil.createEmptyBitmap()
+        // 昵称画笔
+        paint.apply {
+            textAlign = Paint.Align.LEFT
+            textSize = 42f
+            color = R.color.video_create_nick_text.resToColor(context)
+            typeface = Typeface.defaultFromStyle(Typeface.BOLD)
+        }
+
+        // 气泡相对容器位置
+        val textWidth = paint.measureText(nickname)
+        val drawablePadding = 12f
+        val bubbleWidth = textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + bubblePaddingHorizontal.times(2)
+        val bubbleHeight = 78f
+        bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
+
+        // audio相对容器位置
+        audioLeft = bubbleLeft + bubblePaddingHorizontal + textWidth + drawablePadding
+        audioTop = bubbleRectF.centerY() - AudioTrackHelper.ICON_SIZE.div(2)
     }
 
     fun setAudioPlayState(playing: Boolean) {
@@ -95,14 +119,14 @@ class TextBoxOverlay(
             )
             updateBgAnimation(animatedValue)
             if (lastBitmap == null) {
-                lastBitmap = createContainerBitmap(srcBitmap)
+                lastBitmap = drawContainerView(srcBitmap)
             }
         }
 
         // 绘制音轨。每200毫秒重绘一帧实现动画
         val audioPeriod = presentationTimeUs - lastAudioTimeUs
         if (presentationTimeUs > endTimeUs && isPlaying && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
-            val bgBitmap = createContainerBitmap(srcBitmap)
+            val bgBitmap = drawContainerView(srcBitmap)
 //            lastBitmap = bgBitmap
             lastBitmap = addAudioView(bgBitmap)
             lastAudioTimeUs = presentationTimeUs
@@ -130,9 +154,9 @@ class TextBoxOverlay(
     }
 
     /**
-     * 创建容器。包括文本框内部气泡等
+     * 绘制容器。包括文本框内部气泡等
      */
-    private fun createContainerBitmap(
+    private fun drawContainerView(
         srcBitmap: Bitmap,
     ): Bitmap {
         val targetBitmap = Bitmap.createBitmap(
@@ -153,36 +177,25 @@ class TextBoxOverlay(
         return targetBitmap
     }
 
+    /**
+     * 绘制气泡视图
+     */
     private fun drawBubbleView(canvas: Canvas) {
-        paint.apply {
-            textAlign = Paint.Align.LEFT
-            textSize = 42f
-            color = R.color.video_create_nick_text.resToColor(context)
-            typeface = Typeface.defaultFromStyle(Typeface.BOLD)
-        }
-        val textWidth = paint.measureText(text)
-        val marginStart = 54f
-        val paddingHorizontal = 30f
-        val drawablePadding = 12f
-        val bubbleWidth = textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + paddingHorizontal.times(2)
-        val bubbleHeight = 78f
-        val bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
-
         // 绘制背景
         val bubbleBgBitmap = TransformerUtil.loadImage(context, R.drawable.bubble_bg, bubbleRectF.width().toInt(), bubbleRectF.height().toInt())
             ?: TransformerUtil.createEmptyBitmap()
-        canvas.drawBitmap(bubbleBgBitmap, marginStart, 0f, paint)
+        canvas.drawBitmap(bubbleBgBitmap, bubbleLeft, 0f, paint)
 
-        // 绘制文本
+        // 绘制昵称
         val fontMetrics: Paint.FontMetrics = paint.fontMetrics
         val distance = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
         val baseline: Float = bubbleRectF.centerY() + distance
-        val textX = marginStart + paddingHorizontal
-        canvas.drawText(text, textX, baseline, paint)
+        val textX = bubbleLeft + bubblePaddingHorizontal
+        canvas.drawText(nickname, textX, baseline, paint)
     }
 
     /**
-     * 添加音频视图
+     * 添加音频视图到原视图上
      *
      * @param srcBitmap 源Bitmap
      */
@@ -191,30 +204,13 @@ class TextBoxOverlay(
         try {
             val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
-            drawAudioView(canvas)
+            canvas.drawBitmap(audioTrackHelper.getNextBitmap(), audioLeft, audioTop, paint)
             Log.d(TAG, "addBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
         }
         return targetBitmap
-    }
-
-    /**
-     * 绘制音频视图
-     */
-    private fun drawAudioView(canvas: Canvas) {
-        val textWidth = paint.measureText(text)
-        val marginStart = 54f
-        val paddingHorizontal = 30f
-        val drawablePadding = 12f
-        val bubbleWidth = textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + paddingHorizontal.times(2)
-        val bubbleHeight = 78f
-        val bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
-
-        val iconLeft = marginStart + paddingHorizontal + textWidth + drawablePadding
-        val iconTop = bubbleRectF.centerY() - AudioTrackHelper.ICON_SIZE.div(2)
-        canvas.drawBitmap(audioTrackHelper.getNextBitmap(), iconLeft, iconTop, paint)
     }
 
 }
