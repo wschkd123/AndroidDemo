@@ -3,6 +3,7 @@ package com.example.beyond.demo.ui.transformer.overlay
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.media3.common.util.UnstableApi
 import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 
@@ -12,6 +13,7 @@ import com.example.beyond.demo.ui.transformer.util.ReflectUtil
  * @author wangshichao
  * @date 2024/7/23
  */
+@UnstableApi
 class FullscreenAlphaOutOverlay(
     context: Context,
     url: String,
@@ -33,7 +35,7 @@ class FullscreenAlphaOutOverlay(
             "updateAnimation: animatedValue=$animatedValue presentationTimeMs=$presentationTimeUs"
         )
         if (animatedValue in 0.0..1.0) {
-            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", 1 - animatedValue)
+            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alphaScale", 1 - animatedValue)
         }
     }
 

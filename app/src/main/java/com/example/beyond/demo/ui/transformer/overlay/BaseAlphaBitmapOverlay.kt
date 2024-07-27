@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.media3.common.VideoFrameProcessingException
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.Size
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutionException
  * @author wangshichao
  * @date 2024/7/24
  */
+@UnstableApi
 abstract class BaseAlphaBitmapOverlay(
     private val context: Context,
     private val url: String,
@@ -30,7 +32,7 @@ abstract class BaseAlphaBitmapOverlay(
         get() = 0f
     private val overlaySettings: OverlaySettings by lazy {
         OverlaySettings.Builder()
-            .setAlpha(initAlpha)
+            .setAlphaScale(initAlpha)
             .build()
     }
     private var lastBitmap: Bitmap? = null

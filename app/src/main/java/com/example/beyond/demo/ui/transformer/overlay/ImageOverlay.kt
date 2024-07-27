@@ -27,9 +27,9 @@ open class ImageOverlay(private val context: Context) : DrawableOverlay() {
         // 0，0在视频中心，1，1在右上角
         Matrix.translateM(translateMatrix,  /* mOffset= */0,  /* x= */0f,  /* y= */-1f,  /* z= */1f)
         overlaySettings = OverlaySettings.Builder()
-            .setMatrix(translateMatrix)
+//            .setMatrix(translateMatrix)
             // -1 -1 在原覆盖物右上角的位置，1 1 在原覆盖物左下角的位置（接近覆盖物宽高，但是不超过）
-            .setAnchor(0f, -1f)
+//            .setAnchor(0f, -1f)
             .build()
     }
 
@@ -48,7 +48,7 @@ open class ImageOverlay(private val context: Context) : DrawableOverlay() {
             "getBitmap: progress=" + progress + " presentationTimeMs=" + presentationTimeUs / 1000
         )
         if (progress in 0.0..1.0) {
-            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", progress)
+            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alphaScale", progress)
         }
         return super.getBitmap(presentationTimeUs)
     }

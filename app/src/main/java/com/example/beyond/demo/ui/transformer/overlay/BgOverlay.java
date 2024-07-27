@@ -45,16 +45,12 @@ public class BgOverlay extends DrawableOverlay {
         this.context = context;
         screenWidth = getScreenWidth(context);
         screenHeight = getScreenHeight(context);
-
-        float[] positioningMatrix = GlUtil.create4x4IdentityMatrix();
-        // 0，0在视频中心，1，1在右上角
-        Matrix.translateM(
-                positioningMatrix, /* mOffset= */ 0, /* x= */ 1f, /* y= */ 1f, /* z= */ 1);
         overlaySettings = new OverlaySettings.Builder()
-                .setMatrix(positioningMatrix)
-                .setAlpha(1f)
+                // 0，0在视频中心，1，1在右上角
+                .setBackgroundFrameAnchor(1f, 1f)
+                .setAlphaScale(1f)
                 // -1 -1 在原覆盖物右上角的位置，1 1 在原覆盖物左下角的位置
-//                .setAnchor(-1f, -1f)
+                .setOverlayFrameAnchor(-1f, -1f)
                 .build();
     }
 

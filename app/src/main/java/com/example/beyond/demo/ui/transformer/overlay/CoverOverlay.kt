@@ -2,6 +2,7 @@ package com.example.beyond.demo.ui.transformer.overlay
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.media3.common.util.UnstableApi
 import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 
 /**
@@ -10,6 +11,7 @@ import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
  * @author wangshichao
  * @date 2024/7/24
  */
+@UnstableApi
 class CoverOverlay(
     context: Context,
     url: String,

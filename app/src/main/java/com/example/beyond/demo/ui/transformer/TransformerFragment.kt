@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.Presentation
@@ -47,6 +48,7 @@ import java.util.concurrent.TimeUnit
  * @author wangshichao
  * @date 2024/7/10
  */
+@UnstableApi
 class TransformerFragment : Fragment() {
 
     companion object {
@@ -115,7 +117,7 @@ class TransformerFragment : Fragment() {
         val chatAudioItem = EditedMediaItem.Builder(MediaItem.fromUri(TTS_LONG))
 
         // image
-        val imageSequence = EditedMediaItemSequence(mutableListOf(chatImageItem))
+        val imageSequence = EditedMediaItemSequence(mutableListOf(coverImageItem, chatImageItem))
 
         // audio
         val audioSequence = EditedMediaItemSequence(mutableListOf(chatAudioItem.build()))
@@ -143,15 +145,13 @@ class TransformerFragment : Fragment() {
             var startTime: Long = 0
             val coverDuration = 200_000L
             val characterBgDuration = 400_000L
-            // 视频封面
-//            overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
-//            startTime += coverDuration
-            // A背景图渐隐
-            overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
-            startTime += characterBgDuration
-            // B背景图渐显，且切换对话文本框
+            // B背景图渐显，文本对话框上滑位移+渐显
             overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
             overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
+            startTime += characterBgDuration
+            //TODO A背景图渐隐，文本对话框渐隐
+            overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
+//            overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
             startTime += characterBgDuration
         }
         return EditedMediaItem.Builder(MediaItem.fromUri(PLACEHOLDER_IMAGE))
@@ -200,27 +200,6 @@ class TransformerFragment : Fragment() {
         effects.add(overlayEffect)
         return effects.build()
     }
-
-    private fun createOverlayEffect(durationUs: Long): OverlayEffect {
-        val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
-        var startTime: Long = 0
-        val coverDuration = 200_000L
-        val characterBgDuration = 400_000L
-//        // 视频封面
-//        overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
-//        startTime += coverDuration
-//        // A背景图渐隐
-//        overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
-//        startTime += characterBgDuration
-        // B背景图渐显，且切换对话文本框
-        overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
-        overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
-        startTime += characterBgDuration
-
-//        overlaysBuilder.add(ImageOverlay(requireContext()))
-        return OverlayEffect(overlaysBuilder.build())
-    }
-
 
     private fun onCompleted(filePath: String, exportResult: ExportResult) {
         val elapsedTimeMs: Long = exportStopwatch.elapsed(TimeUnit.MILLISECONDS)

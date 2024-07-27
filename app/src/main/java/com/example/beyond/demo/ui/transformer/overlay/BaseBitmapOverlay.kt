@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.media3.common.VideoFrameProcessingException
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.Size
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
@@ -19,6 +20,7 @@ import java.util.concurrent.ExecutionException
  * @author wangshichao
  * @date 2024/7/25
  */
+@UnstableApi
 open class BaseBitmapOverlay(
     private val context: Context,
     private val url: String,
@@ -50,9 +52,10 @@ open class BaseBitmapOverlay(
 
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
+        Log.d(TAG, "getBitmap: presentationTimeUs=$presentationTimeUs")
         // 不在指定的时间范围，返回空Bitmap
         if (presentationTimeUs !in startTimeUs..endTimeUs) {
-            Log.d(TAG, "getBitmap: not time range")
+            Log.i(TAG, "getBitmap: not time range")
 //            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", 0)
             return animationEnd()
         }

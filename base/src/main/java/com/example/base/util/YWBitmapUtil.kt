@@ -461,7 +461,7 @@ object YWBitmapUtil {
     fun compress(
         bmp: Bitmap?,
         size: Float,
-        format: CompressFormat? = CompressFormat.JPEG
+        format: CompressFormat = CompressFormat.JPEG
     ): ByteArray? {
         if (bmp == null) {
             return null

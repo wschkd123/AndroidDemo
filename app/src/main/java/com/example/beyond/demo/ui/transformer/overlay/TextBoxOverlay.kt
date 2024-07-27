@@ -6,10 +6,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
-import android.opengl.Matrix
 import android.util.Log
+import android.util.Pair
 import androidx.media3.common.C
-import androidx.media3.common.util.GlUtil
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
 import com.example.base.util.ext.resToColor
@@ -28,15 +28,20 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
  * @param startTimeUs 整体动画开始时间
  * @param durationUs 持续时间
  */
+@UnstableApi
 class TextBoxOverlay(
     private val context: Context,
     private val startTimeUs: Long,
     private val durationUs: Long
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
-    private var overlaySettings: OverlaySettings
+    private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
+        // 覆盖物在视频底部以下
+        .setBackgroundFrameAnchor(0f, -1f)
+        // 在原覆盖物下面的位置
+        .setOverlayFrameAnchor(0f, 1f)
+        .build()
     private val endTimeUs: Long = startTimeUs + durationUs
-    private val translateMatrix: FloatArray = GlUtil.create4x4IdentityMatrix()
 
     // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -70,12 +75,6 @@ class TextBoxOverlay(
     }
 
     init {
-        // 覆盖物在视频底部以下
-        Matrix.translateM(translateMatrix, 0, 0f, 0f, 1f)
-        overlaySettings = OverlaySettings.Builder()
-            .setMatrix(translateMatrix)
-            .setAnchor(0f, 1f)
-            .build()
         srcBitmap =
             TransformerUtil.loadImage(context, R.drawable.user_text_bg, FRAME_WIDTH)
                 ?: TransformerUtil.createEmptyBitmap()
@@ -142,10 +141,9 @@ class TextBoxOverlay(
         val startY = -1f
         val targetY = -0.3f
         val curY = startY + (targetY - startY) * animatedValue
-        val translateMatrix: FloatArray = GlUtil.create4x4IdentityMatrix()
-        Matrix.translateM(translateMatrix, 0, 0f, curY, 1f)
-        ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "matrix", translateMatrix)
-        ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", animatedValue)
+        val backgroundFrameAnchor = Pair.create(0f, curY)
+        ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "backgroundFrameAnchor", backgroundFrameAnchor)
+        ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alphaScale", animatedValue)
     }
 
 

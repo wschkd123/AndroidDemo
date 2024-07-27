@@ -18,7 +18,7 @@ object ReflectUtil {
             field.isAccessible = true
             field.set(settings, value)
         } catch (e: Exception) {
-            Log.e("ReflectUtil", "e=" + e.message)
+            Log.e("ReflectUtil", "value=$value e=" + e.message)
             e.printStackTrace()
         }
 }
