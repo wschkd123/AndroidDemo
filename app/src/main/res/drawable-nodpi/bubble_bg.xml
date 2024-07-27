@@ -6,8 +6,9 @@
         android:bottomRightRadius="36dp"
         android:topLeftRadius="36dp"
         android:topRightRadius="36dp" />
+
     <gradient
-        android:angle="-135"
+        android:angle="0"
         android:endColor="#F8BFEF"
         android:startColor="#8183FF" />
 </shape>

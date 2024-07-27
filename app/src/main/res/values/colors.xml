@@ -6,4 +6,5 @@
 
     <color name="widget_group_avatar_border">#131517</color>
     <color name="widget_group_avatar_bg">#B8000000</color>
+    <color name="video_create_nick_text">#F6F6F6</color>
 </resources>

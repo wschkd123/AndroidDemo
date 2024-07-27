@@ -5,13 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.RectF
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.request.RequestOptions
-import com.example.base.Init
 import com.example.base.util.YWBitmapUtil
 
 
@@ -28,6 +26,7 @@ internal object TransformerUtil {
      */
     @WorkerThread
     fun loadImage(
+        context: Context,
         resId: Int,
         width: Int,
         height: Int
@@ -37,7 +36,7 @@ internal object TransformerUtil {
             .transform(CenterCrop())
             .override(width, height)
         try {
-            val futureTarget = Glide.with(Init.applicationContext)
+            val futureTarget = Glide.with(context)
                 .asBitmap()
                 .load(resId)
                 .apply(requestOptions)
@@ -55,8 +54,9 @@ internal object TransformerUtil {
      *
      * @param width 指定宽度
      */
-    fun loadImage(context: Context, resId: Int, width: Int): Bitmap? {
+    fun loadImage(context: Context, resId: Int, width: Int = 0): Bitmap? {
         val bitmap = BitmapFactory.decodeResource(context.resources, resId)
+        if (width == 0) return bitmap
         return YWBitmapUtil.scaleBitmapByWidth(bitmap, width)
     }
 
@@ -67,14 +67,16 @@ internal object TransformerUtil {
      */
     fun addBitmap(
         srcBitmap: Bitmap,
-        newBitmap: Bitmap
+        newBitmap: Bitmap,
+        left: Float,
+        top: Float
     ): Bitmap {
         val targetBitmap = srcBitmap.copy(srcBitmap.config, true)
         try {
             val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
             val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG)
-            canvas.drawBitmap(newBitmap, 54f, 0f, paint)
+            canvas.drawBitmap(newBitmap, left, top, paint)
             Log.d(TAG, "addBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {

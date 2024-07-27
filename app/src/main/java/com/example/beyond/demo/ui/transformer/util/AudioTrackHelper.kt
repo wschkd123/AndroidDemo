@@ -14,7 +14,9 @@ import com.example.beyond.demo.R
  * @date 2024/7/26
  */
 class AudioTrackHelper(context: Context) {
-    private val iconSize = 36
+    companion object {
+        const val ICON_SIZE = 36
+    }
     private val resIdList = mutableListOf(
         R.drawable.audio01,
         R.drawable.audio02,
@@ -38,14 +40,17 @@ class AudioTrackHelper(context: Context) {
     init {
         resIdList.forEach {
             val bitmap = BitmapFactory.decodeResource(context.resources, it)
-            val scaleBitmap = YWBitmapUtil.scaleBitmap(bitmap, iconSize)
+            val scaleBitmap = YWBitmapUtil.scaleBitmap(bitmap, ICON_SIZE)
             bitmapList.add(scaleBitmap!!)
         }
     }
 
+    fun reset() {
+        index = 0
+    }
+
     fun getFirstBitmap(): Bitmap {
         index = 0
-        val targetBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
         return bitmapList[index]
     }
 

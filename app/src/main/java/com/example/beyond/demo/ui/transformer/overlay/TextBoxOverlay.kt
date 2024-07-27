@@ -4,11 +4,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.opengl.Matrix
 import android.util.Log
+import androidx.media3.common.C
 import androidx.media3.common.util.GlUtil
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
+import com.example.base.util.ext.resToColor
 import com.example.beyond.demo.R
 import com.example.beyond.demo.ui.transformer.util.AudioTrackHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
@@ -36,8 +40,6 @@ class TextBoxOverlay(
     // 文本框背景
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val matrix: android.graphics.Matrix = android.graphics.Matrix()
-    private var bgBitmap: Bitmap? = null
-    private var canvas: Canvas? = null
 
     /**
      * 原背景图
@@ -52,12 +54,13 @@ class TextBoxOverlay(
     // 音频动画
     private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
     private var isPlaying: Boolean = true
+    private var lastAudioTimeUs: Long = 0
+    private val text = "林泽林泽林泽"
 
     companion object {
         // 文本框整体宽高
         private const val FRAME_WIDTH = 1020
         private const val FRAME_HEIGHT = 361
-        private const val TRANSLATE_DISTANCE = 240
     }
 
     init {
@@ -73,6 +76,10 @@ class TextBoxOverlay(
     }
 
     fun setAudioPlayState(playing: Boolean) {
+        if (isPlaying == playing) {
+            return
+        }
+        audioTrackHelper.reset()
         this.isPlaying = playing
     }
 
@@ -88,14 +95,17 @@ class TextBoxOverlay(
             )
             updateBgAnimation(animatedValue)
             if (lastBitmap == null) {
-                lastBitmap = createBgBitmap(srcBitmap)
+                lastBitmap = createContainerBitmap(srcBitmap)
             }
         }
 
-        // 绘制音轨
-        if (presentationTimeUs > endTimeUs && isPlaying) {
-            val bgBitmap = createBgBitmap(srcBitmap)
-            lastBitmap = TransformerUtil.addBitmap(bgBitmap, audioTrackHelper.getNextBitmap())
+        // 绘制音轨。每200毫秒重绘一帧实现动画
+        val audioPeriod = presentationTimeUs - lastAudioTimeUs
+        if (presentationTimeUs > endTimeUs && isPlaying && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
+            val bgBitmap = createContainerBitmap(srcBitmap)
+//            lastBitmap = bgBitmap
+            lastBitmap = addAudioView(bgBitmap)
+            lastAudioTimeUs = presentationTimeUs
         }
         Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
         return lastBitmap ?: TransformerUtil.createEmptyBitmap()
@@ -120,27 +130,91 @@ class TextBoxOverlay(
     }
 
     /**
-     * 创建背景图。比原背景尺寸大
+     * 创建容器。包括文本框内部气泡等
      */
-    private fun createBgBitmap(
+    private fun createContainerBitmap(
         srcBitmap: Bitmap,
     ): Bitmap {
+        val targetBitmap = Bitmap.createBitmap(
+            FRAME_WIDTH,
+            FRAME_HEIGHT,
+            Bitmap.Config.ARGB_8888
+        )
         try {
-            bgBitmap = Bitmap.createBitmap(
-                FRAME_WIDTH,
-                FRAME_HEIGHT,
-                Bitmap.Config.ARGB_8888
-            )
-            canvas = Canvas(bgBitmap!!)
+            val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
-            canvas!!.drawBitmap(srcBitmap, matrix, paint)
-//            canvas!!.drawBitmap(audioTrackHelper.getFirstBitmap(), 54f, 0f, paint)
+            canvas.drawBitmap(srcBitmap, matrix, paint)
+            drawBubbleView(canvas)
             Log.d(TAG, "createNewBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
-            canvas!!.setBitmap(null)
+            canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return bgBitmap!!
+        return targetBitmap
+    }
+
+    private fun drawBubbleView(canvas: Canvas) {
+        paint.apply {
+            textAlign = Paint.Align.LEFT
+            textSize = 42f
+            color = R.color.video_create_nick_text.resToColor(context)
+            typeface = Typeface.defaultFromStyle(Typeface.BOLD)
+        }
+        val textWidth = paint.measureText(text)
+        val marginStart = 54f
+        val paddingHorizontal = 30f
+        val drawablePadding = 12f
+        val bubbleWidth = textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + paddingHorizontal.times(2)
+        val bubbleHeight = 78f
+        val bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
+
+        // 绘制背景
+        val bubbleBgBitmap = TransformerUtil.loadImage(context, R.drawable.bubble_bg, bubbleRectF.width().toInt(), bubbleRectF.height().toInt())
+            ?: TransformerUtil.createEmptyBitmap()
+        canvas.drawBitmap(bubbleBgBitmap, marginStart, 0f, paint)
+
+        // 绘制文本
+        val fontMetrics: Paint.FontMetrics = paint.fontMetrics
+        val distance = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
+        val baseline: Float = bubbleRectF.centerY() + distance
+        val textX = marginStart + paddingHorizontal
+        canvas.drawText(text, textX, baseline, paint)
+    }
+
+    /**
+     * 添加音频视图
+     *
+     * @param srcBitmap 源Bitmap
+     */
+    private fun addAudioView(srcBitmap: Bitmap): Bitmap {
+        val targetBitmap = srcBitmap.copy(srcBitmap.config, true)
+        try {
+            val canvas = Canvas(targetBitmap)
+            val start = System.currentTimeMillis()
+            drawAudioView(canvas)
+            Log.d(TAG, "addBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
+            canvas.setBitmap(null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return targetBitmap
+    }
+
+    /**
+     * 绘制音频视图
+     */
+    private fun drawAudioView(canvas: Canvas) {
+        val textWidth = paint.measureText(text)
+        val marginStart = 54f
+        val paddingHorizontal = 30f
+        val drawablePadding = 12f
+        val bubbleWidth = textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + paddingHorizontal.times(2)
+        val bubbleHeight = 78f
+        val bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
+
+        val iconLeft = marginStart + paddingHorizontal + textWidth + drawablePadding
+        val iconTop = bubbleRectF.centerY() - AudioTrackHelper.ICON_SIZE.div(2)
+        canvas.drawBitmap(audioTrackHelper.getNextBitmap(), iconLeft, iconTop, paint)
     }
 
 }
