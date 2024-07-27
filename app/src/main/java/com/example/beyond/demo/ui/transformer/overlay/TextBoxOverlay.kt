@@ -131,7 +131,7 @@ class TextBoxOverlay(
             lastBitmap = addAudioView(bgBitmap)
             lastAudioTimeUs = presentationTimeUs
         }
-        Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
+        Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime} presentationTimeMs=$presentationTimeUs")
         return lastBitmap ?: TransformerUtil.createEmptyBitmap()
     }
 
@@ -169,7 +169,7 @@ class TextBoxOverlay(
             val start = System.currentTimeMillis()
             canvas.drawBitmap(srcBitmap, matrix, paint)
             drawBubbleView(canvas)
-            Log.d(TAG, "createNewBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
+            Log.d(TAG, "drawContainerView: cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -205,7 +205,7 @@ class TextBoxOverlay(
             val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
             canvas.drawBitmap(audioTrackHelper.getNextBitmap(), audioLeft, audioTop, paint)
-            Log.d(TAG, "addBitmap: drawBitmap cost=${System.currentTimeMillis() - start}")
+            Log.d(TAG, "addAudioView: cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -51,9 +51,9 @@ class TransformerFragment : Fragment() {
 
     companion object {
         private const val TAG = "TransformerFragment"
-        private const val MP4_ASSET_URI_STRING = "asset:///media/mp4/sample.mp4"
-        private const val FILE_AUDIO_ONLY = "asset:///media/mp3/long_tts.mp3"
-        private const val PNG_ASSET_URI_STRING = "asset:///media/img/img_background.png"
+        private const val TTS_SHORT = "asset:///media/mp3/short_tts.mp3"
+        private const val TTS_LONG = "asset:///media/mp3/long_tts.mp3"
+        private const val PLACEHOLDER_IMAGE = "asset:///media/img/img_background.png"
         private const val ONE_ONE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/2365d825482a71b62b59a7db80b88fa2.jpg"
         private const val THREE_THREE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
         private const val NINE_SIXTEEN_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
@@ -109,37 +109,56 @@ class TransformerFragment : Fragment() {
     }
 
     private fun createComposition(): Composition {
-        val durationUs = 10_000_000L
-        val videoEffects = createVideoEffects(durationUs)
-        val imageItem = EditedMediaItem.Builder(MediaItem.fromUri(PNG_ASSET_URI_STRING))
+        //TODO 多个item串起来，但是Overlay无效
+        val coverImageItem = createCoverImageItem()
+        val chatImageItem = createChatImageItem()
+        val chatAudioItem = EditedMediaItem.Builder(MediaItem.fromUri(TTS_LONG))
+
+        // image
+        val imageSequence = EditedMediaItemSequence(mutableListOf(chatImageItem))
+
+        // audio
+        val audioSequence = EditedMediaItemSequence(mutableListOf(chatAudioItem.build()))
+
+        val compositionBuilder =
+            Composition.Builder(mutableListOf(imageSequence, audioSequence))
+        return compositionBuilder.build()
+    }
+
+    private fun createCoverImageItem(): EditedMediaItem {
+        val durationUs = 200_000L
+        val videoEffects = createVideoEffects(durationUs) { overlaysBuilder ->
+            overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, 0, 200_000L))
+        }
+        return EditedMediaItem.Builder(MediaItem.fromUri(PLACEHOLDER_IMAGE))
             .setDurationUs(durationUs)
             .setFrameRate(TransformerConstant.FRAME_RATE)
             .setEffects(Effects(ImmutableList.of(), videoEffects))
+            .build()
+    }
 
-        val videoItem = EditedMediaItem.Builder(MediaItem.fromUri(MP4_ASSET_URI_STRING))
-
-        val audioItem = EditedMediaItem.Builder(MediaItem.fromUri(FILE_AUDIO_ONLY))
+    private fun createChatImageItem(): EditedMediaItem {
+        val durationUs = 10_000_000L
+        val videoEffects = createVideoEffects(durationUs) { overlaysBuilder ->
+            var startTime: Long = 0
+            val coverDuration = 200_000L
+            val characterBgDuration = 400_000L
+            // 视频封面
+//            overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
+//            startTime += coverDuration
+            // A背景图渐隐
+            overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
+            startTime += characterBgDuration
+            // B背景图渐显，且切换对话文本框
+            overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
+            overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
+            startTime += characterBgDuration
+        }
+        return EditedMediaItem.Builder(MediaItem.fromUri(PLACEHOLDER_IMAGE))
+            .setDurationUs(durationUs)
+            .setFrameRate(TransformerConstant.FRAME_RATE)
             .setEffects(Effects(ImmutableList.of(), videoEffects))
-
-        // video
-        val videoSequence = EditedMediaItemSequence(
-            mutableListOf(videoItem.build(), videoItem.build(), videoItem.build())
-        )
-
-        // audio
-        val audioSequence = EditedMediaItemSequence(
-            mutableListOf(audioItem.build()),
-            false
-        )
-
-        // image
-        val imageSequence = EditedMediaItemSequence(
-            mutableListOf(imageItem.build())
-        )
-        val compositionBuilder =
-            Composition.Builder(mutableListOf(imageSequence, audioSequence))
-//            Composition.Builder(mutableListOf(videoSequence, audioSequence, imageSequence))
-        return compositionBuilder.build()
+            .build()
     }
 
     private fun createTransformer(filePath: String): Transformer {
@@ -166,32 +185,33 @@ class TransformerFragment : Fragment() {
             .build()
     }
 
-    private fun createVideoEffects(durationUs: Long): ImmutableList<Effect> {
+    private fun createVideoEffects(durationUs: Long, block: (ImmutableList.Builder<TextureOverlay>) -> Unit): ImmutableList<Effect> {
         val effects = ImmutableList.Builder<Effect>()
         // 配置输出视频分辨率。需要放前面，后续Overlay中configure尺寸才生效
         effects.add(
             Presentation.createForWidthAndHeight(
             TransformerConstant.OUT_VIDEO_WIDTH, TransformerConstant.OUT_VIDEO_HEIGHT, Presentation.LAYOUT_SCALE_TO_FIT
         ))
-        val overlayEffect: OverlayEffect? = createOverlayEffect(durationUs)
-        if (overlayEffect != null) {
-            effects.add(overlayEffect)
-        }
+
+        // 添加overlay
+        val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
+        block(overlaysBuilder)
+        val overlayEffect = OverlayEffect(overlaysBuilder.build())
+        effects.add(overlayEffect)
         return effects.build()
     }
 
-    private fun createOverlayEffect(durationUs: Long): OverlayEffect? {
-        if (context == null) return null
+    private fun createOverlayEffect(durationUs: Long): OverlayEffect {
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
         var startTime: Long = 0
         val coverDuration = 200_000L
         val characterBgDuration = 400_000L
-        // 视频封面
-        overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
-        startTime += coverDuration
-        // A背景图渐隐
-        overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
-        startTime += characterBgDuration
+//        // 视频封面
+//        overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, startTime, coverDuration))
+//        startTime += coverDuration
+//        // A背景图渐隐
+//        overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
+//        startTime += characterBgDuration
         // B背景图渐显，且切换对话文本框
         overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
         overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
