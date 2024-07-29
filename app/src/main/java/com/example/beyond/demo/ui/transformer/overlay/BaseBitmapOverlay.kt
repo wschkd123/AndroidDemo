@@ -61,7 +61,6 @@ open class BaseBitmapOverlay(
         // 不在指定的时间范围，返回空Bitmap
         if (presentationTimeUs !in startTimeUs..endTimeUs) {
             Log.i(TAG, "getBitmap: not time range")
-//            ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alpha", 0)
             return animationEnd()
         }
         if (lastBitmap == null) {
