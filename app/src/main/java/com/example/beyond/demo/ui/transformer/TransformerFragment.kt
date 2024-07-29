@@ -63,7 +63,7 @@ class TransformerFragment : Fragment() {
         /**
          * 5分钟占位音频
          */
-        private const val PLACEHOLDER_AUDIO = "asset:///media/mp3/placeholder.mp3"
+        private const val PLACEHOLDER_AUDIO = "asset:///media/placeholder.mp3"
 
         /**
          * 占位图片

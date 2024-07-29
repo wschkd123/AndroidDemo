@@ -47,8 +47,8 @@ data class ChatMsgItem(
             "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
         private const val NINE_SIXTEEN_AVATAR =
             "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
-        private const val TTS_SHORT = "asset:///media/mp3/short_tts.mp3"
-        private const val TTS_LONG = "asset:///media/mp3/long_tts.mp3"
+        private const val TTS_SHORT = "asset:///media/short_tts.mp3"
+        private const val TTS_LONG = "asset:///media/long_tts.mp3"
         fun mock(): List<ChatMsgItem> {
             return mutableListOf(
                 ChatMsgItem(
