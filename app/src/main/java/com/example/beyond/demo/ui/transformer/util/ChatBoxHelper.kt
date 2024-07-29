@@ -57,9 +57,11 @@ class ChatBoxHelper(
         // 气泡相对容器位置
         val textWidth = paint.measureText(chatMsg.nickname ?: "")
         val drawablePadding = 12f
-        val audioWidth = if (chatMsg.havaAudio()) AudioTrackHelper.ICON_SIZE else 0
-        val bubbleWidth =
-            textWidth + drawablePadding + audioWidth + bubblePaddingHorizontal.times(2)
+        val bubbleWidth = if (chatMsg.havaAudio()) {
+            textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE +  + bubblePaddingHorizontal.times(2)
+        } else {
+            textWidth + bubblePaddingHorizontal.times(2)
+        }
         val bubbleHeight = 78f
         bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
 
@@ -100,8 +102,7 @@ class ChatBoxHelper(
             R.drawable.bubble_bg,
             bubbleRectF.width().toInt(),
             bubbleRectF.height().toInt()
-        )
-            ?: TransformerUtil.createEmptyBitmap()
+        ) ?: TransformerUtil.createEmptyBitmap()
         canvas.drawBitmap(bubbleBgBitmap, bubbleLeft, 0f, paint)
 
         // 绘制昵称

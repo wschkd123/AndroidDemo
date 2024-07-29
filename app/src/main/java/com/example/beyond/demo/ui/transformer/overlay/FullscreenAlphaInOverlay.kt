@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
-import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
 /**
  * 全屏渐显
@@ -18,7 +17,8 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 class FullscreenAlphaInOverlay(
     context: Context,
     url: String,
-    private val durationUs: Long
+    private val durationUs: Long,
+    private val needAnimation: Boolean = true
 ) : BaseBitmapOverlay(context, url, durationUs) {
 
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
@@ -28,6 +28,9 @@ class FullscreenAlphaInOverlay(
     }
 
     override fun updateAnimation(presentationTimeUs: Long) {
+        if (needAnimation.not()) {
+            return
+        }
         val animatedValue =
             (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
         Log.w(
@@ -37,10 +40,6 @@ class FullscreenAlphaInOverlay(
         if (animatedValue in 0.0..1.0) {
             ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alphaScale", animatedValue)
         }
-    }
-
-    override fun animationEnd(): Bitmap {
-        return lastBitmap ?: TransformerUtil.createEmptyBitmap()
     }
 
 }

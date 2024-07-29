@@ -76,6 +76,7 @@ class TransformerFragment : Fragment() {
     private val playerWrapper = ExoPlayerWrapper()
     private lateinit var exportStopwatch: Stopwatch
     private var outputFile: File? = null
+    private var transformer: Transformer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -101,6 +102,10 @@ class TransformerFragment : Fragment() {
         }
         binding.playerView.player = playerWrapper.player
         binding.tvOutput.setOnClickListener {
+            if (exportStopwatch.isRunning) {
+                Log.w(TAG, "is transformer")
+                return@setOnClickListener
+            }
             start()
         }
     }
@@ -110,15 +115,17 @@ class TransformerFragment : Fragment() {
             YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/" + System.currentTimeMillis() + ".mp4")
                 ?: return
         val outputFilePath = outputFile!!.absolutePath
-        val transformer: Transformer = createTransformer(outputFilePath)
+        transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
+        exportStopwatch.reset()
         exportStopwatch.start()
-        transformer.start(composition, outputFilePath)
+        transformer?.start(composition, outputFilePath)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         playerWrapper.release()
+        transformer?.cancel()
     }
 
     private fun createComposition(): Composition {
@@ -127,22 +134,29 @@ class TransformerFragment : Fragment() {
         val list = ChatMsgItem.mock()
 
         // 封面部分
-        val coverDurationUs = 2_000_000L
+        val coverDurationUs = 200_000L
         val coverUrl = list.get(0).backgroundUrl ?: ""
         imageItemList.add(createCoverImageItem(coverDurationUs, coverUrl))
         audioItemList.add(createPlaceHolderItem(coverDurationUs))
 
         // 主体部分
-        list.forEach { chatMsg ->
-            val chatInDurationUs = 2_000_000L
-            imageItemList.add(createChatInItem(chatMsg, chatInDurationUs))
+        list.forEachIndexed { index, chatMsg ->
+            // 1. 聊天文本框进入
+            val chatInDurationUs = 400_000L
+            // 第一个进入背景无进入动画
+            val notFist = index != 0
+            imageItemList.add(createChatInItem(chatMsg, chatInDurationUs, notFist))
             audioItemList.add(createPlaceHolderItem(chatInDurationUs))
 
+            // 2. 聊天文本播放
             imageItemList.add(createChatItem(chatMsg))
             audioItemList.add(createPlaceHolderItem(coverDurationUs))
 
-            val chatOutDurationUs = 2_000_000L
-            imageItemList.add(createChatOutItem(chatMsg, chatOutDurationUs))
+            // 3. 聊天文本框退出
+            val chatOutDurationUs = 400_000L
+            // 最后一个聊天无退出动画
+            val notLast = index != list.size - 1
+            imageItemList.add(createChatOutItem(chatMsg, chatOutDurationUs, notLast))
             audioItemList.add(createPlaceHolderItem(chatOutDurationUs))
         }
 
@@ -182,36 +196,40 @@ class TransformerFragment : Fragment() {
 
     /**
      * 聊天开始Item
+     *
+     * @param bgNeedAnimation 背景是否有动画
      */
-    private fun createChatInItem(chatMsg: ChatMsgItem, durationUs: Long): EditedMediaItem {
+    private fun createChatInItem(chatMsg: ChatMsgItem, durationUs: Long, bgNeedAnimation: Boolean): EditedMediaItem {
         val videoEffects = createVideoEffects { overlaysBuilder ->
-            // B背景图渐显，文本对话框上滑位移+渐显
             overlaysBuilder.add(
                 FullscreenAlphaInOverlay(
                     requireContext(),
                     chatMsg.backgroundUrl?:"",
-                    durationUs
+                    durationUs,
+                    bgNeedAnimation
                 )
             )
-            overlaysBuilder.add(ChatBoxInOverlay(requireContext(), chatMsg))
+            overlaysBuilder.add(ChatBoxInOverlay(requireContext(), chatMsg, durationUs))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }
 
     /**
      * 聊天退出Item
+     *
+     * @param bgNeedAnimation 背景是否有动画
      */
-    private fun createChatOutItem(chatMsg: ChatMsgItem, durationUs: Long): EditedMediaItem {
+    private fun createChatOutItem(chatMsg: ChatMsgItem, durationUs: Long, bgNeedAnimation: Boolean): EditedMediaItem {
         val videoEffects = createVideoEffects { overlaysBuilder ->
-            // 背景图渐隐，文本对话框渐隐
             overlaysBuilder.add(
                 FullscreenAlphaOutOverlay(
                     requireContext(),
                     chatMsg.backgroundUrl?:"",
-                    durationUs
+                    durationUs,
+                    bgNeedAnimation
                 )
             )
-            overlaysBuilder.add(ChatBoxOutOverlay(requireContext(), chatMsg))
+            overlaysBuilder.add(ChatBoxOutOverlay(requireContext(), chatMsg, durationUs))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }

@@ -22,7 +22,7 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 @UnstableApi
 class ChatBoxOverlay(
     context: Context,
-    chatMsg: ChatMsgItem,
+    val chatMsg: ChatMsgItem,
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
@@ -33,13 +33,10 @@ class ChatBoxOverlay(
         .build()
 
     private val durationUs: Long = chatMsg.getDurationUs()
-    private val nickname: String = chatMsg.nickname ?: ""
-    private val isAudioPlaying: Boolean = chatMsg.havaAudio()
     private val chatBoxHelper: ChatBoxHelper
 
     // 音频
     private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
-    private var isPlaying: Boolean = true
     private var lastAudioTimeUs: Long = 0
 
     /**
@@ -51,14 +48,6 @@ class ChatBoxOverlay(
 
     init {
         chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
-    }
-
-    fun setAudioPlayState(playing: Boolean) {
-        if (isPlaying == playing) {
-            return
-        }
-        audioTrackHelper.reset()
-        this.isPlaying = playing
     }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
@@ -77,7 +66,7 @@ class ChatBoxOverlay(
 
         // 绘制音轨。每200毫秒重绘一帧实现动画
         val audioPeriod = presentationTimeUs - lastAudioTimeUs
-        if (isPlaying && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
+        if (chatMsg.havaAudio() && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
             Log.d(TAG, "getBitmap: isPlaying")
             val bgBitmap = chatBoxHelper.drawContainerView()
             lastBitmap = chatBoxHelper.addAudioView(bgBitmap)

@@ -24,7 +24,8 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 @UnstableApi
 class ChatBoxInOverlay(
     context: Context,
-    chatMsg: ChatMsgItem
+    chatMsg: ChatMsgItem,
+    val durationUs: Long
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
@@ -34,9 +35,6 @@ class ChatBoxInOverlay(
         .setOverlayFrameAnchor(0f, 1f)
         .build()
 
-    private val durationUs: Long = chatMsg.getDurationUs()
-    private val nickname: String = chatMsg.nickname ?: ""
-    private val isAudioPlaying: Boolean = chatMsg.havaAudio()
     private val chatBoxHelper: ChatBoxHelper
 
     /**
@@ -44,14 +42,13 @@ class ChatBoxInOverlay(
      */
     private var lastBitmap: Bitmap? = null
     private var startTimeUs: Long = 0L
-    private var endTimeUs: Long = durationUs
+    private var endTimeUs: Long = 0L
 
     init {
         chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
     }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
-        Log.d(TAG, "getBitmap: presentationTimeMs=$presentationTimeUs")
         // 首帧记录开始和结束时间
         if (startTimeUs <= 0L) {
             startTimeUs = presentationTimeUs
@@ -61,7 +58,7 @@ class ChatBoxInOverlay(
         // 整体文本框平移和渐显动画
         val startTime = System.currentTimeMillis()
         val animatedValue = (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
-        Log.i(TAG, "getBitmap: animatedValue=$animatedValue")
+        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs endTimeUs=$endTimeUs presentationTimeUs=$presentationTimeUs animatedValue=$animatedValue")
         updateBgAnimation(animatedValue)
         if (lastBitmap == null) {
             lastBitmap = chatBoxHelper.drawContainerView()
@@ -79,6 +76,7 @@ class ChatBoxInOverlay(
         val targetY = -0.3f
         val curY = startY + (targetY - startY) * animatedValue
         val backgroundFrameAnchor = Pair.create(0f, curY)
+        Log.i(TAG, "animatedValue=$animatedValue curY=$curY")
         ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "backgroundFrameAnchor", backgroundFrameAnchor)
         ReflectUtil.updateOverlaySettingsFiled(overlaySettings, "alphaScale", animatedValue)
     }

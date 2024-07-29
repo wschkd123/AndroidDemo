@@ -17,7 +17,8 @@ import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 class FullscreenAlphaOutOverlay(
     context: Context,
     url: String,
-    private val durationUs: Long
+    private val durationUs: Long,
+    private val needAnimation: Boolean = true
 ) : BaseBitmapOverlay(context, url, durationUs) {
 
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
@@ -26,11 +27,10 @@ class FullscreenAlphaOutOverlay(
         return bitmapHelper.createCharacterBgWithMask(srcBitmap)
     }
 
-    override fun getBitmap(presentationTimeUs: Long): Bitmap {
-        return super.getBitmap(presentationTimeUs)
-    }
-
     override fun updateAnimation(presentationTimeUs: Long) {
+        if (needAnimation.not()) {
+            return
+        }
         val animatedValue =
             (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
         Log.w(

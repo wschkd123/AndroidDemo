@@ -78,18 +78,11 @@ abstract class BaseAlphaBitmapOverlay(
     }
 
     private fun updateAnimation(presentationTimeUs: Long) {
-        Log.i(
-            TAG,
-            "updateAnimation: presentationTimeMs=$presentationTimeUs"
-        )
-        // 动画时间
-        if (presentationTimeUs in startTimeUs..endTimeUs) {
-            val animatedValue =
-                (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
-            Log.w(TAG, "updateAnimation: animatedValue=$animatedValue")
-            if (animatedValue in 0.0..1.0) {
-                updateAlpha(overlaySettings, animatedValue)
-            }
+        val animatedValue =
+            (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
+        Log.i(TAG, "updateAnimation: presentationTimeMs=$presentationTimeUs animatedValue=$animatedValue")
+        if (animatedValue in 0.0..1.0) {
+            updateAlpha(overlaySettings, animatedValue)
         }
 
     }
