@@ -8,7 +8,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
 import com.example.beyond.demo.ui.transformer.ChatMsgItem
-import com.example.beyond.demo.ui.transformer.util.AudioTrackHelper
 import com.example.beyond.demo.ui.transformer.util.ChatBoxHelper
 import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
@@ -32,30 +31,22 @@ class ChatBoxOverlay(
         .setOverlayFrameAnchor(0f, 1f)
         .build()
 
-    private val durationUs: Long = chatMsg.getDurationUs()
-    private val chatBoxHelper: ChatBoxHelper
+    private val chatBoxHelper: ChatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
 
-    // 音频
-    private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
-    private var lastAudioTimeUs: Long = 0
+    // 长一帧音频
+    private var lastAudioFrameTimeUs: Long = 0
 
     /**
      * 上一帧图
      */
     private var lastBitmap: Bitmap? = null
     private var startTimeUs: Long = 0L
-    private var endTimeUs: Long = durationUs
-
-    init {
-        chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
-    }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         Log.d(TAG, "getBitmap: presentationTimeMs=$presentationTimeUs")
         // 首帧记录开始和结束时间
         if (startTimeUs <= 0L) {
             startTimeUs = presentationTimeUs
-            endTimeUs = startTimeUs + durationUs
         }
         val startTime = System.currentTimeMillis()
 
@@ -65,12 +56,12 @@ class ChatBoxOverlay(
         }
 
         // 绘制音轨。每200毫秒重绘一帧实现动画
-        val audioPeriod = presentationTimeUs - lastAudioTimeUs
+        val audioPeriod = presentationTimeUs - lastAudioFrameTimeUs
         if (chatMsg.havaAudio() && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
             Log.d(TAG, "getBitmap: isPlaying")
             val bgBitmap = chatBoxHelper.drawContainerView()
             lastBitmap = chatBoxHelper.addAudioView(bgBitmap)
-            lastAudioTimeUs = presentationTimeUs
+            lastAudioFrameTimeUs = presentationTimeUs
         }
         Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
         return lastBitmap ?: TransformerUtil.createEmptyBitmap()

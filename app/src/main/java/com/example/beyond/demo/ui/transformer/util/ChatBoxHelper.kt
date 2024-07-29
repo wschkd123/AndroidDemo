@@ -19,7 +19,7 @@ import com.example.beyond.demo.ui.transformer.ChatMsgItem
  */
 class ChatBoxHelper(
     val context: Context,
-    val TAG: String,
+    val tag: String,
     val chatMsg: ChatMsgItem,
 ) {
     // 视图绘制
@@ -84,7 +84,7 @@ class ChatBoxHelper(
             val start = System.currentTimeMillis()
             canvas.drawBitmap(srcBitmap, matrix, paint)
             drawBubbleView(canvas)
-            Log.d(TAG, "drawContainerView: cost=${System.currentTimeMillis() - start}")
+            Log.d(tag, "drawContainerView: cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -124,7 +124,7 @@ class ChatBoxHelper(
             val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
             canvas.drawBitmap(audioTrackHelper.getNextBitmap(), audioLeft, audioTop, paint)
-            Log.d(TAG, "addAudioView: cost=${System.currentTimeMillis() - start}")
+            Log.d(tag, "addAudioView: cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {
             e.printStackTrace()

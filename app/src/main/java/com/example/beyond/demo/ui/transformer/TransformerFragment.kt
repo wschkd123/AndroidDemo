@@ -1,5 +1,6 @@
 package com.example.beyond.demo.ui.transformer
 
+import TextLinesOverlay
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.LayoutInflater
@@ -246,6 +247,7 @@ class TransformerFragment : Fragment() {
                 )
             )
             overlaysBuilder.add(ChatBoxOverlay(requireContext(), chatMsg))
+            overlaysBuilder.add(TextLinesOverlay(requireContext(), chatMsg))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }
