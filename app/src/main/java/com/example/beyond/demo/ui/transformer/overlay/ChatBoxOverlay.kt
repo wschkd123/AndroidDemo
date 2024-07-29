@@ -7,6 +7,7 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
+import com.example.beyond.demo.ui.transformer.ChatMsgItem
 import com.example.beyond.demo.ui.transformer.util.AudioTrackHelper
 import com.example.beyond.demo.ui.transformer.util.ChatBoxHelper
 import com.example.beyond.demo.ui.transformer.util.TransformerUtil
@@ -20,8 +21,8 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
  */
 @UnstableApi
 class ChatBoxOverlay(
-    private val context: Context,
-    private val durationUs: Long
+    context: Context,
+    chatMsg: ChatMsgItem,
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
@@ -31,7 +32,10 @@ class ChatBoxOverlay(
         .setOverlayFrameAnchor(0f, 1f)
         .build()
 
-    private val chatBoxHelper: ChatBoxHelper = ChatBoxHelper(context, TAG, "林泽林泽林泽")
+    private val durationUs: Long = chatMsg.getDurationUs()
+    private val nickname: String = chatMsg.nickname ?: ""
+    private val isAudioPlaying: Boolean = chatMsg.havaAudio()
+    private val chatBoxHelper: ChatBoxHelper
 
     // 音频
     private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
@@ -44,6 +48,10 @@ class ChatBoxOverlay(
     private var lastBitmap: Bitmap? = null
     private var startTimeUs: Long = 0L
     private var endTimeUs: Long = durationUs
+
+    init {
+        chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
+    }
 
     fun setAudioPlayState(playing: Boolean) {
         if (isPlaying == playing) {

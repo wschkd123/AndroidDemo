@@ -74,14 +74,14 @@ internal class FullscreenBgHelper {
 
 //        targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
         try {
-            Canvas(targetBitmap!!).let {
+            Canvas(targetBitmap).let {
                 it.drawBitmap(src, matrix, paint)
                 // 添加渐变蒙层
                 it.drawRect(
                     0f,
                     maskTop,
-                    targetBitmap!!.width.toFloat(),
-                    targetBitmap!!.height.toFloat(),
+                    targetBitmap.width.toFloat(),
+                    targetBitmap.height.toFloat(),
                     maskPaint
                 )
                 it.setBitmap(null)
@@ -90,6 +90,6 @@ internal class FullscreenBgHelper {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return targetBitmap!!
+        return targetBitmap
     }
 }

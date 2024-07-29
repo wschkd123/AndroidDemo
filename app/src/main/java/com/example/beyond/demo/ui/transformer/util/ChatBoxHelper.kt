@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.util.Log
 import com.example.base.util.ext.resToColor
 import com.example.beyond.demo.R
+import com.example.beyond.demo.ui.transformer.ChatMsgItem
 
 /**
  * 文本框辅助类。包括所有元素的绘制
@@ -19,8 +20,7 @@ import com.example.beyond.demo.R
 class ChatBoxHelper(
     val context: Context,
     val TAG: String,
-    val nickname: String = "林泽林泽林泽",
-    val chatBoxBackgroundResId: Int = 0
+    val chatMsg: ChatMsgItem,
 ) {
     // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -32,9 +32,11 @@ class ChatBoxHelper(
     private val audioTop: Float
 
     /**
-     * 原背景图
+     * 背景图
      */
-    private val srcBitmap: Bitmap
+    private val srcBitmap: Bitmap =
+        TransformerUtil.loadImage(context, chatMsg.getChatBoxBgResId(), FRAME_WIDTH)
+            ?: TransformerUtil.createEmptyBitmap()
     private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
 
     companion object {
@@ -44,9 +46,6 @@ class ChatBoxHelper(
     }
 
     init {
-        srcBitmap =
-            TransformerUtil.loadImage(context, R.drawable.user_text_bg, FRAME_WIDTH)
-                ?: TransformerUtil.createEmptyBitmap()
         // 昵称画笔
         paint.apply {
             textAlign = Paint.Align.LEFT
@@ -56,12 +55,11 @@ class ChatBoxHelper(
         }
 
         // 气泡相对容器位置
-        val textWidth = paint.measureText(nickname)
+        val textWidth = paint.measureText(chatMsg.nickname ?: "")
         val drawablePadding = 12f
+        val audioWidth = if (chatMsg.havaAudio()) AudioTrackHelper.ICON_SIZE else 0
         val bubbleWidth =
-            textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + bubblePaddingHorizontal.times(
-                2
-            )
+            textWidth + drawablePadding + audioWidth + bubblePaddingHorizontal.times(2)
         val bubbleHeight = 78f
         bubbleRectF = RectF(0f, 0f, bubbleWidth, bubbleHeight)
 
@@ -111,7 +109,7 @@ class ChatBoxHelper(
         val distance = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
         val baseline: Float = bubbleRectF.centerY() + distance
         val textX = bubbleLeft + bubblePaddingHorizontal
-        canvas.drawText(nickname, textX, baseline, paint)
+        canvas.drawText(chatMsg.nickname ?: "", textX, baseline, paint)
     }
 
     /**

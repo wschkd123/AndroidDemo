@@ -62,12 +62,12 @@ class TransformerFragment : Fragment() {
         /**
          * 5分钟占位音频
          */
-        private const val TTS_PLACEHOLDER = "asset:///media/mp3/tts_placeholder.mp3"
+        private const val PLACEHOLDER_AUDIO = "asset:///media/mp3/placeholder.mp3"
 
         /**
          * 占位图片
          */
-        private const val PLACEHOLDER_IMAGE = "asset:///media/img/img_empty.png"
+        private const val PLACEHOLDER_IMAGE = "asset:///media/img/placeholder.png"
         private const val THREE_THREE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
     }
 
@@ -122,26 +122,27 @@ class TransformerFragment : Fragment() {
     }
 
     private fun createComposition(): Composition {
-        val list = EditedItemChunk.mock()
         val imageItemList = mutableListOf<EditedMediaItem>()
         val audioItemList = mutableListOf<EditedMediaItem>()
+        val list = ChatMsgItem.mock()
 
         // 封面部分
-        val coverDurationUs = 5_000_000L
-        imageItemList.add(createCoverImageItem(coverDurationUs))
+        val coverDurationUs = 2_000_000L
+        val coverUrl = list.get(0).backgroundUrl ?: ""
+        imageItemList.add(createCoverImageItem(coverDurationUs, coverUrl))
         audioItemList.add(createPlaceHolderItem(coverDurationUs))
 
         // 主体部分
-        list.forEach { chunk ->
+        list.forEach { chatMsg ->
             val chatInDurationUs = 2_000_000L
-            imageItemList.add(createChatInItem(chunk, chatInDurationUs))
+            imageItemList.add(createChatInItem(chatMsg, chatInDurationUs))
             audioItemList.add(createPlaceHolderItem(chatInDurationUs))
 
-            imageItemList.add(createChatItem(chunk))
+            imageItemList.add(createChatItem(chatMsg))
             audioItemList.add(createPlaceHolderItem(coverDurationUs))
 
             val chatOutDurationUs = 2_000_000L
-            imageItemList.add(createChatOutItem(chunk, chatOutDurationUs))
+            imageItemList.add(createChatOutItem(chatMsg, chatOutDurationUs))
             audioItemList.add(createPlaceHolderItem(chatOutDurationUs))
         }
 
@@ -159,10 +160,10 @@ class TransformerFragment : Fragment() {
     private fun createPlaceHolderItem(durationUs: Long): EditedMediaItem {
         // 如果超出音频长度，使用音频长度
         var finalDurationUs = durationUs
-        if (durationUs > 300) {
-            finalDurationUs = 300
+        if (durationUs > 300_000_000) {
+            finalDurationUs = 300_000_000
         }
-        val silenceItem = MediaItem.Builder().setUri(TTS_PLACEHOLDER)
+        val silenceItem = MediaItem.Builder().setUri(PLACEHOLDER_AUDIO)
             .setClippingConfiguration(
                 ClippingConfiguration.Builder()
                     .setStartPositionMs(0)
@@ -172,9 +173,9 @@ class TransformerFragment : Fragment() {
         return EditedMediaItem.Builder(silenceItem).build()
     }
 
-    private fun createCoverImageItem(durationUs: Long): EditedMediaItem {
+    private fun createCoverImageItem(durationUs: Long, url: String): EditedMediaItem {
         val videoEffects = createVideoEffects{ overlaysBuilder ->
-            overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, durationUs))
+            overlaysBuilder.add(CoverOverlay(requireContext(), url, durationUs))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }
@@ -182,17 +183,17 @@ class TransformerFragment : Fragment() {
     /**
      * 聊天开始Item
      */
-    private fun createChatInItem(chunk: EditedItemChunk, durationUs: Long): EditedMediaItem {
+    private fun createChatInItem(chatMsg: ChatMsgItem, durationUs: Long): EditedMediaItem {
         val videoEffects = createVideoEffects { overlaysBuilder ->
             // B背景图渐显，文本对话框上滑位移+渐显
             overlaysBuilder.add(
                 FullscreenAlphaInOverlay(
                     requireContext(),
-                    chunk.backgroundImage?:"",
+                    chatMsg.backgroundUrl?:"",
                     durationUs
                 )
             )
-            overlaysBuilder.add(ChatBoxInOverlay(requireContext(), durationUs))
+            overlaysBuilder.add(ChatBoxInOverlay(requireContext(), chatMsg))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }
@@ -200,33 +201,33 @@ class TransformerFragment : Fragment() {
     /**
      * 聊天退出Item
      */
-    private fun createChatOutItem(chunk: EditedItemChunk, durationUs: Long): EditedMediaItem {
+    private fun createChatOutItem(chatMsg: ChatMsgItem, durationUs: Long): EditedMediaItem {
         val videoEffects = createVideoEffects { overlaysBuilder ->
             // 背景图渐隐，文本对话框渐隐
             overlaysBuilder.add(
                 FullscreenAlphaOutOverlay(
                     requireContext(),
-                    chunk.backgroundImage?:"",
+                    chatMsg.backgroundUrl?:"",
                     durationUs
                 )
             )
-            overlaysBuilder.add(ChatBoxOutOverlay(requireContext(), durationUs))
+            overlaysBuilder.add(ChatBoxOutOverlay(requireContext(), chatMsg))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }
 
 
-    private fun createChatItem(chunk: EditedItemChunk): EditedMediaItem {
-        val durationUs = chunk.getDurationUs()
+    private fun createChatItem(chatMsg: ChatMsgItem): EditedMediaItem {
+        val durationUs = chatMsg.getDurationUs()
         val videoEffects = createVideoEffects { overlaysBuilder ->
             overlaysBuilder.add(
                 FullscreenImageOverlay(
                     requireContext(),
-                    chunk.backgroundImage?:"",
+                    chatMsg.backgroundUrl?:"",
                     durationUs
                 )
             )
-            overlaysBuilder.add(ChatBoxOverlay(requireContext(), durationUs))
+            overlaysBuilder.add(ChatBoxOverlay(requireContext(), chatMsg))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }

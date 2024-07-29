@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
+import com.example.beyond.demo.ui.transformer.ChatMsgItem
 import com.example.beyond.demo.ui.transformer.util.ChatBoxHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 import com.example.beyond.demo.ui.transformer.util.TransformerUtil
@@ -21,8 +22,8 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
  */
 @UnstableApi
 class ChatBoxOutOverlay(
-    private val context: Context,
-    private val durationUs: Long
+    context: Context,
+    chatMsg: ChatMsgItem
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
@@ -32,14 +33,20 @@ class ChatBoxOutOverlay(
         .setOverlayFrameAnchor(0f, 1f)
         .build()
 
-    private val chatBoxHelper: ChatBoxHelper = ChatBoxHelper(context, TAG, "林泽林泽林泽")
-
+    private val durationUs: Long = chatMsg.getDurationUs()
+    private val nickname: String = chatMsg.nickname ?: ""
+    private val isAudioPlaying: Boolean = chatMsg.havaAudio()
+    private val chatBoxHelper: ChatBoxHelper
     /**
      * 上一帧图
      */
     private var lastBitmap: Bitmap? = null
     private var startTimeUs: Long = 0L
     private var endTimeUs: Long = durationUs
+
+    init {
+        chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
+    }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         Log.d(TAG, "getBitmap: presentationTimeMs=$presentationTimeUs")
