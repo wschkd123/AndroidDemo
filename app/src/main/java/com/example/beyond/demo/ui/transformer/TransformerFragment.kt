@@ -55,7 +55,7 @@ class TransformerFragment : Fragment() {
         private const val TAG = "TransformerFragment"
         private const val TTS_SHORT = "asset:///media/mp3/short_tts.mp3"
         private const val TTS_LONG = "asset:///media/mp3/long_tts.mp3"
-        private const val PLACEHOLDER_IMAGE = "asset:///media/img/img_background.png"
+        private const val PLACEHOLDER_IMAGE = "asset:///media/img/img_empty.png"
         private const val ONE_ONE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/2365d825482a71b62b59a7db80b88fa2.jpg"
         private const val THREE_THREE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
         private const val NINE_SIXTEEN_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
@@ -102,6 +102,7 @@ class TransformerFragment : Fragment() {
         val outputFilePath = outputFile!!.absolutePath
         val transformer: Transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
+        exportStopwatch.start()
         transformer.start(composition, outputFilePath)
     }
 
@@ -111,26 +112,29 @@ class TransformerFragment : Fragment() {
     }
 
     private fun createComposition(): Composition {
-        //TODO 多个item串起来，但是Overlay无效
         val coverImageItem = createCoverImageItem()
         val chatImageItem = createChatImageItem()
-        val chatAudioItem = EditedMediaItem.Builder(MediaItem.fromUri(TTS_LONG))
+        val chatAudioItem = EditedMediaItem.Builder(MediaItem.fromUri(TTS_LONG)).build()
+        val imageItemList = mutableListOf<EditedMediaItem>()
+        val audioItemList = mutableListOf<EditedMediaItem>()
+        // 封面
+        imageItemList.add(coverImageItem)
 
-        // image
-        val imageSequence = EditedMediaItemSequence(mutableListOf(coverImageItem, chatImageItem))
+        // 聊天
+        imageItemList.add(createChatImageItem())
+        audioItemList.add(chatAudioItem)
 
-        // audio
-        val audioSequence = EditedMediaItemSequence(mutableListOf(chatAudioItem.build()))
-
-        val compositionBuilder =
-            Composition.Builder(mutableListOf(imageSequence, audioSequence))
+        val compositionBuilder = Composition.Builder(
+            EditedMediaItemSequence(imageItemList),
+            EditedMediaItemSequence(audioItemList)
+        )
         return compositionBuilder.build()
     }
 
     private fun createCoverImageItem(): EditedMediaItem {
-        val durationUs = 200_000L
+        val durationUs = 5_000_000L
         val videoEffects = createVideoEffects(durationUs) { overlaysBuilder ->
-            overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, 0, 200_000L))
+            overlaysBuilder.add(CoverOverlay(requireContext(), THREE_THREE_AVATAR, durationUs))
         }
         return EditedMediaItem.Builder(MediaItem.fromUri(PLACEHOLDER_IMAGE))
             .setDurationUs(durationUs)
@@ -139,20 +143,16 @@ class TransformerFragment : Fragment() {
             .build()
     }
 
-    private fun createChatImageItem(): EditedMediaItem {
-        val durationUs = 10_000_000L
+    private fun createChatImageItem(durationUs: Long = 10_000_000L): EditedMediaItem {
         val videoEffects = createVideoEffects(durationUs) { overlaysBuilder ->
-            var startTime: Long = 0
-            val coverDuration = 200_000L
-            val characterBgDuration = 400_000L
-            // B背景图渐显，文本对话框上滑位移+渐显
-            overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, startTime, characterBgDuration))
-            overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
-            startTime += characterBgDuration
+            val characterBgDuration = 2_000_000L
             //TODO A背景图渐隐，文本对话框渐隐
-            overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, startTime, characterBgDuration))
+            overlaysBuilder.add(FullscreenAlphaOutOverlay(requireContext(), ONE_ONE_AVATAR, characterBgDuration))
 //            overlaysBuilder.add(TextBoxOverlay(requireContext(), startTime, characterBgDuration))
-            startTime += characterBgDuration
+
+            // B背景图渐显，文本对话框上滑位移+渐显
+            overlaysBuilder.add(FullscreenAlphaInOverlay(requireContext(), NINE_SIXTEEN_AVATAR, characterBgDuration))
+            overlaysBuilder.add(TextBoxOverlay(requireContext(), characterBgDuration))
         }
         return EditedMediaItem.Builder(MediaItem.fromUri(PLACEHOLDER_IMAGE))
             .setDurationUs(durationUs)
@@ -202,6 +202,7 @@ class TransformerFragment : Fragment() {
     }
 
     private fun onCompleted(filePath: String, exportResult: ExportResult) {
+        exportStopwatch.stop()
         val elapsedTimeMs: Long = exportStopwatch.elapsed(TimeUnit.MILLISECONDS)
         binding.informationTextView.text =
             getString(R.string.export_completed, elapsedTimeMs / 1000f, filePath)
@@ -227,6 +228,7 @@ class TransformerFragment : Fragment() {
     }
 
     private fun onError(exportException: ExportException) {
+        exportStopwatch.stop()
         binding.informationTextView.text = "Export error"
         Toast.makeText(getApplicationContext(), "Export error: $exportException", Toast.LENGTH_LONG)
             .show()

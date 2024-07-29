@@ -24,13 +24,13 @@ import java.util.concurrent.ExecutionException
 open class BaseBitmapOverlay(
     private val context: Context,
     private val url: String,
-    private val startTimeUs: Long,
     private val durationUs: Long
 ) : BitmapOverlay() {
     protected val TAG = javaClass.simpleName
     protected val overlaySettings: OverlaySettings = OverlaySettings.Builder().build()
     protected var lastBitmap: Bitmap? = null
-    private val endTimeUs: Long = startTimeUs + durationUs
+    protected var startTimeUs: Long = 0L
+    private var endTimeUs: Long =  durationUs
 
     /**
      * 剪裁原Bitmap
@@ -53,6 +53,11 @@ open class BaseBitmapOverlay(
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         Log.d(TAG, "getBitmap: presentationTimeUs=$presentationTimeUs")
+        // 首帧记录开始和结束时间
+        if (startTimeUs <= 0L) {
+            startTimeUs = presentationTimeUs
+            endTimeUs = startTimeUs + durationUs
+        }
         // 不在指定的时间范围，返回空Bitmap
         if (presentationTimeUs !in startTimeUs..endTimeUs) {
             Log.i(TAG, "getBitmap: not time range")

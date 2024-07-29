@@ -18,9 +18,8 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 class FullscreenAlphaInOverlay(
     context: Context,
     url: String,
-    private val startTimeUs: Long,
     private val durationUs: Long
-) : BaseBitmapOverlay(context, url, startTimeUs, durationUs) {
+) : BaseBitmapOverlay(context, url, durationUs) {
 
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
 

@@ -15,9 +15,8 @@ import com.example.beyond.demo.ui.transformer.util.FullscreenBgHelper
 class CoverOverlay(
     context: Context,
     url: String,
-    startTimeUs: Long,
     durationUs: Long
-) : BaseBitmapOverlay(context, url, startTimeUs, durationUs) {
+) : BaseBitmapOverlay(context, url, durationUs) {
 
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
 

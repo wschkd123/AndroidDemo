@@ -17,14 +17,17 @@ import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 class FullscreenAlphaOutOverlay(
     context: Context,
     url: String,
-    private val startTimeUs: Long,
     private val durationUs: Long
-) : BaseBitmapOverlay(context, url, startTimeUs, durationUs) {
+) : BaseBitmapOverlay(context, url, durationUs) {
 
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
 
     override fun cropBitmap(srcBitmap: Bitmap): Bitmap {
         return bitmapHelper.createCharacterBgWithMask(srcBitmap)
+    }
+
+    override fun getBitmap(presentationTimeUs: Long): Bitmap {
+        return super.getBitmap(presentationTimeUs)
     }
 
     override fun updateAnimation(presentationTimeUs: Long) {

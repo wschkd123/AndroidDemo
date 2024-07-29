@@ -25,13 +25,11 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
  *
  * @author wangshichao
  * @date 2024/7/24
- * @param startTimeUs 整体动画开始时间
  * @param durationUs 持续时间
  */
 @UnstableApi
 class TextBoxOverlay(
     private val context: Context,
-    private val startTimeUs: Long,
     private val durationUs: Long
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
@@ -41,7 +39,6 @@ class TextBoxOverlay(
         // 在原覆盖物下面的位置
         .setOverlayFrameAnchor(0f, 1f)
         .build()
-    private val endTimeUs: Long = startTimeUs + durationUs
 
     // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -66,6 +63,8 @@ class TextBoxOverlay(
      * 上一帧图
      */
     private var lastBitmap: Bitmap? = null
+    private var startTimeUs: Long = 0L
+    private var endTimeUs: Long = durationUs
     private val nickname = "林泽林泽林泽"
 
     companion object {
@@ -107,15 +106,18 @@ class TextBoxOverlay(
     }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
+        Log.d(TAG, "getBitmap: presentationTimeMs=$presentationTimeUs")
+        // 首帧记录开始和结束时间
+        if (startTimeUs <= 0L) {
+            startTimeUs = presentationTimeUs
+            endTimeUs = startTimeUs + durationUs
+        }
         val startTime = System.currentTimeMillis()
 
         // 整体文本框平移和渐显动画
         if (presentationTimeUs in startTimeUs..endTimeUs) {
             val animatedValue = (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
-            Log.i(
-                TAG,
-                "getBitmap: animatedValue=$animatedValue presentationTimeMs=$presentationTimeUs"
-            )
+            Log.i(TAG, "getBitmap: animatedValue=$animatedValue")
             updateBgAnimation(animatedValue)
             if (lastBitmap == null) {
                 lastBitmap = drawContainerView(srcBitmap)
@@ -125,12 +127,13 @@ class TextBoxOverlay(
         // 绘制音轨。每200毫秒重绘一帧实现动画
         val audioPeriod = presentationTimeUs - lastAudioTimeUs
         if (presentationTimeUs > endTimeUs && isPlaying && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
+            Log.d(TAG, "getBitmap: isPlaying")
             val bgBitmap = drawContainerView(srcBitmap)
 //            lastBitmap = bgBitmap
             lastBitmap = addAudioView(bgBitmap)
             lastAudioTimeUs = presentationTimeUs
         }
-        Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime} presentationTimeMs=$presentationTimeUs")
+        Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
         return lastBitmap ?: TransformerUtil.createEmptyBitmap()
     }
 
