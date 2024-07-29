@@ -30,7 +30,6 @@ open class BaseBitmapOverlay(
     protected val overlaySettings: OverlaySettings = OverlaySettings.Builder().build()
     protected var lastBitmap: Bitmap? = null
     protected var startTimeUs: Long = 0L
-    private var endTimeUs: Long =  durationUs
 
     /**
      * 剪裁原Bitmap
@@ -56,13 +55,12 @@ open class BaseBitmapOverlay(
         // 首帧记录开始和结束时间
         if (startTimeUs <= 0L) {
             startTimeUs = presentationTimeUs
-            endTimeUs = startTimeUs + durationUs
         }
 
         if (lastBitmap == null) {
             Log.w(
                 TAG,
-                "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} endTimeUs=${endTimeUs} durationUs=${durationUs}"
+                "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} durationUs=${durationUs}"
             )
             val bitmapLoader: BitmapLoader = DataSourceBitmapLoader(context)
             val future = bitmapLoader.loadBitmap(Uri.parse(url))

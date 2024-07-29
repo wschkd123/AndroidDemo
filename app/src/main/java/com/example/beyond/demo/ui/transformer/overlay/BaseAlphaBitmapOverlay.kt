@@ -36,7 +36,6 @@ abstract class BaseAlphaBitmapOverlay(
             .build()
     }
     private var lastBitmap: Bitmap? = null
-    private val endTimeUs: Long = startTimeUs + durationUs
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
 
     abstract fun updateAlpha(overlaySettings: OverlaySettings, curAlpha: Float)
@@ -45,7 +44,7 @@ abstract class BaseAlphaBitmapOverlay(
         if (lastBitmap == null) {
             Log.w(
                 TAG,
-                "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} endTimeUs=${endTimeUs} durationUs=${durationUs}"
+                "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} durationUs=${durationUs}"
             )
             val bitmapLoader: BitmapLoader = DataSourceBitmapLoader(context)
             val future = bitmapLoader.loadBitmap(Uri.parse(url))

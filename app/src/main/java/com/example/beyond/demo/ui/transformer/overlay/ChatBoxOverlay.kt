@@ -16,7 +16,6 @@ import com.example.beyond.demo.ui.transformer.util.TransformerUtil
  *
  * @author wangshichao
  * @date 2024/7/24
- * @param durationUs 持续时间
  */
 @UnstableApi
 class ChatBoxOverlay(
@@ -26,9 +25,9 @@ class ChatBoxOverlay(
     private val TAG = javaClass.simpleName
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
         // 覆盖物在视频底部以下
-        .setBackgroundFrameAnchor(0f, -0.3f)
+        .setBackgroundFrameAnchor(0f, -1f)
         // 在原覆盖物下面的位置
-        .setOverlayFrameAnchor(0f, 1f)
+        .setOverlayFrameAnchor(0f, -1f)
         .build()
 
     private val chatBoxHelper: ChatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)

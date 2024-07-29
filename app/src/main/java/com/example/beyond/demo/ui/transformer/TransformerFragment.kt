@@ -59,17 +59,19 @@ class TransformerFragment : Fragment() {
 
     companion object {
         private const val TAG = "TransformerFragment"
-
         /**
-         * 5分钟占位音频
+         * 占位音频长度（微秒）
+         */
+        private const val PLACEHOLDER_AUDIO_DURATION_US = 180_000_000L
+        /**
+         * 占位音频
          */
         private const val PLACEHOLDER_AUDIO = "asset:///media/placeholder.mp3"
 
         /**
          * 占位图片
          */
-        private const val PLACEHOLDER_IMAGE = "asset:///media/img/placeholder.png"
-        private const val THREE_THREE_AVATAR = "https://zmdcharactercdn.zhumengdao.com/34487524784424960048.png"
+        private const val PLACEHOLDER_IMAGE = "asset:///media/placeholder.png"
     }
 
     private var _binding: FragmentTransformerBinding? = null
@@ -175,8 +177,8 @@ class TransformerFragment : Fragment() {
     private fun createPlaceHolderItem(durationUs: Long): EditedMediaItem {
         // 如果超出音频长度，使用音频长度
         var finalDurationUs = durationUs
-        if (durationUs > 300_000_000) {
-            finalDurationUs = 300_000_000
+        if (durationUs > PLACEHOLDER_AUDIO_DURATION_US) {
+            finalDurationUs = PLACEHOLDER_AUDIO_DURATION_US
         }
         val silenceItem = MediaItem.Builder().setUri(PLACEHOLDER_AUDIO)
             .setClippingConfiguration(

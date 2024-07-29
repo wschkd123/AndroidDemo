@@ -32,7 +32,7 @@ class ChatBoxInOverlay(
         // 覆盖物在视频底部以下
         .setBackgroundFrameAnchor(0f, -1f)
         // 在原覆盖物下面的位置
-        .setOverlayFrameAnchor(0f, 1f)
+        .setOverlayFrameAnchor(0f, -1f)
         .build()
 
     private val chatBoxHelper: ChatBoxHelper
@@ -42,7 +42,6 @@ class ChatBoxInOverlay(
      */
     private var lastBitmap: Bitmap? = null
     private var startTimeUs: Long = 0L
-    private var endTimeUs: Long = 0L
 
     init {
         chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
@@ -52,13 +51,12 @@ class ChatBoxInOverlay(
         // 首帧记录开始和结束时间
         if (startTimeUs <= 0L) {
             startTimeUs = presentationTimeUs
-            endTimeUs = startTimeUs + durationUs
         }
 
         // 整体文本框平移和渐显动画
         val startTime = System.currentTimeMillis()
         val animatedValue = (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
-        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs endTimeUs=$endTimeUs presentationTimeUs=$presentationTimeUs animatedValue=$animatedValue")
+        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs presentationTimeUs=$presentationTimeUs animatedValue=$animatedValue")
         updateBgAnimation(animatedValue)
         if (lastBitmap == null) {
             lastBitmap = chatBoxHelper.drawContainerView()
