@@ -40,11 +40,6 @@ open class BaseBitmapOverlay(
 
     }
 
-    open fun animationEnd(): Bitmap {
-        return TransformerUtil.createEmptyBitmap()
-    }
-
-
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         Log.d(TAG, "getBitmap: presentationTimeUs=$presentationTimeUs")
         // 首帧记录开始和结束时间
