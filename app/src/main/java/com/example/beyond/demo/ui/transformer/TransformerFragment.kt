@@ -65,12 +65,12 @@ class TransformerFragment : Fragment() {
         /**
          * 占位音频
          */
-        private const val PLACEHOLDER_AUDIO = "asset:///media/placeholder.mp3"
+        private const val PLACEHOLDER_AUDIO = "asset:///placeholder.mp3"
 
         /**
          * 占位图片
          */
-        private const val PLACEHOLDER_IMAGE = "asset:///media/placeholder.png"
+        private const val PLACEHOLDER_IMAGE = "asset:///placeholder.png"
     }
 
     private var _binding: FragmentTransformerBinding? = null
