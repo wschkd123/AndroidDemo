@@ -14,6 +14,8 @@ import android.text.style.ForegroundColorSpan
 import androidx.media3.common.util.Assertions
 import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.TextOverlay
+import com.example.base.util.ext.resToColor
+import com.example.beyond.demo.R
 import com.example.beyond.demo.ui.transformer.ChatMsgItem
 import com.example.beyond.demo.ui.transformer.util.ChatBoxHelper
 import kotlin.math.max
@@ -27,7 +29,7 @@ import kotlin.math.min
  */
 @SuppressLint("UnsafeOptInUsageError")
 class TextLinesOverlay(
-    context: Context,
+    val context: Context,
     chatMsg: ChatMsgItem,
 ) : TextOverlay() {
     private val TAG = javaClass.simpleName
@@ -66,7 +68,7 @@ class TextLinesOverlay(
             )
         )
         text.setSpan(
-            ForegroundColorSpan(Color.WHITE),
+            ForegroundColorSpan(R.color.video_create_chat_content_text.resToColor(context)),
             0,
             min(length.toDouble(), (subString.length - 1).toDouble()).toInt(),
             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE

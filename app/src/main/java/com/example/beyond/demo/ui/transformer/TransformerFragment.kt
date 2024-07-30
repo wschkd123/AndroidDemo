@@ -25,7 +25,6 @@ import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
 import androidx.media3.transformer.Transformer
-import com.example.base.AppContext
 import com.example.base.Init.getApplicationContext
 import com.example.base.player.exoplayer.ExoPlayerWrapper
 import com.example.base.util.YWDeviceUtil
@@ -138,7 +137,7 @@ class TransformerFragment : Fragment() {
 
         // 封面部分
         val coverDurationUs = 200_000L
-        val coverUrl = list.get(0).backgroundUrl ?: ""
+        val coverUrl = list.getOrNull(0)?.backgroundUrl ?: ""
         imageItemList.add(createCoverImageItem(coverDurationUs, coverUrl))
         audioItemList.add(createPlaceHolderItem(coverDurationUs))
 
@@ -153,7 +152,12 @@ class TransformerFragment : Fragment() {
 
             // 2. 聊天文本播放
             imageItemList.add(createChatItem(chatMsg))
-            audioItemList.add(createPlaceHolderItem(coverDurationUs))
+            val audioItem = if (chatMsg.havaAudio()) {
+                EditedMediaItem.Builder(MediaItem.fromUri(chatMsg.audioUrl ?: "")).build()
+            } else {
+                createPlaceHolderItem(chatMsg.getDurationUs())
+            }
+            audioItemList.add(audioItem)
 
             // 3. 聊天文本框退出
             val chatOutDurationUs = 400_000L
@@ -163,12 +167,10 @@ class TransformerFragment : Fragment() {
             audioItemList.add(createPlaceHolderItem(chatOutDurationUs))
         }
 
-        // 聊天
-        val compositionBuilder = Composition.Builder(
+
+        return Composition.Builder(
             EditedMediaItemSequence(imageItemList),
-            EditedMediaItemSequence(audioItemList)
-        )
-        return compositionBuilder.build()
+            EditedMediaItemSequence(audioItemList)).build()
     }
 
     /**
@@ -269,12 +271,7 @@ class TransformerFragment : Fragment() {
     }
 
     private fun createTransformer(filePath: String): Transformer {
-        val transformerBuilder: Transformer.Builder = Transformer.Builder(AppContext.application)
-        // mp4格式
-//        transformerBuilder.setTransformationRequest(
-//            TransformationRequest.Builder().setVideoMimeType(MimeTypes.VIDEO_MP4).build()
-//        )
-        return transformerBuilder
+        return Transformer.Builder(requireContext())
             .addListener(
                 object : Transformer.Listener {
                     override fun onCompleted(composition: Composition, exportResult: ExportResult) {
@@ -295,7 +292,6 @@ class TransformerFragment : Fragment() {
     private fun createVideoEffects(block: (ImmutableList.Builder<TextureOverlay>) -> Unit): ImmutableList<Effect> {
         val effects = ImmutableList.Builder<Effect>()
         // 配置输出视频分辨率。需要放前面，后续Overlay中configure尺寸才生效
-        //TODO 改为应用到composition
         effects.add(
             Presentation.createForWidthAndHeight(
             TransformerConstant.OUT_VIDEO_WIDTH, TransformerConstant.OUT_VIDEO_HEIGHT, Presentation.LAYOUT_SCALE_TO_FIT
