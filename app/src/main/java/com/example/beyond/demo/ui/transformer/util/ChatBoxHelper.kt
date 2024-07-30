@@ -35,7 +35,6 @@ class ChatBoxHelper(
      */
     private val srcBitmap: Bitmap =
         TransformerUtil.loadImage(context, chatMsg.getChatBoxBgResId(), FRAME_WIDTH)
-            ?: TransformerUtil.createEmptyBitmap()
     private val audioTrackHelper: AudioTrackHelper = AudioTrackHelper(context)
 
     companion object {
@@ -101,7 +100,7 @@ class ChatBoxHelper(
             R.drawable.bubble_bg,
             bubbleRectF.width().toInt(),
             bubbleRectF.height().toInt()
-        ) ?: TransformerUtil.createEmptyBitmap()
+        )
         canvas.drawBitmap(bubbleBgBitmap, bubbleLeft, 0f, paint)
 
         // 绘制昵称

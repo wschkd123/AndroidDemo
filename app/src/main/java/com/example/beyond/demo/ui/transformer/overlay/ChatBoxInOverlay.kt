@@ -10,7 +10,6 @@ import androidx.media3.effect.OverlaySettings
 import com.example.beyond.demo.ui.transformer.ChatMsgItem
 import com.example.beyond.demo.ui.transformer.util.ChatBoxHelper
 import com.example.beyond.demo.ui.transformer.util.ReflectUtil
-import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
 /**
  * 聊天文本框移到中下方且渐显
@@ -52,14 +51,14 @@ class ChatBoxInOverlay(
         // 整体文本框平移和渐显动画
         val startTime = System.currentTimeMillis()
         val animatedValue = (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
-        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs presentationTimeUs=$presentationTimeUs animatedValue=$animatedValue")
+        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs durationUs=${durationUs} presentationTimeUs=$presentationTimeUs animatedValue=$animatedValue")
         updateBgAnimation(animatedValue)
         if (lastBitmap == null) {
             lastBitmap = chatBoxHelper.drawContainerView()
         }
 
         Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
-        return lastBitmap ?: TransformerUtil.createEmptyBitmap()
+        return lastBitmap!!
     }
 
     /**

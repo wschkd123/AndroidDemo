@@ -5,7 +5,12 @@ import com.example.base.bean.IgnoreProguard
 import com.example.beyond.demo.R
 import com.google.gson.annotations.SerializedName
 
-
+/**
+ * 用于生成视频的聊天消息Item
+ *
+ * @author wangshichao
+ * @date 2024/7/30
+ */
 data class ChatMsgItem(
     var nickname: String? = null,
     val text: String? = null,
@@ -14,7 +19,7 @@ data class ChatMsgItem(
     @SerializedName("audioAddress")
     val audioUrl: String? = null,
     /**
-     * 音频时长（单位：秒）
+     * 音频时长（单位：毫秒）
      */
     val audioDuration: Long = 0,
     /**
@@ -26,9 +31,19 @@ data class ChatMsgItem(
     val senderId: String? = null,
 ) : IgnoreProguard() {
 
+    /**
+     * 生成item长度。单位us
+     */
     fun getDurationUs(): Long {
-        val durationS = if (audioDuration > 0) audioDuration else (text?.length ?: 0L).toLong()
-        return durationS * 1_000L
+        if (havaAudio()) {
+            return audioDuration * 1_000L
+        }
+        // 无语音时，一个文字0.12s，最短总共1.2s
+        var textDurationS = (text?.length ?: 0L).toLong().times(0.12f)
+        if (textDurationS < 1.2) {
+            textDurationS = 1.2f
+        }
+        return textDurationS.times(1_000_000).toLong()
     }
 
     fun havaAudio() = audioDuration > 0 && !TextUtils.isEmpty(audioUrl)

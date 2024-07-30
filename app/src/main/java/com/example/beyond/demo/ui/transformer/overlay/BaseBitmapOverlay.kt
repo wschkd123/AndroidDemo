@@ -52,8 +52,12 @@ open class BaseBitmapOverlay(
                 TAG,
                 "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} durationUs=${durationUs}"
             )
-            val bitmap: Bitmap = TransformerUtil.loadImage(context, url)
-            lastBitmap = cropBitmap(bitmap)
+            val bitmap: Bitmap? = TransformerUtil.loadImage(context, url)
+            lastBitmap = if (bitmap == null) {
+                TransformerUtil.createEmptyBitmap(1, 1)
+            } else {
+                cropBitmap(bitmap)
+            }
         }
         updateAnimation(presentationTimeUs)
         return lastBitmap!!

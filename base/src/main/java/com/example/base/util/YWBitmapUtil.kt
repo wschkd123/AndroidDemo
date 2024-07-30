@@ -429,16 +429,14 @@ object YWBitmapUtil {
      * @param width 宽度
      * @return
      */
-    fun scaleBitmapByWidth(src: Bitmap?, width: Int): Bitmap? {
-        if (src != null) {
-            if (src.width == width) {
-                return src
-            } else if (width > 0) {
-                val sH = width.toFloat() / src.width.toFloat()
-                val m = Matrix()
-                m.postScale(sH, sH)
-                return Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, true)
-            }
+    fun scaleBitmapByWidth(src: Bitmap, width: Int): Bitmap {
+        if (src.width == width) {
+            return src
+        } else if (width > 0) {
+            val sH = width.toFloat() / src.width.toFloat()
+            val m = Matrix()
+            m.postScale(sH, sH)
+            return Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, true)
         }
         return src
     }

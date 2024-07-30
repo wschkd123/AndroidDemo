@@ -28,7 +28,7 @@ internal object TransformerUtil {
     fun loadImage(
         context: Context,
         url: String
-    ): Bitmap {
+    ): Bitmap? {
         var bitmap: Bitmap? = null
         try {
             val futureTarget = Glide.with(context)
@@ -38,9 +38,9 @@ internal object TransformerUtil {
             bitmap = futureTarget.get()
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("AppWidget", "load $url fail ${e.message}")
+            Log.e(TAG, "load $url fail ${e.message}")
         }
-        return bitmap?: createEmptyBitmap()
+        return bitmap
     }
 
     /**
@@ -52,7 +52,7 @@ internal object TransformerUtil {
         resId: Int,
         width: Int,
         height: Int
-    ): Bitmap? {
+    ): Bitmap {
         var bitmap: Bitmap? = null
         val requestOptions = RequestOptions()
             .transform(CenterCrop())
@@ -66,9 +66,9 @@ internal object TransformerUtil {
             bitmap = futureTarget.get()
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e("AppWidget", "load fail ${e.message}")
+            Log.e(TAG, "load fail ${e.message}")
         }
-        return bitmap
+        return bitmap?: createEmptyBitmap(width, height)
     }
 
     /**
@@ -76,9 +76,9 @@ internal object TransformerUtil {
      *
      * @param width 指定宽度
      */
-    fun loadImage(context: Context, resId: Int, width: Int = 0): Bitmap? {
+    fun loadImage(context: Context, resId: Int, width: Int = 0): Bitmap {
         val bitmap = BitmapFactory.decodeResource(context.resources, resId)
-        if (width == 0) return bitmap
+        if (width == 0) return bitmap!!
         return YWBitmapUtil.scaleBitmapByWidth(bitmap, width)
     }
 
@@ -107,7 +107,10 @@ internal object TransformerUtil {
         return targetBitmap
     }
 
-    fun createEmptyBitmap(): Bitmap {
-        return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+    /**
+     * 用于Overlay位图兜底
+     */
+    fun createEmptyBitmap(width: Int, height: Int): Bitmap {
+        return Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
     }
 }

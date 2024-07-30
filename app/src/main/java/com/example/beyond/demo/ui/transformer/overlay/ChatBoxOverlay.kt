@@ -9,7 +9,6 @@ import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
 import com.example.beyond.demo.ui.transformer.ChatMsgItem
 import com.example.beyond.demo.ui.transformer.util.ChatBoxHelper
-import com.example.beyond.demo.ui.transformer.util.TransformerUtil
 
 /**
  * 聊天文本框
@@ -63,7 +62,7 @@ class ChatBoxOverlay(
             lastAudioFrameTimeUs = presentationTimeUs
         }
         Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
-        return lastBitmap ?: TransformerUtil.createEmptyBitmap()
+        return lastBitmap!!
     }
 
     override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
