@@ -105,15 +105,15 @@ class TransformerFragment : Fragment() {
         }
         binding.playerView.player = playerWrapper.player
         binding.tvOutput.setOnClickListener {
-            if (exportStopwatch.isRunning) {
-                Log.w(TAG, "is transformer")
-                return@setOnClickListener
-            }
             start()
         }
     }
 
     private fun start() {
+        if (exportStopwatch.isRunning) {
+            Log.w(TAG, "is transformer")
+            return
+        }
         outputFile =
             YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/" + System.currentTimeMillis() + ".mp4")
                 ?: return
@@ -134,7 +134,7 @@ class TransformerFragment : Fragment() {
     private fun createComposition(): Composition {
         val imageItemList = mutableListOf<EditedMediaItem>()
         val audioItemList = mutableListOf<EditedMediaItem>()
-        val list = ChatMsgItem.mock()
+        val list = ChatMsgItem.getChatList()
 
         // 封面部分
         val coverDurationUs = 200_000L

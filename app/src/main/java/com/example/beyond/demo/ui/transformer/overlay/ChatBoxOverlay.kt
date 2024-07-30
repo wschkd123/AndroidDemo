@@ -24,8 +24,8 @@ class ChatBoxOverlay(
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
-        // 覆盖物在视频底部以下
-        .setBackgroundFrameAnchor(0f, -1f)
+        // 覆盖物在视频中下部
+        .setBackgroundFrameAnchor(0f, -0.3f)
         // 在原覆盖物下面的位置
         .setOverlayFrameAnchor(0f, -1f)
         .build()

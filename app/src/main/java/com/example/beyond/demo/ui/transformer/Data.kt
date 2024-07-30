@@ -7,11 +7,11 @@ import com.google.gson.annotations.SerializedName
 
 
 data class ChatMsgItem(
-    val nickname: String? = null,
+    var nickname: String? = null,
     val text: String? = null,
     @SerializedName("backgroundImage")
-    val backgroundUrl: String? = null,
-    @SerializedName("audioAdress")
+    var backgroundUrl: String? = null,
+    @SerializedName("audioAddress")
     val audioUrl: String? = null,
     /**
      * 音频时长（单位：秒）
@@ -33,10 +33,12 @@ data class ChatMsgItem(
 
     fun havaAudio() = audioDuration > 0 && !TextUtils.isEmpty(audioUrl)
 
+    fun isUser() = senderType != 2
+
     fun getChatBoxBgResId(): Int {
-        return when (senderType) {
-            2 -> R.drawable.character_text_bg
-            else -> R.drawable.user_text_bg
+        return when  {
+            isUser() -> R.drawable.user_text_bg
+            else -> R.drawable.character_text_bg
         }
     }
 
@@ -49,7 +51,22 @@ data class ChatMsgItem(
             "https://zmdcharactercdn.zhumengdao.com/34459418686279680012.png"
         private const val TTS_SHORT = "asset:///media/short_tts.mp3"
         private const val TTS_LONG = "asset:///media/long_tts.mp3"
-        fun mock(): List<ChatMsgItem> {
+
+        fun getChatList(): List<ChatMsgItem> {
+            val list = mock()
+            list.forEachIndexed { index, chatMsg ->
+                // 用户发言时，仅切换对话文本框，不切换背景
+                if (index > 0 && chatMsg.isUser()) {
+                    chatMsg.backgroundUrl = list.get(index - 1).backgroundUrl
+                }
+                // 用户发言显示“我”
+                if (chatMsg.isUser()) {
+                    chatMsg.nickname = "我"
+                }
+            }
+            return list
+        }
+        private fun mock(): List<ChatMsgItem> {
             return mutableListOf(
                 ChatMsgItem(
                     "林泽林泽林泽",
@@ -60,9 +77,8 @@ data class ChatMsgItem(
                     senderType = 2
                 ),
                 ChatMsgItem(
-                    "用户",
+                    "我",
                     "哈哈哈哈",
-                    THREE_THREE_AVATAR,
                     senderType = 1
                 ),
                 ChatMsgItem(

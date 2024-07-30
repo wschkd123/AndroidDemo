@@ -5,14 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.os.Build
 import android.text.Layout
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.style.ForegroundColorSpan
-import androidx.annotation.RequiresApi
 import androidx.media3.common.util.Assertions
 import androidx.media3.effect.OverlaySettings
 import androidx.media3.effect.TextOverlay
@@ -47,8 +45,10 @@ class TextLinesOverlay(
             this.subString = chatMsg.text
         }
         overlaySettings = OverlaySettings.Builder()
+            // 覆盖物在视频中下部
             .setBackgroundFrameAnchor(0f, -0.3f)
-            .setOverlayFrameAnchor(0f, 1f)
+            // 在原覆盖物下面的位置
+            .setOverlayFrameAnchor(0f, -1f)
             .build()
     }
     override fun getText(presentationTimeUs: Long): SpannableString {
@@ -78,7 +78,7 @@ class TextLinesOverlay(
     override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {
         return overlaySettings!!
     }
-    @RequiresApi(Build.VERSION_CODES.Q)
+
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
 
         val curLength = getText(presentationTimeUs).length
@@ -105,6 +105,7 @@ class TextLinesOverlay(
         }
         val canvas = Canvas(Assertions.checkNotNull(containerBitmap))
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+        canvas.translate(60f, 90f)
         staticLayout.draw(canvas)
         return Assertions.checkNotNull(containerBitmap)
     }

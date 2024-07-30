@@ -24,7 +24,6 @@ class ChatBoxHelper(
 ) {
     // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val matrix: android.graphics.Matrix = android.graphics.Matrix()
     private val bubbleRectF: RectF
     private val bubbleLeft: Float = 54f
     private val bubblePaddingHorizontal = 30f
@@ -58,7 +57,7 @@ class ChatBoxHelper(
         val textWidth = paint.measureText(chatMsg.nickname ?: "")
         val drawablePadding = 12f
         val bubbleWidth = if (chatMsg.havaAudio()) {
-            textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE +  + bubblePaddingHorizontal.times(2)
+            textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + bubblePaddingHorizontal.times(2)
         } else {
             textWidth + bubblePaddingHorizontal.times(2)
         }
@@ -82,7 +81,7 @@ class ChatBoxHelper(
         try {
             val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
-            canvas.drawBitmap(srcBitmap, matrix, paint)
+            canvas.drawBitmap(srcBitmap, 0f, 0f, paint)
             drawBubbleView(canvas)
             Log.d(tag, "drawContainerView: cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
@@ -95,7 +94,7 @@ class ChatBoxHelper(
     /**
      * 绘制气泡容器。内部有昵称、音频图标
      */
-    fun drawBubbleView(canvas: Canvas) {
+    private fun drawBubbleView(canvas: Canvas) {
         // 绘制背景
         val bubbleBgBitmap = TransformerUtil.loadImage(
             context,

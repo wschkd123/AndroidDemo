@@ -31,21 +31,17 @@ class ChatBoxInOverlay(
     private val overlaySettings: OverlaySettings = OverlaySettings.Builder()
         // 覆盖物在视频底部以下
         .setBackgroundFrameAnchor(0f, -1f)
-        // 在原覆盖物下面的位置
+        // 在原覆盖物下面的位置，屏幕以下
         .setOverlayFrameAnchor(0f, -1f)
         .build()
 
-    private val chatBoxHelper: ChatBoxHelper
+    private val chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
 
     /**
      * 上一帧图
      */
     private var lastBitmap: Bitmap? = null
     private var startTimeUs: Long = 0L
-
-    init {
-        chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
-    }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
         // 首帧记录开始和结束时间
