@@ -22,6 +22,28 @@ internal object TransformerUtil {
     private val TAG = "TransformerUtil-Overlay"
 
     /**
+     * 同步加载本地图片。如果加载失败，返回空位图
+     */
+    @WorkerThread
+    fun loadImage(
+        context: Context,
+        url: String
+    ): Bitmap {
+        var bitmap: Bitmap? = null
+        try {
+            val futureTarget = Glide.with(context)
+                .asBitmap()
+                .load(url)
+                .submit()
+            bitmap = futureTarget.get()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("AppWidget", "load $url fail ${e.message}")
+        }
+        return bitmap?: createEmptyBitmap()
+    }
+
+    /**
      * 同步加载本地图片
      */
     @WorkerThread

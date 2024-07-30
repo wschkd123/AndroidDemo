@@ -2,17 +2,12 @@ package com.example.beyond.demo.ui.transformer.overlay
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.net.Uri
 import android.util.Log
-import androidx.media3.common.VideoFrameProcessingException
-import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.Size
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.OverlaySettings
 import com.example.beyond.demo.ui.transformer.util.TransformerUtil
-import java.util.concurrent.ExecutionException
 
 /**
  * 图片url基类。支持在指定时间范围内显示
@@ -62,18 +57,7 @@ open class BaseBitmapOverlay(
                 TAG,
                 "getBitmap: presentationTimeMs=$presentationTimeUs startTimeUs=${startTimeUs} durationUs=${durationUs}"
             )
-            val bitmapLoader: BitmapLoader = DataSourceBitmapLoader(context)
-            val future = bitmapLoader.loadBitmap(Uri.parse(url))
-            val bitmap = try {
-                future.get()
-            } catch (e: ExecutionException) {
-                throw VideoFrameProcessingException(e)
-            } catch (e: InterruptedException) {
-                throw VideoFrameProcessingException(e)
-            }
-            /**
-             * [androidx.media3.effect.Presentation]配置的输出视频分辨率
-             */
+            val bitmap: Bitmap = TransformerUtil.loadImage(context, url)
             lastBitmap = cropBitmap(bitmap)
         }
         updateAnimation(presentationTimeUs)

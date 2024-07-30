@@ -32,6 +32,8 @@ internal class FullscreenBgHelper {
 
     /**
      * 带蒙层的人物背景图片。图片“高宽比”比目标视图高时，缩放图像保留顶部内容裁掉底部内容，反之，缩放裁掉左右内容
+     *
+     * 需要通过 [androidx.media3.effect.Presentation]配置的输出视频分辨率，不然视频宽高不确定
      */
     fun createCharacterBgWithMask(src: Bitmap): Bitmap {
         // 矩阵变换用于绘制新的Bitmap
