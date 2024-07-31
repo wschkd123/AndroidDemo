@@ -89,9 +89,15 @@ data class ChatMsgItem(
         /**
          * 生成视频数据组装。包括图片背景和动画逻辑
          */
-        fun convertList(): List<ChatMsgItem> {
+        @JvmStatic
+        fun convertList(singleChat: Boolean = true): List<ChatMsgItem> {
             val list = mock()
             list.forEachIndexed { index, chatMsg ->
+                // 用户发言显示“我”
+                if (chatMsg.isUser()) {
+                    chatMsg.nickname = "我"
+                }
+
                 // 第一个背景无进入动画
                 if (index == 0) {
                     chatMsg.bgInAnimation = false
@@ -103,33 +109,12 @@ data class ChatMsgItem(
                     chatMsg.textBoxOutAnimation = false
                 }
 
-                // 用户消息。向前查最近梦中人消息，处理背景和动画特殊逻辑
-                if (index > 0 && chatMsg.isUser()) {
-                    findPreNearestCharacter(list, index)?.let { preNearestCharacter ->
-                        Log.d(TAG, "preNearestCharacter=$preNearestCharacter")
-                        // 最近梦中人消息背景无退出动画
-                        preNearestCharacter.bgOutAnimation = false
-                        // 用户使用梦中人消息背景，背景无进入动画
-                        chatMsg.backgroundUrl = preNearestCharacter.backgroundUrl
-                        chatMsg.bgInAnimation = false
-                    }
+                adapterUserMsgItem(list, chatMsg, index)
 
-                    // 上一条消息也是用户，气泡位置不变。气泡无进入动画，背景无进出动画。
-                    if (list.getOrNull(index - 1)?.isUser() == true) {
-                        Log.d(TAG, "preMsg is User $chatMsg")
-                        chatMsg.textBoxInAnimation = false
-                        chatMsg.bgInAnimation = false
-                    }
-                }
-
-                // 第一条消息为用户，使用第一个梦中人背景
-                if (index == 0 && chatMsg.isUser() && chatMsg.backgroundUrl.isNullOrEmpty()) {
-                    chatMsg.backgroundUrl = findFirstCharacter(list)?.backgroundUrl
-                }
-
-                // 用户发言显示“我”
-                if (chatMsg.isUser()) {
-                    chatMsg.nickname = "我"
+                // 单聊固定单个梦中人图片为背景。无背景动画
+                if (singleChat) {
+                    chatMsg.bgInAnimation = false
+                    chatMsg.bgOutAnimation = false
                 }
             }
             return list
@@ -143,31 +128,64 @@ data class ChatMsgItem(
         }
 
         /**
+         * 适配用户消息数据。包括图片背景和动画逻辑
+         */
+        private fun adapterUserMsgItem(list: List<ChatMsgItem>, chatMsg: ChatMsgItem, index: Int) {
+            if (chatMsg.isUser().not()) {
+                return
+            }
+
+            if (index > 0) {
+                // 向前查最近梦中人消息，处理背景和动画特殊逻辑
+                findPreNearestCharacter(list, index)?.let { preNearestCharacter ->
+                    Log.d(TAG, "preNearestCharacter=$preNearestCharacter")
+                    // 最近梦中人消息背景无退出动画
+                    preNearestCharacter.bgOutAnimation = false
+                    // 用户使用梦中人消息背景，背景无进入动画
+                    chatMsg.backgroundUrl = preNearestCharacter.backgroundUrl
+                    chatMsg.bgInAnimation = false
+                }
+
+                // 上一条消息也是用户，气泡位置不变。气泡无进入动画，背景无进出动画。
+                if (list.getOrNull(index - 1)?.isUser() == true) {
+                    Log.d(TAG, "preMsg is User $chatMsg")
+                    chatMsg.textBoxInAnimation = false
+                    chatMsg.bgInAnimation = false
+                }
+            }
+
+            // 前面n条都为用户时，使用第一个梦中人背景
+            if (chatMsg.backgroundUrl.isNullOrEmpty()) {
+                chatMsg.backgroundUrl = findFirstCharacter(list)?.backgroundUrl
+            }
+        }
+
+        /**
          * 向前查最近梦中人消息
          */
         private fun findPreNearestCharacter(list: List<ChatMsgItem>, curIndex: Int): ChatMsgItem? {
             var index = curIndex
-            var preCharacter: ChatMsgItem? = null
+            var preCharacter: ChatMsgItem?
             while (index > 0) {
                 index--
                 preCharacter = list.getOrNull(index)
                 if (preCharacter?.isUser() == false) {
-                    break
+                    return preCharacter
                 }
             }
-            return preCharacter
+            return null
         }
 
         private fun mock(): List<ChatMsgItem> {
             return mutableListOf(
-                ChatMsgItem(
-                    "林泽林泽林泽",
-                    "毒鸡汤大魔王",
-                    ONE_ONE_AVATAR,
-                    TTS_SHORT,
-                    5000,
-                    senderType = 2
-                ),
+//                ChatMsgItem(
+//                    "林泽林泽林泽",
+//                    "毒鸡汤大魔王",
+//                    ONE_ONE_AVATAR,
+//                    TTS_SHORT,
+//                    5000,
+//                    senderType = 2
+//                ),
                 ChatMsgItem(
                     "beyond",
                     "主控发言主控发言1",
