@@ -30,7 +30,7 @@ import kotlin.math.min
 @SuppressLint("UnsafeOptInUsageError")
 class TextLinesOverlay(
     val context: Context,
-    chatMsg: ChatMsgItem,
+    val chatMsg: ChatMsgItem,
 ) : TextOverlay() {
     private val TAG = javaClass.simpleName
     private var subString: String =
@@ -58,8 +58,7 @@ class TextLinesOverlay(
         if (startTimeUs <= 0L) {
             startTimeUs = presentationTimeUs
         }
-
-        length = (max(0,presentationTimeUs - startTimeUs) / 100000).toInt()
+        length = (subString.length*max(0,presentationTimeUs - startTimeUs) / chatMsg.getDurationUs()).toInt()
 
         val text = SpannableString(
             subString.substring(
