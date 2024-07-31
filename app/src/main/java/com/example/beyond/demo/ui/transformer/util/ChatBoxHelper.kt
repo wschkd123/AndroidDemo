@@ -21,6 +21,7 @@ class ChatBoxHelper(
     val context: Context,
     val tag: String,
     val chatMsg: ChatMsgItem,
+    val enableAudio: Boolean = true
 ) {
     // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -55,7 +56,7 @@ class ChatBoxHelper(
         // 气泡相对容器位置
         val textWidth = paint.measureText(chatMsg.nickname ?: "")
         val drawablePadding = 12f
-        val bubbleWidth = if (chatMsg.havaAudio()) {
+        val bubbleWidth = if (enableAudio && chatMsg.havaAudio()) {
             textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + bubblePaddingHorizontal.times(2)
         } else {
             textWidth + bubblePaddingHorizontal.times(2)

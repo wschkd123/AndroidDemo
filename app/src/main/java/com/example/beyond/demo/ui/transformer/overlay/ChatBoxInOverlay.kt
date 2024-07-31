@@ -51,7 +51,7 @@ class ChatBoxInOverlay(
         // 整体文本框平移和渐显动画
         val startTime = System.currentTimeMillis()
         val animatedValue = (presentationTimeUs - startTimeUs).toFloat().div(durationUs)
-        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs durationUs=${durationUs} presentationTimeUs=$presentationTimeUs animatedValue=$animatedValue")
+        Log.i(TAG, "getBitmap: startTimeUs=$startTimeUs durationUs=${durationUs} presentationTimeUs=$presentationTimeUs")
         updateBgAnimation(animatedValue)
         if (lastBitmap == null) {
             lastBitmap = chatBoxHelper.drawContainerView()

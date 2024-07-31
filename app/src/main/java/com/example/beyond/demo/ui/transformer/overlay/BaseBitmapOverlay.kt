@@ -41,7 +41,6 @@ open class BaseBitmapOverlay(
     }
 
     override fun getBitmap(presentationTimeUs: Long): Bitmap {
-        Log.d(TAG, "getBitmap: presentationTimeUs=$presentationTimeUs")
         // 首帧记录开始和结束时间
         if (startTimeUs <= 0L) {
             startTimeUs = presentationTimeUs

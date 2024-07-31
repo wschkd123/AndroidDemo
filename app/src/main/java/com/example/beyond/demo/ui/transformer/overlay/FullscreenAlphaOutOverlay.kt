@@ -18,7 +18,7 @@ class FullscreenAlphaOutOverlay(
     context: Context,
     url: String,
     private val durationUs: Long,
-    private val needAnimation: Boolean = true
+    private val enableAnimation: Boolean = true
 ) : BaseBitmapOverlay(context, url, durationUs) {
 
     private val bitmapHelper: FullscreenBgHelper = FullscreenBgHelper()
@@ -28,7 +28,7 @@ class FullscreenAlphaOutOverlay(
     }
 
     override fun updateAnimation(presentationTimeUs: Long) {
-        if (needAnimation.not()) {
+        if (enableAnimation.not()) {
             return
         }
         val animatedValue =
