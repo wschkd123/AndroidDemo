@@ -77,8 +77,10 @@ class TransformerFragment : Fragment() {
     private val binding get() = _binding!!
     private val playerWrapper = ExoPlayerWrapper()
     private lateinit var exportStopwatch: Stopwatch
-    private var outputFile: File? = null
+    private lateinit var outputFile: File
+    private lateinit var finalOutputFile: File
     private var transformer: Transformer? = null
+    private val endVideoUrl = "https://imgservices-1252317822.image.myqcloud.com/coco/s08022024/fa27e745.l3fewf.mp4"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -116,7 +118,10 @@ class TransformerFragment : Fragment() {
         outputFile =
             YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/" + System.currentTimeMillis() + ".mp4")
                 ?: return
-        val outputFilePath = outputFile!!.absolutePath
+        finalOutputFile =
+            YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/final-" + System.currentTimeMillis() + ".mp4")
+                ?: return
+        val outputFilePath = outputFile.absolutePath
         transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
         exportStopwatch.reset()
@@ -136,7 +141,7 @@ class TransformerFragment : Fragment() {
         val list = ChatMsgItem.convertList()
 
         // 封面部分
-        val coverDurationUs = 1_000_000L
+        val coverDurationUs = 200_000L
         val coverUrl = ChatMsgItem.findFirstCharacter(list)?.backgroundUrl ?: ""
         imageItemList.add(createCoverImageItem(coverDurationUs, coverUrl))
         audioItemList.add(createPlaceHolderAudioItem(coverDurationUs))
@@ -144,7 +149,7 @@ class TransformerFragment : Fragment() {
         // 聊天主体部分
         list.forEach { chatMsg ->
             // 1. 聊天文本框进入动画
-            val chatInDurationUs = 1_000_000L
+            val chatInDurationUs = 400_000L
             if (chatMsg.textBoxInAnimation || chatMsg.bgInAnimation) {
                 imageItemList.add(createChatInItem(chatMsg, chatInDurationUs))
                 audioItemList.add(createPlaceHolderAudioItem(chatInDurationUs))
@@ -163,7 +168,7 @@ class TransformerFragment : Fragment() {
 
             // 3. 聊天文本框退出动画
             if (chatMsg.textBoxOutAnimation || chatMsg.bgOutAnimation) {
-                val chatOutDurationUs = 1_000_000L
+                val chatOutDurationUs = 400_000L
                 imageItemList.add(createChatOutItem(chatMsg, chatOutDurationUs))
                 audioItemList.add(createPlaceHolderAudioItem(chatOutDurationUs))
             }
@@ -323,7 +328,7 @@ class TransformerFragment : Fragment() {
         val elapsedTimeMs: Long = exportStopwatch.elapsed(TimeUnit.MILLISECONDS)
         binding.informationTextView.text =
             getString(R.string.export_completed, elapsedTimeMs / 1000f, filePath)
-        playerWrapper.addMediaItem("file://$filePath")
+        generateFinalVideo()
         Log.d(
             TAG,
             "Output file path: file://$filePath"
@@ -354,6 +359,39 @@ class TransformerFragment : Fragment() {
             "Export error",
             exportException
         )
+    }
+
+    /**
+     * 拼接结尾mp4
+     */
+    private fun generateFinalVideo() {
+        val list = mutableListOf(
+            EditedMediaItem.Builder(MediaItem.fromUri(outputFile.absolutePath)).build(),
+            EditedMediaItem.Builder(MediaItem.fromUri(endVideoUrl)).build()
+        )
+        val composition = Composition.Builder(EditedMediaItemSequence(list)).build()
+        transformer = createFinalTransformer()
+        transformer?.start(composition, finalOutputFile.absolutePath)
+    }
+
+    private fun createFinalTransformer(): Transformer {
+        return Transformer.Builder(requireContext())
+            .addListener(
+                object : Transformer.Listener {
+                    override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                        Log.w(TAG, "final video completed")
+                        playerWrapper.addMediaItem("file://$finalOutputFile")
+                    }
+
+                    override fun onError(
+                        composition: Composition,
+                        exportResult: ExportResult,
+                        exportException: ExportException
+                    ) {
+                        exportException.printStackTrace()
+                    }
+                })
+            .build()
     }
 
 }
