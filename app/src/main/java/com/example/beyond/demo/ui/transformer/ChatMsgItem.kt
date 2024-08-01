@@ -116,6 +116,8 @@ data class ChatMsgItem(
                     chatMsg.bgInAnimation = false
                     chatMsg.bgOutAnimation = false
                 }
+
+                Log.d(TAG, "final chatMsg=$chatMsg")
             }
             return list
         }
@@ -135,6 +137,7 @@ data class ChatMsgItem(
                 return
             }
 
+            // 向前查
             if (index > 0) {
                 // 向前查最近梦中人消息，处理背景和动画特殊逻辑
                 findPreNearestCharacter(list, index)?.let { preNearestCharacter ->
@@ -147,10 +150,13 @@ data class ChatMsgItem(
                 }
 
                 // 上一条消息也是用户，气泡位置不变。气泡无进入动画，背景无进出动画。
-                if (list.getOrNull(index - 1)?.isUser() == true) {
+                val preChatMsg = list.getOrNull(index - 1)
+                if (preChatMsg?.isUser() == true) {
                     Log.d(TAG, "preMsg is User $chatMsg")
-                    chatMsg.textBoxInAnimation = false
+                    preChatMsg.bgOutAnimation = false
+                    preChatMsg.textBoxOutAnimation = false
                     chatMsg.bgInAnimation = false
+                    chatMsg.textBoxInAnimation = false
                 }
             }
 
