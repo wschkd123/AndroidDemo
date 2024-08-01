@@ -30,6 +30,7 @@ class ChatBoxHelper(
     private val bubblePaddingHorizontal = 30f
     private val audioLeft: Float
     private val audioTop: Float
+    private val fitNickname: String
 
     /**
      * 背景图
@@ -54,7 +55,8 @@ class ChatBoxHelper(
         }
 
         // 气泡相对容器位置
-        val textWidth = paint.measureText(chatMsg.nickname ?: "")
+        fitNickname = fitTextMaxWidth(chatMsg.nickname)
+        val textWidth = paint.measureText(fitNickname)
         val drawablePadding = 12f
         val bubbleWidth = if (enableAudio && chatMsg.havaAudio()) {
             textWidth + drawablePadding + AudioTrackHelper.ICON_SIZE + bubblePaddingHorizontal.times(2)
@@ -109,7 +111,26 @@ class ChatBoxHelper(
         val distance = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
         val baseline: Float = bubbleRectF.centerY() + distance
         val textX = bubbleLeft + bubblePaddingHorizontal
-        canvas.drawText(chatMsg.nickname ?: "", textX, baseline, paint)
+        canvas.drawText(fitNickname, textX, baseline, paint)
+    }
+
+    /**
+     * 适配文本最大宽度。超出最大宽度添加省略号
+     */
+    private fun fitTextMaxWidth(input: String?): String {
+        var text = input ?: ""
+        var textWidth = paint.measureText(text)
+        val maxWidth = 450f
+        if (textWidth <= maxWidth) {
+            return text
+        }
+        // 文本超出最大宽度，需要添加省略号
+        while (textWidth > maxWidth - paint.measureText("...")) {
+            // 省略字符直到符合最大宽度
+            text = text.substring(0, text.length - 1)
+            textWidth = paint.measureText(text)
+        }
+        return "$text..."
     }
 
     /**
