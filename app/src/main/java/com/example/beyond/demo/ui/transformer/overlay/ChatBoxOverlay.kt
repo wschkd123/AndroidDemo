@@ -32,8 +32,8 @@ class ChatBoxOverlay(
 
     private val chatBoxHelper: ChatBoxHelper = ChatBoxHelper(context, TAG, chatMsg, enableAudio)
 
-    // 上一帧音频绘制时间
-    private var lastAudioFrameTimeUs: Long = 0
+    // 上一张音频图片绘制时间
+    private var lastAudioBitmapTimeUs: Long = 0
 
     /**
      * 上一帧图
@@ -54,13 +54,18 @@ class ChatBoxOverlay(
             lastBitmap = chatBoxHelper.drawContainerView()
         }
 
-        // 绘制音轨。每200毫秒重绘一帧实现动画
-        val audioPeriod = presentationTimeUs - lastAudioFrameTimeUs
-        if (enableAudio && chatMsg.havaAudio() && audioPeriod > 200 * C.MILLIS_PER_SECOND) {
+        // 绘制音轨
+        if (enableAudio && chatMsg.havaAudio()) {
             Log.d(TAG, "getBitmap: isPlaying")
             val bgBitmap = chatBoxHelper.drawContainerView()
-            lastBitmap = chatBoxHelper.addAudioView(bgBitmap)
-            lastAudioFrameTimeUs = presentationTimeUs
+            // 每200毫秒绘制下一张图片实现动画
+            val audioPeriod = presentationTimeUs - lastAudioBitmapTimeUs
+            if (audioPeriod > 200 * C.MILLIS_PER_SECOND) {
+                lastBitmap = chatBoxHelper.addAudioView(bgBitmap, true)
+                lastAudioBitmapTimeUs = presentationTimeUs
+            } else {
+                lastBitmap = chatBoxHelper.addAudioView(bgBitmap, false)
+            }
         }
         Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
         return lastBitmap!!

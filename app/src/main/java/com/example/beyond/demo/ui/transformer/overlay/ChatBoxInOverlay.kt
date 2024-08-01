@@ -34,7 +34,7 @@ class ChatBoxInOverlay(
         .setOverlayFrameAnchor(0f, -1f)
         .build()
 
-    private val chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg)
+    private val chatBoxHelper = ChatBoxHelper(context, TAG, chatMsg, false)
 
     /**
      * 上一帧图

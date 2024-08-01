@@ -90,7 +90,7 @@ data class ChatMsgItem(
          * 生成视频数据组装。包括图片背景和动画逻辑
          */
         @JvmStatic
-        fun convertList(singleChat: Boolean = true): List<ChatMsgItem> {
+        fun convertList(singleChat: Boolean = false): List<ChatMsgItem> {
             val list = mock()
             list.forEachIndexed { index, chatMsg ->
                 // 用户发言显示“我”
@@ -184,33 +184,33 @@ data class ChatMsgItem(
 
         private fun mock(): List<ChatMsgItem> {
             return mutableListOf(
-//                ChatMsgItem(
-//                    "林泽林泽林泽",
-//                    "毒鸡汤大魔王",
-//                    ONE_ONE_AVATAR,
-//                    TTS_SHORT,
-//                    5000,
-//                    senderType = 2
-//                ),
+                ChatMsgItem(
+                    "林泽林泽林泽",
+                    "毒鸡汤大魔王",
+                    ONE_ONE_AVATAR,
+                    TTS_SHORT,
+                    5000,
+                    senderType = 2
+                ),
                 ChatMsgItem(
                     "beyond",
                     "主控发言主控发言1",
                     senderType = 1
                 ),
-                ChatMsgItem(
-                    "beyond",
-                    "主控发言主控发言2",
-                    senderType = 1
-                ),
-                ChatMsgItem(
-                    "爱莉希雅",
-                    "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。\n" +
-                            "吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。无父无母，从小吃了了",
-                    NINE_SIXTEEN_AVATAR,
-                    TTS_LONG,
-                    94000,
-                    senderType = 2
-                )
+//                ChatMsgItem(
+//                    "beyond",
+//                    "主控发言主控发言2",
+//                    senderType = 1
+//                ),
+//                ChatMsgItem(
+//                    "爱莉希雅",
+//                    "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。\n" +
+//                            "吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。无父无母，从小吃了了",
+//                    NINE_SIXTEEN_AVATAR,
+//                    TTS_LONG,
+//                    94000,
+//                    senderType = 2
+//                )
             )
         }
     }

@@ -3,7 +3,6 @@ package com.example.beyond.demo.ui.transformer.util
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Size
 import com.example.base.util.YWBitmapUtil
 import com.example.beyond.demo.R
 
@@ -45,12 +44,10 @@ class AudioTrackHelper(context: Context) {
         }
     }
 
-    fun reset() {
-        index = 0
-    }
-
-    fun getFirstBitmap(): Bitmap {
-        index = 0
+    fun getCurBitmap(): Bitmap {
+        if (index >= resIdList.size) {
+            index = 0
+        }
         return bitmapList[index]
     }
 
@@ -62,8 +59,4 @@ class AudioTrackHelper(context: Context) {
         return bitmapList[index]
     }
 
-    fun getSize(): Size {
-        val bitmap = bitmapList.get(0)
-        return Size(bitmap.width, bitmap.height)
-    }
 }

@@ -20,8 +20,8 @@ import com.example.beyond.demo.ui.transformer.ChatMsgItem
 class ChatBoxHelper(
     val context: Context,
     val tag: String,
-    val chatMsg: ChatMsgItem,
-    val enableAudio: Boolean = true
+    private val chatMsg: ChatMsgItem,
+    enableAudio: Boolean = true
 ) {
     // 视图绘制
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -116,13 +116,15 @@ class ChatBoxHelper(
      * 添加音频图标到文本框上
      *
      * @param srcBitmap 源Bitmap
+     * @param nextBitmap 是否使用下一张音轨图片
      */
-    fun addAudioView(srcBitmap: Bitmap): Bitmap {
+    fun addAudioView(srcBitmap: Bitmap, nextBitmap: Boolean): Bitmap {
         val targetBitmap = srcBitmap.copy(srcBitmap.config, true)
         try {
             val canvas = Canvas(targetBitmap)
             val start = System.currentTimeMillis()
-            canvas.drawBitmap(audioTrackHelper.getNextBitmap(), audioLeft, audioTop, paint)
+            val bitmap = if(nextBitmap) audioTrackHelper.getNextBitmap() else audioTrackHelper.getCurBitmap()
+            canvas.drawBitmap(bitmap, audioLeft, audioTop, paint)
             Log.d(tag, "addAudioView: cost=${System.currentTimeMillis() - start}")
             canvas.setBitmap(null)
         } catch (e: Exception) {

@@ -22,7 +22,7 @@ import com.example.beyond.demo.ui.transformer.util.ReflectUtil
 @UnstableApi
 class ChatBoxOutOverlay(
     context: Context,
-    chatMsg: ChatMsgItem,
+    val chatMsg: ChatMsgItem,
     val durationUs: Long
 ) : BitmapOverlay() {
     private val TAG = javaClass.simpleName
@@ -54,6 +54,13 @@ class ChatBoxOutOverlay(
         updateBgAnimation(animatedValue)
         if (lastBitmap == null) {
             lastBitmap = chatBoxHelper.drawContainerView()
+        }
+
+        // 绘制音轨
+        if (chatMsg.havaAudio()) {
+            Log.d(TAG, "getBitmap: isPlaying")
+            val bgBitmap = chatBoxHelper.drawContainerView()
+            lastBitmap = chatBoxHelper.addAudioView(bgBitmap, false)
         }
 
         Log.d(TAG, "getBitmap: cost ${System.currentTimeMillis() - startTime}")
