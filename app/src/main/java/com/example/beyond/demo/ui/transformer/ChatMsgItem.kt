@@ -109,7 +109,20 @@ data class ChatMsgItem(
                     chatMsg.textBoxOutAnimation = false
                 }
 
-                adapterUserMsgItem(list, chatMsg, index)
+                if (chatMsg.isUser()) {
+                    adapterUserMsgItem(list, chatMsg, index)
+                } else {
+                    // 上一条消息是同一个梦中人，气泡位置不变。气泡无进入动画，背景无进出动画。
+                    if (index > 0) {
+                        val preChatMsg = list.getOrNull(index - 1)
+                        if (preChatMsg != null && preChatMsg.senderId == chatMsg.senderId) {
+                            preChatMsg.bgOutAnimation = false
+                            preChatMsg.textBoxOutAnimation = false
+                            chatMsg.bgInAnimation = false
+                            chatMsg.textBoxInAnimation = false
+                        }
+                    }
+                }
 
                 // 单聊固定单个梦中人图片为背景。无背景动画
                 if (singleChat) {
@@ -141,7 +154,6 @@ data class ChatMsgItem(
             if (index > 0) {
                 // 向前查最近梦中人消息，处理背景和动画特殊逻辑
                 findPreNearestCharacter(list, index)?.let { preNearestCharacter ->
-                    Log.d(TAG, "preNearestCharacter=$preNearestCharacter")
                     // 最近梦中人消息背景无退出动画
                     preNearestCharacter.bgOutAnimation = false
                     // 用户使用梦中人消息背景，背景无进入动画
@@ -152,7 +164,6 @@ data class ChatMsgItem(
                 // 上一条消息也是用户，气泡位置不变。气泡无进入动画，背景无进出动画。
                 val preChatMsg = list.getOrNull(index - 1)
                 if (preChatMsg?.isUser() == true) {
-                    Log.d(TAG, "preMsg is User $chatMsg")
                     preChatMsg.bgOutAnimation = false
                     preChatMsg.textBoxOutAnimation = false
                     chatMsg.bgInAnimation = false
@@ -186,11 +197,30 @@ data class ChatMsgItem(
             return mutableListOf(
                 ChatMsgItem(
                     "林泽林泽林泽",
-                    "毒鸡汤大魔王",
+                    "1毒鸡汤大魔王",
                     ONE_ONE_AVATAR,
                     TTS_SHORT,
                     5000,
-                    senderType = 2
+                    senderType = 2,
+                    senderId = "1",
+                ),
+                ChatMsgItem(
+                    "林泽林泽林泽",
+                    "2毒鸡汤大魔王",
+                    ONE_ONE_AVATAR,
+                    TTS_SHORT,
+                    5000,
+                    senderType = 2,
+                    senderId = "1",
+                ),
+                ChatMsgItem(
+                    "爱莉希雅",
+                    "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。\n" +
+                            "吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。无父无母，从小吃了了",
+                    NINE_SIXTEEN_AVATAR,
+                    TTS_LONG,
+                    94000,
+                    senderType = 2,
                 ),
                 ChatMsgItem(
                     "beyond",
@@ -202,15 +232,6 @@ data class ChatMsgItem(
 //                    "主控发言主控发言2",
 //                    senderType = 1
 //                ),
-//                ChatMsgItem(
-//                    "爱莉希雅",
-//                    "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。\n" +
-//                            "吕树，别名为第九天罗，依靠毒鸡汤成为大魔王。身世成谜，自小在福利院中长大，16岁后脱离福利院，与吕小鱼相依为命，通过卖煮鸡蛋维持生计。擅长怼人、噎人、气人，却从不骂人。平时说话贱贱的，被京都天罗地网同仁称为“贱圣”，但从不骂人，喜欢用讲道理却不似道理的话怼人。无父无母，从小吃了了",
-//                    NINE_SIXTEEN_AVATAR,
-//                    TTS_LONG,
-//                    94000,
-//                    senderType = 2
-//                )
             )
         }
     }
