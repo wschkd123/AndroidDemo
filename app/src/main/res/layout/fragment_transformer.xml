@@ -24,6 +24,14 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/tv_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:textColor="#4CAF50"
+            android:textSize="20dp" />
+
+        <TextView
             android:id="@+id/tv_output"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

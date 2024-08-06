@@ -197,7 +197,7 @@ data class ChatMsgItem(
             return mutableListOf(
                 ChatMsgItem(
                     "林泽林泽林泽",
-                    "1毒鸡汤大魔王",
+                    "毒鸡汤大魔王1",
                     ONE_ONE_AVATAR,
                     TTS_SHORT,
                     5000,

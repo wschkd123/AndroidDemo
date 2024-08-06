@@ -2,6 +2,8 @@ package com.example.beyond.demo.ui.transformer
 
 import TextLinesOverlay
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
@@ -24,6 +26,7 @@ import androidx.media3.transformer.EditedMediaItemSequence
 import androidx.media3.transformer.Effects
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.ProgressHolder
 import androidx.media3.transformer.Transformer
 import com.example.base.Init.getApplicationContext
 import com.example.base.player.exoplayer.ExoPlayerWrapper
@@ -58,10 +61,12 @@ class TransformerFragment : Fragment() {
 
     companion object {
         private const val TAG = "TransformerFragment"
+
         /**
          * 占位音频长度（微秒）
          */
         private const val PLACEHOLDER_AUDIO_DURATION_US = 180_000_000L
+
         /**
          * 占位音频
          */
@@ -71,6 +76,10 @@ class TransformerFragment : Fragment() {
          * 占位图片
          */
         private const val PLACEHOLDER_IMAGE = "asset:///placeholder.png"
+
+        private const val MAIN_MP4 = "asset:///1723183588304.mp4"
+        private const val END_MP4_URL = "https://imgservices-1252317822.image.myqcloud.com/coco/s08082024/33a67f6d.8ge341.mp4"
+        private const val END_MP4 = "asset:///end25.mp4"
     }
 
     private var _binding: FragmentTransformerBinding? = null
@@ -80,7 +89,8 @@ class TransformerFragment : Fragment() {
     private lateinit var outputFile: File
     private lateinit var finalOutputFile: File
     private var transformer: Transformer? = null
-    private val endVideoUrl = "https://imgservices-1252317822.image.myqcloud.com/coco/s08022024/fa27e745.l3fewf.mp4"
+    private val mainHandler = Handler(Looper.getMainLooper())
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -127,12 +137,23 @@ class TransformerFragment : Fragment() {
         exportStopwatch.reset()
         exportStopwatch.start()
         transformer?.start(composition, outputFilePath)
+
+        val progressHolder = ProgressHolder()
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                if (transformer != null && transformer?.getProgress(progressHolder) != Transformer.PROGRESS_STATE_NOT_STARTED) {
+                    updateProgress((progressHolder.progress * 0.9f).toInt())
+                    mainHandler.postDelayed(this, 500)
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
         super.onDestroy()
         playerWrapper.release()
         transformer?.cancel()
+        mainHandler.removeCallbacksAndMessages(null)
     }
 
     private fun createComposition(): Composition {
@@ -177,11 +198,12 @@ class TransformerFragment : Fragment() {
 
         return Composition.Builder(
             EditedMediaItemSequence(imageItemList),
-            EditedMediaItemSequence(audioItemList)).build()
+            EditedMediaItemSequence(audioItemList)
+        ).build()
     }
 
     private fun createCoverImageItem(durationUs: Long, url: String): EditedMediaItem {
-        val videoEffects = createVideoEffects{ overlaysBuilder ->
+        val videoEffects = createVideoEffects { overlaysBuilder ->
             overlaysBuilder.add(CoverOverlay(requireContext(), url, durationUs))
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
@@ -195,7 +217,7 @@ class TransformerFragment : Fragment() {
             overlaysBuilder.add(
                 FullscreenAlphaInOverlay(
                     requireContext(),
-                    chatMsg.backgroundUrl?:"",
+                    chatMsg.backgroundUrl ?: "",
                     durationUs,
                     chatMsg.bgInAnimation
                 )
@@ -219,7 +241,7 @@ class TransformerFragment : Fragment() {
             overlaysBuilder.add(
                 FullscreenAlphaOutOverlay(
                     requireContext(),
-                    chatMsg.backgroundUrl?:"",
+                    chatMsg.backgroundUrl ?: "",
                     durationUs,
                     chatMsg.bgInAnimation
                 )
@@ -245,7 +267,7 @@ class TransformerFragment : Fragment() {
             overlaysBuilder.add(
                 FullscreenImageOverlay(
                     requireContext(),
-                    chatMsg.backgroundUrl?:"",
+                    chatMsg.backgroundUrl ?: "",
                     durationUs
                 )
             )
@@ -260,12 +282,12 @@ class TransformerFragment : Fragment() {
      */
     private fun createPlaceHolderImageItem(
         durationUs: Long = 10_000_000L,
-        videoEffects: ImmutableList<Effect>
+        videoEffects: ImmutableList<Effect>? = null
     ): EditedMediaItem {
         return EditedMediaItem.Builder(MediaItem.fromUri(PLACEHOLDER_IMAGE))
             .setDurationUs(durationUs)
             .setFrameRate(TransformerConstant.FRAME_RATE)
-            .setEffects(Effects(ImmutableList.of(), videoEffects))
+            .setEffects(Effects(ImmutableList.of(), videoEffects ?: ImmutableList.of()))
             .build()
     }
 
@@ -312,8 +334,11 @@ class TransformerFragment : Fragment() {
         // 配置输出视频分辨率。需要放前面，后续Overlay中configure尺寸才生效
         effects.add(
             Presentation.createForWidthAndHeight(
-            TransformerConstant.OUT_VIDEO_WIDTH, TransformerConstant.OUT_VIDEO_HEIGHT, Presentation.LAYOUT_SCALE_TO_FIT
-        ))
+                TransformerConstant.OUT_VIDEO_WIDTH,
+                TransformerConstant.OUT_VIDEO_HEIGHT,
+                Presentation.LAYOUT_SCALE_TO_FIT
+            )
+        )
 
         // 添加overlay
         val overlaysBuilder = ImmutableList.Builder<TextureOverlay>()
@@ -366,12 +391,25 @@ class TransformerFragment : Fragment() {
      */
     private fun generateFinalVideo() {
         val list = mutableListOf(
-            EditedMediaItem.Builder(MediaItem.fromUri(outputFile.absolutePath)).build(),
-            EditedMediaItem.Builder(MediaItem.fromUri(endVideoUrl)).build()
+            EditedMediaItem.Builder(MediaItem.fromUri(MAIN_MP4)).build(),
+            EditedMediaItem.Builder(MediaItem.fromUri(END_MP4_URL)).build(),
         )
+
+
         val composition = Composition.Builder(EditedMediaItemSequence(list)).build()
         transformer = createFinalTransformer()
         transformer?.start(composition, finalOutputFile.absolutePath)
+
+        val progressHolder = ProgressHolder()
+        mainHandler.removeCallbacksAndMessages(null)
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                if (transformer != null && transformer?.getProgress(progressHolder) != Transformer.PROGRESS_STATE_NOT_STARTED) {
+                    updateProgress((90 + progressHolder.progress * 0.1f).toInt())
+                    mainHandler.postDelayed(this, 500)
+                }
+            }
+        })
     }
 
     private fun createFinalTransformer(): Transformer {
@@ -392,6 +430,10 @@ class TransformerFragment : Fragment() {
                     }
                 })
             .build()
+    }
+
+    private fun updateProgress(process: Int) {
+        binding.tvProgress.text = "${process}%"
     }
 
 }
