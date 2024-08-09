@@ -14,6 +14,8 @@ import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.ClippingConfiguration
+import androidx.media3.common.audio.AudioProcessor
+import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
@@ -34,12 +36,8 @@ import com.example.base.util.YWDeviceUtil
 import com.example.base.util.YWFileUtil
 import com.example.beyond.demo.R
 import com.example.beyond.demo.databinding.FragmentTransformerBinding
-import com.example.beyond.demo.ui.transformer.overlay.ChatBoxInOverlay
-import com.example.beyond.demo.ui.transformer.overlay.ChatBoxOutOverlay
 import com.example.beyond.demo.ui.transformer.overlay.ChatBoxOverlay
 import com.example.beyond.demo.ui.transformer.overlay.CoverOverlay
-import com.example.beyond.demo.ui.transformer.overlay.FullscreenAlphaInOverlay
-import com.example.beyond.demo.ui.transformer.overlay.FullscreenAlphaOutOverlay
 import com.example.beyond.demo.ui.transformer.overlay.FullscreenImageOverlay
 import com.example.beyond.demo.ui.transformer.util.JsonUtil
 import com.google.common.base.Stopwatch
@@ -76,10 +74,9 @@ class TransformerFragment : Fragment() {
          * 占位图片
          */
         private const val PLACEHOLDER_IMAGE = "asset:///placeholder.png"
-
         private const val MAIN_MP4 = "asset:///1723183588304.mp4"
         private const val END_MP4_URL = "https://imgservices-1252317822.image.myqcloud.com/coco/s08082024/33a67f6d.8ge341.mp4"
-        private const val END_MP4 = "asset:///end25.mp4"
+        private const val END_MP4 = "asset:///end2.mp4"
     }
 
     private var _binding: FragmentTransformerBinding? = null
@@ -116,8 +113,10 @@ class TransformerFragment : Fragment() {
         }
         binding.playerView.player = playerWrapper.player
         binding.tvOutput.setOnClickListener {
+            playerWrapper.clearMediaItems()
             start()
         }
+        playerWrapper.addMediaItem("https://zmdcharactercdn.zhumengdao.com/mp3/35066344422507724820.mp3")
     }
 
     private fun start() {
@@ -131,6 +130,7 @@ class TransformerFragment : Fragment() {
         finalOutputFile =
             YWFileUtil.createNewFile(YWFileUtil.getStorageFileDir(context)?.path + "/final-" + System.currentTimeMillis() + ".mp4")
                 ?: return
+        Log.i(TAG, "outputFile=${outputFile.path} finalOutputFile=${finalOutputFile.path}")
         val outputFilePath = outputFile.absolutePath
         transformer = createTransformer(outputFilePath)
         val composition: Composition = createComposition()
@@ -167,17 +167,16 @@ class TransformerFragment : Fragment() {
         imageItemList.add(createCoverImageItem(coverDurationUs, coverUrl))
         audioItemList.add(createPlaceHolderAudioItem(coverDurationUs))
 
+        val processors = ImmutableList.Builder<AudioProcessor>()
+        val sonicAudioProcessor = SonicAudioProcessor().apply {
+//            setPitch(2f)
+//            setOutputSampleRateHz(24000)
+        }
+        processors.add(sonicAudioProcessor)
+
         // 聊天主体部分
         list.forEach { chatMsg ->
-            // 1. 聊天文本框进入动画
-            val chatInDurationUs = 400_000L
-            if (chatMsg.textBoxInAnimation || chatMsg.bgInAnimation) {
-                imageItemList.add(createChatInItem(chatMsg, chatInDurationUs))
-                audioItemList.add(createPlaceHolderAudioItem(chatInDurationUs))
-            }
 
-
-            // 2. 聊天文本播放
             imageItemList.add(createChatItem(chatMsg))
             val audioItem = if (chatMsg.havaAudio()) {
                 EditedMediaItem.Builder(MediaItem.fromUri(chatMsg.audioUrl ?: "")).build()
@@ -186,20 +185,14 @@ class TransformerFragment : Fragment() {
             }
             audioItemList.add(audioItem)
 
-
-            // 3. 聊天文本框退出动画
-            if (chatMsg.textBoxOutAnimation || chatMsg.bgOutAnimation) {
-                val chatOutDurationUs = 400_000L
-                imageItemList.add(createChatOutItem(chatMsg, chatOutDurationUs))
-                audioItemList.add(createPlaceHolderAudioItem(chatOutDurationUs))
-            }
         }
 
 
         return Composition.Builder(
             EditedMediaItemSequence(imageItemList),
             EditedMediaItemSequence(audioItemList)
-        ).build()
+        ).experimentalSetForceAudioTrack(true)
+            .build()
     }
 
     private fun createCoverImageItem(durationUs: Long, url: String): EditedMediaItem {
@@ -208,55 +201,6 @@ class TransformerFragment : Fragment() {
         }
         return createPlaceHolderImageItem(durationUs, videoEffects)
     }
-
-    /**
-     * 聊天文本框进入动画Item
-     */
-    private fun createChatInItem(chatMsg: ChatMsgItem, durationUs: Long): EditedMediaItem {
-        val videoEffects = createVideoEffects { overlaysBuilder ->
-            overlaysBuilder.add(
-                FullscreenAlphaInOverlay(
-                    requireContext(),
-                    chatMsg.backgroundUrl ?: "",
-                    durationUs,
-                    chatMsg.bgInAnimation
-                )
-            )
-            overlaysBuilder.add(
-                if (chatMsg.textBoxInAnimation) {
-                    ChatBoxInOverlay(requireContext(), chatMsg, durationUs)
-                } else {
-                    ChatBoxOverlay(requireContext(), chatMsg, false)
-                }
-            )
-        }
-        return createPlaceHolderImageItem(durationUs, videoEffects)
-    }
-
-    /**
-     * 聊天文本框退出动画Item
-     */
-    private fun createChatOutItem(chatMsg: ChatMsgItem, durationUs: Long): EditedMediaItem {
-        val videoEffects = createVideoEffects { overlaysBuilder ->
-            overlaysBuilder.add(
-                FullscreenAlphaOutOverlay(
-                    requireContext(),
-                    chatMsg.backgroundUrl ?: "",
-                    durationUs,
-                    chatMsg.bgInAnimation
-                )
-            )
-            overlaysBuilder.add(
-                if (chatMsg.textBoxOutAnimation) {
-                    ChatBoxOutOverlay(requireContext(), chatMsg, durationUs)
-                } else {
-                    ChatBoxOverlay(requireContext(), chatMsg, false)
-                }
-            )
-        }
-        return createPlaceHolderImageItem(durationUs, videoEffects)
-    }
-
 
     /**
      * 聊天文本播放Item
@@ -353,7 +297,8 @@ class TransformerFragment : Fragment() {
         val elapsedTimeMs: Long = exportStopwatch.elapsed(TimeUnit.MILLISECONDS)
         binding.informationTextView.text =
             getString(R.string.export_completed, elapsedTimeMs / 1000f, filePath)
-        generateFinalVideo()
+//        generateFinalVideo()
+        playerWrapper.addMediaItem("file://$filePath")
         Log.d(
             TAG,
             "Output file path: file://$filePath"

@@ -196,14 +196,23 @@ data class ChatMsgItem(
         private fun mock(): List<ChatMsgItem> {
             return mutableListOf(
                 ChatMsgItem(
-                    "林泽林泽林泽",
-                    "毒鸡汤大魔王1",
+                    "吴雨欣",
+                    "今天天气不错，心情也很好吧？",
                     ONE_ONE_AVATAR,
-                    TTS_SHORT,
-                    5000,
+                    "https://zmdcharactercdn.zhumengdao.com/mp3/35066344422507724820.mp3",
+                    3455,
                     senderType = 2,
-                    senderId = "1",
+                    senderId = "61425628576936",
                 ),
+//                ChatMsgItem(
+//                    "林泽林泽林泽",
+//                    "毒鸡汤大魔王1",
+//                    ONE_ONE_AVATAR,
+//                    TTS_SHORT,
+//                    5000,
+//                    senderType = 2,
+//                    senderId = "1",
+//                ),
 //                ChatMsgItem(
 //                    "爱莉希雅",
 //                    "毒鸡汤大魔王，会收集负面情绪，贱贱毒舌却又心地善良的好哥哥，也是持之以恒、霸气侧漏的灵气复苏时代的最强王者、星图战神。\n" +
@@ -213,11 +222,11 @@ data class ChatMsgItem(
 //                    94000,
 //                    senderType = 2,
 //                ),
-                ChatMsgItem(
-                    "beyond",
-                    "主控发言主控发言1",
-                    senderType = 1
-                )
+//                ChatMsgItem(
+//                    "beyond",
+//                    "主控发言主控发言1",
+//                    senderType = 1
+//                )
             )
         }
     }

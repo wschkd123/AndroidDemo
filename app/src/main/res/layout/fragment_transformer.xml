@@ -26,7 +26,7 @@
         <TextView
             android:id="@+id/tv_progress"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:textColor="#4CAF50"
             android:textSize="20dp" />
@@ -35,9 +35,9 @@
             android:id="@+id/tv_output"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="output"
+            android:text="start output"
             android:textColor="#3F51B5"
-            android:textSize="38dp" />
+            android:textSize="30dp" />
 
     </LinearLayout>
 
