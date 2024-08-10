@@ -16,18 +16,20 @@ import com.example.beyond.demo.ui.transformer.TransformerConstant
  * @date 2024/7/26
  */
 internal class FullscreenBgHelper {
-    private val TAG = "FullscreenBgHelper"
     private val paint = Paint(Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val imageMaskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val bgMaskPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val matrix: android.graphics.Matrix = android.graphics.Matrix()
     private val dstWidth: Int = TransformerConstant.OUT_VIDEO_WIDTH
     private val dstHeight: Int = TransformerConstant.OUT_VIDEO_HEIGHT
 
-    /**
-     * 蒙层距上部的距离
-     */
-    private val maskTop: Float = TransformerConstant.OUT_VIDEO_HEIGHT / 3f
-    private var targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
+    companion object {
+        private const val TAG = "FullscreenBgHelper"
+        /**
+         * 背景蒙层距顶部的距离
+         */
+        private const val BG_MASK_TOP: Float = 720f
+    }
 
 
     /**
@@ -59,13 +61,13 @@ internal class FullscreenBgHelper {
         matrix.postScale(scale, scale)
         matrix.postTranslate(dx, dy)
 
-        // 渐变蒙层画笔
-        maskPaint.apply {
+        // 图片下半部增加蒙层
+        imageMaskPaint.apply {
             val shader: Shader = LinearGradient(
                 0f,
-                maskTop,
+                src.height.div(2f),
                 0f,
-                dstHeight.toFloat(),
+                src.height.toFloat(),
                 0x001B1625,
                 0xFF1B1625.toInt(),
                 Shader.TileMode.CLAMP
@@ -74,17 +76,39 @@ internal class FullscreenBgHelper {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
         }
 
-//        targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
+        // 视频下半部分增加蒙层
+        bgMaskPaint.apply {
+            val shader: Shader = LinearGradient(
+                0f,
+                BG_MASK_TOP,
+                0f,
+                dstHeight.toFloat(),
+                0x001B1625,
+                0xFF1B1625.toInt(),
+                Shader.TileMode.CLAMP
+            )
+            setShader(shader)
+        }
+
+        val targetBitmap = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
         try {
             Canvas(targetBitmap).let {
                 it.drawBitmap(src, matrix, paint)
-                // 添加渐变蒙层
+                // 图片下半部增加蒙层
                 it.drawRect(
                     0f,
-                    maskTop,
+                    src.height.div(2f),
                     targetBitmap.width.toFloat(),
-                    targetBitmap.height.toFloat(),
-                    maskPaint
+                    src.height.toFloat(),
+                    imageMaskPaint
+                )
+                // 视频下半部分增加蒙层
+                it.drawRect(
+                    0f,
+                    BG_MASK_TOP,
+                    targetBitmap.width.toFloat(),
+                    dstHeight.toFloat(),
+                    bgMaskPaint
                 )
                 it.setBitmap(null)
                 it

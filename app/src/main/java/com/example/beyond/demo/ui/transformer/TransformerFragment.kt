@@ -14,8 +14,6 @@ import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.ClippingConfiguration
-import androidx.media3.common.audio.AudioProcessor
-import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
@@ -116,7 +114,7 @@ class TransformerFragment : Fragment() {
             playerWrapper.clearMediaItems()
             start()
         }
-        playerWrapper.addMediaItem("https://zmdcharactercdn.zhumengdao.com/mp3/35066344422507724820.mp3")
+//        playerWrapper.addMediaItem("https://zmdcharactercdn.zhumengdao.com/mp3/35066344422507724820.mp3")
     }
 
     private fun start() {
@@ -167,16 +165,8 @@ class TransformerFragment : Fragment() {
         imageItemList.add(createCoverImageItem(coverDurationUs, coverUrl))
         audioItemList.add(createPlaceHolderAudioItem(coverDurationUs))
 
-        val processors = ImmutableList.Builder<AudioProcessor>()
-        val sonicAudioProcessor = SonicAudioProcessor().apply {
-//            setPitch(2f)
-//            setOutputSampleRateHz(24000)
-        }
-        processors.add(sonicAudioProcessor)
-
         // 聊天主体部分
         list.forEach { chatMsg ->
-
             imageItemList.add(createChatItem(chatMsg))
             val audioItem = if (chatMsg.havaAudio()) {
                 EditedMediaItem.Builder(MediaItem.fromUri(chatMsg.audioUrl ?: "")).build()
@@ -184,7 +174,6 @@ class TransformerFragment : Fragment() {
                 createPlaceHolderAudioItem(chatMsg.getDurationUs())
             }
             audioItemList.add(audioItem)
-
         }
 
 
