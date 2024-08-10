@@ -61,7 +61,7 @@ internal class FullscreenBgHelper {
         matrix.postScale(scale, scale)
         matrix.postTranslate(dx, dy)
 
-        // 图片下半部增加蒙层
+        // 图片下部增加蒙层
         imageMaskPaint.apply {
             val shader: Shader = LinearGradient(
                 0f,
@@ -76,7 +76,7 @@ internal class FullscreenBgHelper {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
         }
 
-        // 视频下半部分增加蒙层
+        // 视频下部增加蒙层
         bgMaskPaint.apply {
             val shader: Shader = LinearGradient(
                 0f,
@@ -94,7 +94,7 @@ internal class FullscreenBgHelper {
         try {
             Canvas(targetBitmap).let {
                 it.drawBitmap(src, matrix, paint)
-                // 图片下半部增加蒙层
+                // 图片下部增加蒙层
                 it.drawRect(
                     0f,
                     src.height.div(2f),
@@ -102,7 +102,7 @@ internal class FullscreenBgHelper {
                     src.height.toFloat(),
                     imageMaskPaint
                 )
-                // 视频下半部分增加蒙层
+                // 视频下部增加蒙层
                 it.drawRect(
                     0f,
                     BG_MASK_TOP,
