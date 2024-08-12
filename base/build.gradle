@@ -69,4 +69,6 @@ dependencies {
 
     // For muxing media files
     api "androidx.media3:media3-muxer:$media3_version"
+
+    api "com.tencent.tav:libpag:4.3.57"
 }

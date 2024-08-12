@@ -67,7 +67,7 @@ open class BaseBitmapOverlay(
      */
     override fun configure(videoSize: Size) {
         super.configure(videoSize)
-//        Log.d(TAG, "configure: videoWidth=${videoSize.width} videoHeight=${videoSize.height}")
+        Log.i(TAG, "configure: videoWidth=${videoSize.width} videoHeight=${videoSize.height}")
     }
 
     override fun getOverlaySettings(presentationTimeUs: Long): OverlaySettings {

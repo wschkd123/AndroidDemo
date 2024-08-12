@@ -107,46 +107,50 @@ public final class JsonUtil {
    * @return The {@link JSONObject} describing the {@code exportResult}.
    * @throws JSONException if this method attempts to create a JSON with null key.
    */
-  public static JSONObject exportResultAsJsonObject(ExportResult exportResult)
-      throws JSONException {
-    JSONObject jsonObject =
-        new JSONObject()
-            .putOpt("audioEncoderName", exportResult.audioEncoderName)
-            .putOpt("colorInfo", exportResult.colorInfo)
-            .putOpt("videoEncoderName", exportResult.videoEncoderName)
-            .putOpt("testException", exceptionAsJsonObject(exportResult.exportException));
+  public static JSONObject exportResultAsJsonObject(ExportResult exportResult) {
+    try {
+      JSONObject jsonObject =
+              new JSONObject()
+                      .putOpt("audioEncoderName", exportResult.audioEncoderName)
+                      .putOpt("colorInfo", exportResult.colorInfo)
+                      .putOpt("videoEncoderName", exportResult.videoEncoderName)
+                      .putOpt("testException", exceptionAsJsonObject(exportResult.exportException));
 
-    if (!exportResult.processedInputs.isEmpty()) {
-      jsonObject.put("processedInputs", processedInputsAsJsonArray(exportResult.processedInputs));
-    }
+      if (!exportResult.processedInputs.isEmpty()) {
+        jsonObject.put("processedInputs", processedInputsAsJsonArray(exportResult.processedInputs));
+      }
 
-    if (exportResult.averageAudioBitrate != C.RATE_UNSET_INT) {
-      jsonObject.put("averageAudioBitrate", exportResult.averageAudioBitrate);
+      if (exportResult.averageAudioBitrate != C.RATE_UNSET_INT) {
+        jsonObject.put("averageAudioBitrate", exportResult.averageAudioBitrate);
+      }
+      if (exportResult.averageVideoBitrate != C.RATE_UNSET_INT) {
+        jsonObject.put("averageVideoBitrate", exportResult.averageVideoBitrate);
+      }
+      if (exportResult.channelCount != C.LENGTH_UNSET) {
+        jsonObject.put("channelCount", exportResult.channelCount);
+      }
+      if (exportResult.durationMs != C.TIME_UNSET) {
+        jsonObject.put("durationMs", exportResult.durationMs);
+      }
+      if (exportResult.fileSizeBytes != C.LENGTH_UNSET) {
+        jsonObject.put("fileSizeBytes", exportResult.fileSizeBytes);
+      }
+      if (exportResult.width != C.LENGTH_UNSET) {
+        jsonObject.put("width", exportResult.width);
+      }
+      if (exportResult.height != C.LENGTH_UNSET) {
+        jsonObject.put("height", exportResult.height);
+      }
+      if (exportResult.sampleRate != C.RATE_UNSET_INT) {
+        jsonObject.put("sampleRate", exportResult.sampleRate);
+      }
+      if (exportResult.videoFrameCount > 0) {
+        jsonObject.put("videoFrameCount", exportResult.videoFrameCount);
+      }
+      return jsonObject;
+    } catch (JSONException e) {
+      Log.d("JsonUtil", "Unable to convert exportResult to JSON", e);
     }
-    if (exportResult.averageVideoBitrate != C.RATE_UNSET_INT) {
-      jsonObject.put("averageVideoBitrate", exportResult.averageVideoBitrate);
-    }
-    if (exportResult.channelCount != C.LENGTH_UNSET) {
-      jsonObject.put("channelCount", exportResult.channelCount);
-    }
-    if (exportResult.durationMs != C.TIME_UNSET) {
-      jsonObject.put("durationMs", exportResult.durationMs);
-    }
-    if (exportResult.fileSizeBytes != C.LENGTH_UNSET) {
-      jsonObject.put("fileSizeBytes", exportResult.fileSizeBytes);
-    }
-    if (exportResult.height != C.LENGTH_UNSET) {
-      jsonObject.put("height", exportResult.height);
-    }
-    if (exportResult.sampleRate != C.RATE_UNSET_INT) {
-      jsonObject.put("sampleRate", exportResult.sampleRate);
-    }
-    if (exportResult.videoFrameCount > 0) {
-      jsonObject.put("videoFrameCount", exportResult.videoFrameCount);
-    }
-    if (exportResult.width != C.LENGTH_UNSET) {
-      jsonObject.put("width", exportResult.width);
-    }
-    return jsonObject;
+    return new JSONObject();
   }
 }

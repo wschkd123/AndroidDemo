@@ -4,8 +4,9 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.example.base.BaseActivity
+import com.example.base.util.SpecialScreenUtils
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.ui.transformer.TransformerFragment
+import com.example.beyond.demo.ui.pag.ConfessionAnimationDialog
 
 class MainActivity : BaseActivity() {
 
@@ -17,7 +18,9 @@ class MainActivity : BaseActivity() {
         setContentView(binding.root)
 
 //        showFragment(AppWidgetFragment())
-        showFragment(TransformerFragment())
+//        showFragment(TransformerFragment())
+        SpecialScreenUtils.addImmersiveStatusBarFlag(this)
+        ConfessionAnimationDialog().show(supportFragmentManager)
     }
 
     private fun showFragment(fragment: Fragment, tag: String = "") {
