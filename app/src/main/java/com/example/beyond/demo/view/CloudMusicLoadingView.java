@@ -103,26 +103,26 @@ public class CloudMusicLoadingView extends View implements Runnable {
         //计算可用高度
         float totalAvailableHeight = mViewHeight - getPaddingBottom() - getPaddingTop();
         //计算每条音轨平分宽度后的位置
-        float averageBound = (mViewWidth * 1.0f) / mRailCount;
+        float averageBound = (mViewWidth - getPaddingStart() - getPaddingEnd() * 1.0f) / mRailCount;
         //计算每条音轨的x坐标位置
-        float x = (averageBound - mRailLineWidth) / 2f;
+        float x = averageBound - mRailLineWidth / 2f;
         float y = getPaddingBottom();
 
-        //旋转画布，按控件中心旋转180度，即可让音轨反转
-        canvas.rotate(180, mViewWidth / 2f, mViewHeight / 2f);
         //保存画布
         canvas.save();
         for (int i = 1; i <= mRailCount; i++) {
             //估值x坐标
-            float fraction = nextRandomFloat(1.0f);
-            float evaluateY = (mFloatEvaluator.evaluate(fraction, 0.3f, 0.9f)) * totalAvailableHeight;
+            float fraction = mRandom.nextFloat();
+            float evaluateY = (mFloatEvaluator.evaluate(fraction, 0.5f, 0.9f)) * totalAvailableHeight;
+            // 需要移动到垂直居中的位置，计算偏移
+            float offset = (totalAvailableHeight - (evaluateY - y))/2f;
             //第一个不需要偏移
             if (i == 1) {
-                canvas.drawLine(x, y, x, evaluateY, mPaint);
+                canvas.drawLine(x, y+offset, x, evaluateY+offset, mPaint);
             } else {
                 //后续，每个音轨都固定偏移间距后，再画
                 canvas.translate(averageBound, 0);
-                canvas.drawLine(x, y, x, evaluateY, mPaint);
+                canvas.drawLine(x, y+offset, x, evaluateY+offset, mPaint);
             }
         }
         //恢复画布
@@ -161,12 +161,4 @@ public class CloudMusicLoadingView extends View implements Runnable {
         return (int) (dipValue * scale + 0.5f);
     }
 
-    /**
-     * 产生一个随机float
-     *
-     * @param sl 随机数范围[0,sl)
-     */
-    public static float nextRandomFloat(float sl) {
-        return mRandom.nextFloat() * sl;
-    }
 }
