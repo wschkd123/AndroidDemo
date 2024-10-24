@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#C6C6C6"
+    android:orientation="vertical">
+
+    <com.example.beyond.demo.view.CloudMusicLoadingView
+        android:id="@+id/music_view"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="50dp"
+        android:background="#f6f6f6"
+        app:cmlv_line_width="2dp"
+        app:cmlv_rail_color="#111111" />
+
+
+    <TextView
+        android:id="@+id/startTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/endTv"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="30dp"
+        android:text="start"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/endTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="60dp"
+        android:text="end"
+        android:textColor="@android:color/white" />
+
+
+</RelativeLayout>

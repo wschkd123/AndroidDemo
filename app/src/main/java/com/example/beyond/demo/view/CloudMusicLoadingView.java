@@ -22,11 +22,6 @@ public class CloudMusicLoadingView extends View implements Runnable {
     private static Random mRandom = new Random();
 
     /**
-     * View默认最小宽度
-     */
-    private static final int DEFAULT_MIN_WIDTH = 65;
-
-    /**
      * 默认4条音轨
      */
     private static final int DEFAULT_RAIL_COUNT = 4;
@@ -79,7 +74,6 @@ public class CloudMusicLoadingView extends View implements Runnable {
         mPaint.setColor(mRailColor);
         mPaint.setStrokeWidth(mRailLineWidth);
         mPaint.setStyle(Paint.Style.FILL);
-        //设置笔触为方形
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         mPaint.setAntiAlias(true);
         mFloatEvaluator = new FloatEvaluator();
@@ -96,8 +90,11 @@ public class CloudMusicLoadingView extends View implements Runnable {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mViewWidth = w;
-        mViewHeight = h;
+        if (w > 0 && h > 0) {
+            mViewWidth = w;
+            mViewHeight = h;
+        }
+
     }
 
     @Override
@@ -108,8 +105,9 @@ public class CloudMusicLoadingView extends View implements Runnable {
         //计算每条音轨平分宽度后的位置
         float averageBound = (mViewWidth * 1.0f) / mRailCount;
         //计算每条音轨的x坐标位置
-        float x = averageBound - mRailLineWidth;
+        float x = (averageBound - mRailLineWidth) / 2f;
         float y = getPaddingBottom();
+
         //旋转画布，按控件中心旋转180度，即可让音轨反转
         canvas.rotate(180, mViewWidth / 2f, mViewHeight / 2f);
         //保存画布
@@ -123,36 +121,13 @@ public class CloudMusicLoadingView extends View implements Runnable {
                 canvas.drawLine(x, y, x, evaluateY, mPaint);
             } else {
                 //后续，每个音轨都固定偏移间距后，再画
-                canvas.translate(x, 0);
+                canvas.translate(averageBound, 0);
                 canvas.drawLine(x, y, x, evaluateY, mPaint);
             }
         }
         //恢复画布
         canvas.restore();
-    }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(handleMeasure(widthMeasureSpec), handleMeasure(heightMeasureSpec));
-    }
-
-    /**
-     * 处理MeasureSpec
-     */
-    private int handleMeasure(int measureSpec) {
-        int result = DEFAULT_MIN_WIDTH;
-        int specMode = MeasureSpec.getMode(measureSpec);
-        int specSize = MeasureSpec.getSize(measureSpec);
-        if (specMode == MeasureSpec.EXACTLY) {
-            result = specSize;
-        } else {
-            //处理wrap_content的情况
-            if (specMode == MeasureSpec.AT_MOST) {
-                result = Math.min(result, specSize);
-            }
-        }
-        return result;
     }
 
     @Override
