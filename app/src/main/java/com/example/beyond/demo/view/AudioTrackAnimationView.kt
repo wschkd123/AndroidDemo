@@ -20,6 +20,7 @@ import java.lang.ref.WeakReference
  * @author wangshichao
  * @date 2024/10/18
  */
+@Deprecated("")
 class AudioTrackAnimationView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null

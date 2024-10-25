@@ -6,11 +6,10 @@
     android:background="#C6C6C6"
     android:orientation="vertical">
 
-    <com.example.beyond.demo.view.CloudMusicLoadingView
+    <com.example.beyond.demo.view.TrackAnimationView
         android:id="@+id/music_view"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_margin="50dp"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
         android:background="#f6f6f6"
         app:cmlv_rail_color="#111111" />
 

@@ -32,8 +32,6 @@
     </declare-styleable>
 
     <declare-styleable name="CloudMusicLoadingView">
-        <!-- 音轨数量 -->
-        <attr name="cmlv_rail_count" format="integer" />
         <!-- 音轨的颜色 -->
         <attr name="cmlv_rail_color" format="color" />
     </declare-styleable>
