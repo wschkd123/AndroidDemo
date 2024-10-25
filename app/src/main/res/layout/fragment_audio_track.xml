@@ -12,7 +12,6 @@
         android:layout_height="100dp"
         android:layout_margin="50dp"
         android:background="#f6f6f6"
-        app:cmlv_line_width="5dp"
         app:cmlv_rail_color="#111111" />
 
 
