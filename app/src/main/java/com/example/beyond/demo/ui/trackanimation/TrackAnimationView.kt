@@ -1,4 +1,4 @@
-package com.example.beyond.demo.view
+package com.example.beyond.demo.ui.trackanimation
 
 import android.content.Context
 import android.graphics.Canvas
@@ -26,36 +26,42 @@ class TrackAnimationView @JvmOverloads constructor(
 
     private val paint: Paint by lazy {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = railColor
+            color = lineColor
             strokeWidth = lineWidth
             style = Paint.Style.FILL
             strokeCap = Paint.Cap.ROUND
         }
     }
+    private var paddingStart = 0f
 
     /**
-     * 音轨颜色
+     * 线条的颜色
      */
-    var railColor = 0
+    var lineColor = 0
         set(value) {
             field = value
             paint.color = value
         }
 
-    private var paddingStart = 0f
+    /**
+     * 线条的宽度
+     */
     private var lineWidth = 0f
         set(value) {
             field = value
             paint.strokeWidth = value
         }
 
+    /**
+     * 线条之间间距
+     */
     private var lineSpacing = 0f
     private val keyframeProvider = KeyframeProvider()
     private var isRunning = false
 
     init {
-        val array = context.obtainStyledAttributes(attrs, R.styleable.CloudMusicLoadingView)
-        railColor = array.getColor(R.styleable.CloudMusicLoadingView_cmlv_rail_color, 0)
+        val array = context.obtainStyledAttributes(attrs, R.styleable.TrackAnimationView)
+        lineColor = array.getColor(R.styleable.TrackAnimationView_line_color, 0)
         array.recycle()
     }
 
@@ -103,8 +109,8 @@ class TrackAnimationView @JvmOverloads constructor(
                 // 向右偏移用于绘制下一条线
                 canvas.translate(lineWidth + lineSpacing, 0f)
             }
-            // 垂直居中绘制
-            val lineHeight = height.times(frameData.getOrNull(index) ?: 1f)
+            // 垂直居中绘制。因为使用了Cap.ROUND，需要减去两端的线帽
+            val lineHeight = height.times(frameData.getOrNull(index) ?: 1f) - lineWidth
             val startY = (height - lineHeight) / 2f
             canvas.drawLine(startX, startY, startX, startY + lineHeight, paint)
         }

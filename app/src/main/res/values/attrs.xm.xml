@@ -31,9 +31,9 @@
         <attr name="avatar_border_color" format="color" />
     </declare-styleable>
 
-    <declare-styleable name="CloudMusicLoadingView">
-        <!-- 音轨的颜色 -->
-        <attr name="cmlv_rail_color" format="color" />
+    <declare-styleable name="TrackAnimationView">
+        <!-- 音轨线条的颜色 -->
+        <attr name="line_color" format="color" />
     </declare-styleable>
 
 </resources>
