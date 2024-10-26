@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import com.example.beyond.demo.R
 
@@ -21,7 +22,8 @@ class TrackAnimationView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs), Runnable {
     companion object {
-        private const val FRAME_INTERVAL = 100L
+        private const val TAG = "TrackAnimationView"
+        private const val FRAME_INTERVAL = 50L
     }
 
     private val paint: Paint by lazy {
@@ -65,10 +67,11 @@ class TrackAnimationView @JvmOverloads constructor(
         array.recycle()
     }
 
-    fun start() {
+    fun play() {
         if (isRunning) {
             return
         }
+        Log.w(TAG, "play")
         isRunning = true
         removeCallbacks(this)
         post(this)
@@ -78,6 +81,7 @@ class TrackAnimationView @JvmOverloads constructor(
         if (isRunning.not()) {
             return
         }
+        Log.w(TAG, "stop")
         isRunning = false
         removeCallbacks(this)
         // 重置为首帧

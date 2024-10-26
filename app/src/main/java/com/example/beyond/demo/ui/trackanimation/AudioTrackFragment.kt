@@ -36,13 +36,13 @@ class AudioTrackFragment : BaseFragment() {
     }
 
     private fun initView() {
-        val trackView = TrackAnimationView(requireContext()).apply {
-            layoutParams = ViewGroup.LayoutParams(1000, 1000)
-            lineColor = Color.parseColor("#111111")
-            setBackgroundColor(Color.parseColor("#f6f6f6"))
-        }
-        binding.trackContainer.addView(trackView)
-        for (i in 0..50) {
+//        val trackView = TrackAnimationView(requireContext()).apply {
+//            layoutParams = ViewGroup.LayoutParams(1000, 1000)
+//            lineColor = Color.parseColor("#111111")
+//            setBackgroundColor(Color.parseColor("#f6f6f6"))
+//        }
+//        binding.trackContainer.addView(trackView)
+        for (i in 0 until 100) {
             val trackView = TrackAnimationView(requireContext()).apply {
                 layoutParams = ViewGroup.LayoutParams(12.dpToPx(), 12.dpToPx())
                 lineColor = Color.parseColor("#111111")
@@ -54,7 +54,7 @@ class AudioTrackFragment : BaseFragment() {
         binding.startTv.setOnClickListener {
             binding.trackContainer.forEach {
                 if (it is TrackAnimationView) {
-                    it.start()
+                    it.play()
                 }
             }
 
