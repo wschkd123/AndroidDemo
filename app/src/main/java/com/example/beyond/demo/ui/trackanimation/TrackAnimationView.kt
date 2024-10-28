@@ -20,7 +20,7 @@ import com.example.beyond.demo.R
 class TrackAnimationView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
-) : View(context, attrs), Runnable {
+) : View(context, attrs) {
     companion object {
         private const val TAG = "TrackAnimationView"
         private const val FRAME_INTERVAL = 50L
@@ -60,6 +60,10 @@ class TrackAnimationView @JvmOverloads constructor(
     private var lineSpacing = 0f
     private val keyframeProvider = KeyframeProvider()
     private var isRunning = false
+    private val refreshRunnable = Runnable {
+        Log.d(TAG, "run")
+        invalidate()
+    }
 
     init {
         val array = context.obtainStyledAttributes(attrs, R.styleable.TrackAnimationView)
@@ -72,9 +76,9 @@ class TrackAnimationView @JvmOverloads constructor(
             return
         }
         Log.w(TAG, "play")
+        removeCallbacks(refreshRunnable)
         isRunning = true
-        removeCallbacks(this)
-        post(this)
+        invalidate()
     }
 
     fun stop() {
@@ -82,16 +86,11 @@ class TrackAnimationView @JvmOverloads constructor(
             return
         }
         Log.w(TAG, "stop")
+        removeCallbacks(refreshRunnable)
         isRunning = false
-        removeCallbacks(this)
         // 重置为首帧
         keyframeProvider.reset()
         invalidate()
-    }
-
-    override fun run() {
-        invalidate()
-        postDelayed(this, FRAME_INTERVAL)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -105,6 +104,7 @@ class TrackAnimationView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        Log.d(TAG, "onDraw")
         canvas.save()
         val startX = paddingStart + lineWidth.div(2f)
         val frameData = keyframeProvider.getFrame()
@@ -119,11 +119,22 @@ class TrackAnimationView @JvmOverloads constructor(
             canvas.drawLine(startX, startY, startX, startY + lineHeight, paint)
         }
         canvas.restore()
+        if (isRunning) {
+            postDelayed(refreshRunnable, FRAME_INTERVAL)
+        }
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         stop()
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        Log.w(TAG, "onWindowVisibilityChanged visibility=$visibility")
+        if (visibility != VISIBLE) {
+            stop()
+        }
     }
 
     class KeyframeProvider {
