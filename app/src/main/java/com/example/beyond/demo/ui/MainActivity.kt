@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.example.base.BaseActivity
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.ui.trackanimation.AudioTrackFragment
+import com.example.beyond.demo.ui.trackanimation.DrawerLayoutFragment
 
 
 class MainActivity : BaseActivity() {
@@ -20,7 +20,8 @@ class MainActivity : BaseActivity() {
 //        showFragment(AppWidgetFragment())
 //        showFragment(TransformerFragment())
 //        ConfessionAnimationDialog().show(supportFragmentManager)
-        showFragment(AudioTrackFragment())
+//        showFragment(AudioTrackFragment())
+        showFragment(DrawerLayoutFragment())
     }
 
     private fun showFragment(fragment: Fragment, tag: String = "") {
