@@ -1,22 +1,19 @@
 package com.example.beyond.demo.ui.trackanimation
 
-import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.drawerlayout.widget.DrawerLayout
 import com.example.base.BaseFragment
-import com.example.base.util.ext.dpToPxFloat
 import com.example.beyond.demo.databinding.FragmentDrawerLayoutBinding
 
 
 /**
- * 音频音轨播放动画
+ * 日常模式聊天室
  *
  * @author wangshichao
- * @date 2024/10/18
+ * @date 2025/9/10
  */
 class DrawerLayoutFragment : BaseFragment() {
 
@@ -39,7 +36,7 @@ class DrawerLayoutFragment : BaseFragment() {
 
     var drawerOpened = false
         private set
-    private var innerDrawerListener = object : DrawerLayout.DrawerListener {
+    private var innerDrawerListener = object : com.example.beyond.demo.view.DrawerLayout.DrawerListener {
         override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
             drawerOpened = slideOffset == 1f
             Log.i(TAG, "onDrawerSlide: $slideOffset")
@@ -61,27 +58,27 @@ class DrawerLayoutFragment : BaseFragment() {
     }
 
     private fun initView() {
-//        binding.drawerLayout.addDrawerListener(innerDrawerListener)
-        binding.openTv.setOnClickListener {
+        binding.drawerLayout.addDrawerListener(innerDrawerListener)
+//        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN)
+//        binding.openTv.setOnClickListener {
 //            if (drawerOpened) {
 //                binding.drawerLayout.closeDrawers()
 //            } else {
 //                binding.drawerLayout.openDrawer(Gravity.LEFT)
 //            }
-            startAnimation2()
-        }
-        startAnimation2()
+//            startRotationAnimation()
+//        }
     }
 
-    private fun startAnimation2() {
-        binding.root.post {
-            val rotationAnimatorY =
-                ObjectAnimator.ofFloat(binding.characterIv, "rotationY", 0f, 180f)
-            rotationAnimatorY.setDuration(5000) // 设置动画时长1秒
-            rotationAnimatorY.start() // 启动动画
-
-            // 调整相机距离。如果不修改, 则会超出屏幕高度
-            binding.characterIv.cameraDistance = 10000.dpToPxFloat()
-        }
+    private fun startRotationAnimation() {
+//        binding.root.post {
+//            val rotationAnimatorY =
+//                ObjectAnimator.ofFloat(binding.characterIv, "rotationY", 0f, 180f)
+//            rotationAnimatorY.setDuration(5000) // 设置动画时长1秒
+//            rotationAnimatorY.start() // 启动动画
+//
+//            // 调整相机距离。如果不修改, 则会超出屏幕高度
+//            binding.characterIv.cameraDistance = 10000.dpToPxFloat()
+//        }
     }
 }
