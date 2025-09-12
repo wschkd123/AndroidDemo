@@ -1,13 +1,15 @@
 package com.example.beyond.demo.ui.trackanimation
 
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.base.BaseFragment
+import com.example.base.util.ext.dpToPxFloat
 import com.example.beyond.demo.databinding.FragmentDrawerLayoutBinding
-import com.example.beyond.demo.view.ChatDrawerLayout
+import com.example.beyond.demo.view.ChatSwipeLayout
 
 
 /**
@@ -35,52 +37,42 @@ class DrawerLayoutFragment : BaseFragment() {
         initView()
     }
 
-    var drawerOpened = false
-        private set
-    private var innerDrawerListener = object : ChatDrawerLayout.DrawerListener {
-        override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-            drawerOpened = slideOffset == 1f
+    private var swipeLayoutListener = object : ChatSwipeLayout.DrawerListener {
+        override fun onDrawerSlide(slideOffset: Float) {
             Log.i(TAG, "onDrawerSlide: $slideOffset")
-        }
-
-        override fun onDrawerOpened(drawerView: View) {
-            drawerOpened = true
-            Log.i(TAG, "onDrawerOpened")
-        }
-
-        override fun onDrawerClosed(drawerView: View) {
-            val lp = drawerView.layoutParams as ViewGroup.MarginLayoutParams
-            Log.i(TAG, "onDrawerClosed")
         }
 
         override fun onDrawerStateChanged(newState: Int) {
             Log.i(TAG, "onDrawerStateChanged newState=$newState")
         }
+
+        override fun onDrawerOpened() {
+            Log.i(TAG, "onDrawerOpened")
+        }
+
+        override fun onDrawerClosed() {
+            Log.i(TAG, "onDrawerClosed")
+        }
     }
 
     private fun initView() {
-//        binding.drawerLayout.setDrawerListener(twoStageSwipeListener)
-//        binding.drawerLayout.isEnableTwoStages = true
-//        binding.drawerLayout.setDrawerLockMode(ChatDrawerLayout.LOCK_MODE_UNLOCKED, Gravity.LEFT)
-//        binding.openTv.setOnClickListener {
-//            if (drawerOpened) {
-//                binding.drawerLayout.closeDrawers()
-//            } else {
-//                binding.drawerLayout.openDrawer(Gravity.LEFT)
-//            }
-//            startRotationAnimation()
-//        }
+        binding.drawerLayout.setDrawerListener(swipeLayoutListener)
+        binding.drawerLayout.setEnableSecondStage(true)
+        initRotationAnimation()
     }
 
-    private fun startRotationAnimation() {
-//        binding.root.post {
-//            val rotationAnimatorY =
-//                ObjectAnimator.ofFloat(binding.characterIv, "rotationY", 0f, 180f)
-//            rotationAnimatorY.setDuration(5000) // 设置动画时长1秒
-//            rotationAnimatorY.start() // 启动动画
-//
-//            // 调整相机距离。如果不修改, 则会超出屏幕高度
-//            binding.characterIv.cameraDistance = 10000.dpToPxFloat()
-//        }
+    /**
+     * 旋转动画
+     */
+    private fun initRotationAnimation() {
+        binding.openTv.setOnClickListener {
+            val rotationAnimatorY =
+                ObjectAnimator.ofFloat(binding.contentLayout, "rotationY", 0f, 180f)
+            rotationAnimatorY.setDuration(5000) // 设置动画时长1秒
+            rotationAnimatorY.start() // 启动动画
+
+            // 调整相机距离。如果不修改, 则会超出屏幕高度
+            binding.contentLayout.cameraDistance = 10000.dpToPxFloat()
+        }
     }
 }

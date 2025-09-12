@@ -2,50 +2,26 @@
 <com.example.beyond.demo.view.ChatSwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#009688">
 
-    <!-- 主内容区域 -->
+
     <FrameLayout
+        android:id="@+id/content_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#CDDC39">
-        <!-- 主界面内容 -->
+        android:layout_height="match_parent">
 
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/character_bg"/>
 
         <TextView
+            android:id="@+id/open_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Hello"/>
+            android:text="打开"/>
     </FrameLayout>
-<!--
-    &lt;!&ndash; 左侧菜单 (支持左滑展开) &ndash;&gt;
-    <LinearLayout
-        android:layout_width="100dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="left"
-        android:background="#03A9F4">
-        &lt;!&ndash; 侧边栏内容 &ndash;&gt;
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="侧边栏菜单"/>
-    </LinearLayout>-->
-<!--
-    <TextView
-        android:id="@+id/open_tv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="打开"/>
-
-    <ImageView
-        android:id="@+id/character_iv"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginHorizontal="30dp"
-        android:layout_marginVertical="30dp"
-        android:visibility="gone"
-        android:scaleType="centerCrop"
-        android:src="@drawable/character_bg"/>-->
 </com.example.beyond.demo.view.ChatSwipeLayout>
