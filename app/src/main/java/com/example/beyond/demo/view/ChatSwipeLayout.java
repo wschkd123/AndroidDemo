@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.customview.widget.ViewDragHelper;
 
 /**
- * 简化版滑动缩放容器：仅包含一个全屏子View，支持滑动时的位置偏移和缩放效果
+ * 支持日常模式聊天室的容器。可以通过手势从左侧边缘滑动打开切换日常聊天室和普通聊天室
  */
 public class ChatSwipeLayout extends ViewGroup {
     private static final String TAG = "ChatSwipeLayout";
@@ -26,12 +26,54 @@ public class ChatSwipeLayout extends ViewGroup {
     private final int mMinFlingVelocity;
     // 第一阶段最大阈值（屏幕宽度的20%）
     private int mFirstStageMax;
-    // 第一阶段是否激活（用于触摸事件判断）
+    // 第一阶段是否激活
     private boolean mInFirstStage = true;
-    // 初始触摸位置（用于计算第一阶段滑动距离）
+    // 初始触摸位置
     private float mInitialTouchX;
     // 是否已经处理第一阶段逻辑
     private boolean mFirstStageHandled = false;
+    // 第二阶段开关（默认启用）
+    private boolean mEnableSecondStage = true;
+    // 标记是否处于第二阶段（已滑到最大位置）
+    private boolean mIsInSecondStage = false;
+    // 当前抽屉状态
+    private int mDrawerState = STATE_CLOSED;
+    // 监听接口
+    private DrawerListener mDrawerListener;
+
+    // 抽屉状态常量
+    public static final int STATE_IDLE = 0;
+    public static final int STATE_DRAGGING = 1;
+    public static final int STATE_SETTLING = 2;
+    public static final int STATE_OPENED = 3;
+    public static final int STATE_CLOSED = 4;
+
+    /**
+     * 抽屉监听接口
+     */
+    public interface DrawerListener {
+        /**
+         * 抽屉滑动时回调
+         * @param slideOffset 滑动偏移比例（0~1）
+         */
+        void onDrawerSlide(float slideOffset);
+
+        /**
+         * 抽屉状态改变时回调
+         * @param newState 新状态（STATE_*）
+         */
+        void onDrawerStateChanged(int newState);
+
+        /**
+         * 抽屉完全打开时回调
+         */
+        void onDrawerOpened();
+
+        /**
+         * 抽屉完全关闭时回调
+         */
+        void onDrawerClosed();
+    }
 
     public ChatSwipeLayout(Context context) {
         this(context, null);
@@ -51,8 +93,50 @@ public class ChatSwipeLayout extends ViewGroup {
         // 创建ViewDragHelper，设置回调
         mDragHelper = ViewDragHelper.create(this, 1.0f, new DragCallback());
         mDragHelper.setMinVelocity(mMinFlingVelocity);
-        // 允许边缘滑动（可选）
+        // 允许边缘滑动
         mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
+    }
+
+    /**
+     * 设置抽屉监听器
+     */
+    public void setDrawerListener(DrawerListener listener) {
+        mDrawerListener = listener;
+    }
+
+    // 设置是否启用第二阶段滑动
+    public void setEnableSecondStage(boolean enable) {
+        mEnableSecondStage = enable;
+        // 如果关闭第二阶段且当前在第二阶段，强制回弹到第一阶段最大位置
+        if (!enable && mContentView != null && mContentView.getLeft() > mFirstStageMax) {
+            mDragHelper.settleCapturedViewAt(mFirstStageMax, 0);
+            invalidate();
+        }
+    }
+
+    /**
+     * 更新抽屉状态并触发回调
+     */
+    private void updateDrawerState(int newState) {
+        if (mDrawerState == newState) return;
+        mDrawerState = newState;
+        if (mDrawerListener != null) {
+            mDrawerListener.onDrawerStateChanged(newState);
+
+            // 触发打开/关闭回调
+            if (newState == STATE_OPENED) {
+                mDrawerListener.onDrawerOpened();
+            } else if (newState == STATE_CLOSED) {
+                mDrawerListener.onDrawerClosed();
+            }
+        }
+    }
+
+    /**
+     * 计算滑动偏移比例（0~1）
+     */
+    private float calculateSlideOffset(int left) {
+        return (float) left / (mScreenWidth / 2);
     }
 
     @Override
@@ -63,26 +147,21 @@ public class ChatSwipeLayout extends ViewGroup {
             throw new IllegalArgumentException("ChatSwipeLayout must have exactly one child");
         }
         mContentView = getChildAt(0);
-        // 设置子View为全屏（占满容器）
         mContentView.setLayoutParams(new LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT
         ));
-        // 设置缩放中心为子View中心
-        mContentView.setPivotX(mContentView.getWidth() / 2);
-        mContentView.setPivotY(mContentView.getHeight() / 2);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // 强制容器为精确尺寸（全屏）
+        // 强制容器为全屏
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
         setMeasuredDimension(width, height);
 
-        // 测量子View为全屏
         mScreenWidth = width;
-        mFirstStageMax = (int) (mScreenWidth * 0.2f); // 初始化第一阶段阈值
+        mFirstStageMax = (int) (mScreenWidth * 0.2f);
         int childWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
         int childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
         mContentView.measure(childWidthSpec, childHeightSpec);
@@ -90,9 +169,9 @@ public class ChatSwipeLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // 子View初始位置：左上角对齐容器
         mContentView.layout(0, 0, r - l, b - t);
 
+        // 设置缩放中心为子View中心
         int centerX = mContentView.getWidth() / 2;
         int centerY = mContentView.getHeight() / 2;
         mContentView.setPivotX(centerX);
@@ -104,15 +183,19 @@ public class ChatSwipeLayout extends ViewGroup {
      */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (mIsInSecondStage) {
+            return mDragHelper.shouldInterceptTouchEvent(ev);
+        }
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 mInitialTouchX = ev.getX();
                 mInFirstStage = true;
                 mFirstStageHandled = false;
-                // 重置子View状态（确保初始状态正确）
-                mContentView.setScaleX(1.0f);
-                mContentView.setScaleY(1.0f);
-                mContentView.layout(0, 0, mContentView.getWidth(), mContentView.getHeight());
+                //TODO 重置子View状态（确保初始状态正确）
+//                mContentView.setScaleX(1.0f);
+//                mContentView.setScaleY(1.0f);
+//                mContentView.layout(0, 0, mContentView.getWidth(), mContentView.getHeight());
+//                updateDrawerState(STATE_IDLE);
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -128,11 +211,16 @@ public class ChatSwipeLayout extends ViewGroup {
                         mContentView.setScaleX(scale);
                         mContentView.setScaleY(scale);
 
+                        // 第一阶段滑动回调（偏移比例按总范围计算）
+                        if (mDrawerListener != null) {
+                            mDrawerListener.onDrawerSlide(ratio * 0.2f); // 第一阶段占总范围的20%
+                        }
+
                         // 如果超过第一阶段阈值，激活第二阶段
                         if (dx >= mFirstStageMax) {
                             mInFirstStage = false;
                             mFirstStageHandled = true;
-                            // 传递事件给ViewDragHelper处理
+                            updateDrawerState(STATE_DRAGGING);
                             return mDragHelper.shouldInterceptTouchEvent(ev);
                         }
                         // 第一阶段自己处理，不拦截
@@ -150,6 +238,10 @@ public class ChatSwipeLayout extends ViewGroup {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (mIsInSecondStage) {
+            mDragHelper.processTouchEvent(event);
+            return true;
+        }
         switch (event.getAction()) {
             case MotionEvent.ACTION_MOVE:
                 if (mInFirstStage) {
@@ -161,11 +253,15 @@ public class ChatSwipeLayout extends ViewGroup {
                         mContentView.setScaleX(scale);
                         mContentView.setScaleY(scale);
 
+                        if (mDrawerListener != null) {
+                            mDrawerListener.onDrawerSlide(ratio * 0.2f);
+                        }
+
                         if (dx >= mFirstStageMax) {
                             mInFirstStage = false;
                             mFirstStageHandled = true;
-                            // 切换到第二阶段，将事件交给ViewDragHelper
                             mDragHelper.processTouchEvent(event);
+                            updateDrawerState(STATE_DRAGGING);
                         }
                         return true;
                     }
@@ -178,6 +274,10 @@ public class ChatSwipeLayout extends ViewGroup {
                     // 第一阶段释放，回弹到初始状态
                     mContentView.setScaleX(1.0f);
                     mContentView.setScaleY(1.0f);
+                    if (mDrawerListener != null) {
+                        mDrawerListener.onDrawerSlide(0);
+                    }
+                    updateDrawerState(STATE_CLOSED);
                     return true;
                 }
                 break;
@@ -199,8 +299,8 @@ public class ChatSwipeLayout extends ViewGroup {
 
         @Override
         public int clampViewPositionHorizontal(@NonNull View child, int left, int dx) {
-            // 第二阶段滑动范围：从0到屏幕宽度的50%
-            return Math.max(0, Math.min(left, mScreenWidth / 2));
+            int maxLeft = mEnableSecondStage ? mScreenWidth / 2 : mFirstStageMax;
+            return Math.max(0, Math.min(left, maxLeft));
         }
 
         @Override
@@ -214,22 +314,59 @@ public class ChatSwipeLayout extends ViewGroup {
             // 第二阶段保持缩放为0.8
             changedView.setScaleX(0.8f);
             changedView.setScaleY(0.8f);
+
+            // 更新第二阶段状态（滑动到95%以上视为已进入第二阶段）
+            mIsInSecondStage = left >= mScreenWidth / 2 * 0.95f;
+
+            // 计算总偏移比例（第一阶段20% + 第二阶段80%）
+            float totalOffset = 0.2f + (calculateSlideOffset(left) * 0.8f);
+            if (mDrawerListener != null) {
+                mDrawerListener.onDrawerSlide(totalOffset);
+            }
         }
 
         @Override
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
+            updateDrawerState(STATE_SETTLING);
+
             int currentLeft = releasedChild.getLeft();
-            // 判断是否需要回弹
-            if (currentLeft > mScreenWidth / 4 || xvel > mMinFlingVelocity) {
-                mDragHelper.settleCapturedViewAt(mScreenWidth / 2, 0);
+            int targetLeft;
+
+            // 根据第二阶段开关决定释放后的目标位置
+            if (mEnableSecondStage) {
+                // 启用第二阶段：正常判断是否滑到一半
+                targetLeft = (currentLeft > mScreenWidth / 4 || xvel > mMinFlingVelocity)
+                        ? mScreenWidth / 2
+                        : 0;
             } else {
-                mDragHelper.settleCapturedViewAt(0, 0);
-                // 回到初始位置时重置缩放
-                releasedChild.setScaleX(1.0f);
-                releasedChild.setScaleY(1.0f);
+                // 关闭第二阶段：最多滑到第一阶段最大位置
+                targetLeft = (currentLeft > mFirstStageMax / 2 || xvel > mMinFlingVelocity)
+                        ? mFirstStageMax
+                        : 0;
             }
+
+            // 释放后更新第二阶段状态
+            mIsInSecondStage = (targetLeft == mScreenWidth / 2);
+            mDragHelper.settleCapturedViewAt(targetLeft, 0);
             invalidate();
+        }
+
+        @Override
+        public void onViewDragStateChanged(int state) {
+            super.onViewDragStateChanged(state);
+            if (state == ViewDragHelper.STATE_IDLE) {
+                // 空闲状态时判断最终状态
+                if (mContentView.getLeft() >= mScreenWidth / 2) {
+                    updateDrawerState(STATE_OPENED);
+                } else {
+                    updateDrawerState(STATE_CLOSED);
+                }
+            } else if (state == ViewDragHelper.STATE_DRAGGING) {
+                updateDrawerState(STATE_DRAGGING);
+            } else if (state == ViewDragHelper.STATE_SETTLING) {
+                updateDrawerState(STATE_SETTLING);
+            }
         }
     }
 
@@ -241,7 +378,6 @@ public class ChatSwipeLayout extends ViewGroup {
         }
     }
 
-    // 布局参数相关代码保持不变
     public static class LayoutParams extends ViewGroup.LayoutParams {
         public LayoutParams(int width, int height) {
             super(width, height);

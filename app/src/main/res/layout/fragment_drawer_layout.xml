@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.beyond.demo.view.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.example.beyond.demo.view.ChatSwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <!-- 主内容区域 -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#CDDC39">
         <!-- 主界面内容 -->
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- 左侧菜单 (支持左滑展开) -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Hello"/>
+    </FrameLayout>
+<!--
+    &lt;!&ndash; 左侧菜单 (支持左滑展开) &ndash;&gt;
     <LinearLayout
         android:layout_width="100dp"
         android:layout_height="match_parent"
         android:layout_gravity="left"
-        android:gravity="center"
         android:background="#03A9F4">
-        <!-- 侧边栏内容 -->
+        &lt;!&ndash; 侧边栏内容 &ndash;&gt;
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="侧边栏菜单"/>
-    </LinearLayout>
+    </LinearLayout>-->
 <!--
     <TextView
         android:id="@+id/open_tv"
@@ -42,4 +48,4 @@
         android:visibility="gone"
         android:scaleType="centerCrop"
         android:src="@drawable/character_bg"/>-->
-</com.example.beyond.demo.view.DrawerLayout>
+</com.example.beyond.demo.view.ChatSwipeLayout>

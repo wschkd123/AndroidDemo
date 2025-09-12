@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.base.BaseFragment
 import com.example.beyond.demo.databinding.FragmentDrawerLayoutBinding
+import com.example.beyond.demo.view.ChatDrawerLayout
 
 
 /**
@@ -36,7 +37,7 @@ class DrawerLayoutFragment : BaseFragment() {
 
     var drawerOpened = false
         private set
-    private var innerDrawerListener = object : com.example.beyond.demo.view.DrawerLayout.DrawerListener {
+    private var innerDrawerListener = object : ChatDrawerLayout.DrawerListener {
         override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
             drawerOpened = slideOffset == 1f
             Log.i(TAG, "onDrawerSlide: $slideOffset")
@@ -58,8 +59,9 @@ class DrawerLayoutFragment : BaseFragment() {
     }
 
     private fun initView() {
-        binding.drawerLayout.addDrawerListener(innerDrawerListener)
-//        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN)
+//        binding.drawerLayout.setDrawerListener(twoStageSwipeListener)
+//        binding.drawerLayout.isEnableTwoStages = true
+//        binding.drawerLayout.setDrawerLockMode(ChatDrawerLayout.LOCK_MODE_UNLOCKED, Gravity.LEFT)
 //        binding.openTv.setOnClickListener {
 //            if (drawerOpened) {
 //                binding.drawerLayout.closeDrawers()
