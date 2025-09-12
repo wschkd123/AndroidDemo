@@ -1460,10 +1460,16 @@ public class ChatDrawerLayout extends ViewGroup {
         return result;
     }
 
+    /**
+     * Check if this view is the content view.
+     */
     boolean isContentView(View child) {
         return ((LayoutParams) child.getLayoutParams()).gravity == Gravity.NO_GRAVITY;
     }
 
+    /**
+     * Check if this view is a drawer.
+     */
     boolean isDrawerView(View child) {
         final int gravity = ((LayoutParams) child.getLayoutParams()).gravity;
         final int absGravity = GravityCompat.getAbsoluteGravity(gravity,
