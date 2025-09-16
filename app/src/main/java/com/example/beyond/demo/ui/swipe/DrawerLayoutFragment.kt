@@ -1,4 +1,4 @@
-package com.example.beyond.demo.ui.trackanimation
+package com.example.beyond.demo.ui.swipe
 
 import android.animation.ObjectAnimator
 import android.os.Bundle
@@ -37,26 +37,28 @@ class DrawerLayoutFragment : BaseFragment() {
         initView()
     }
 
-    private var swipeLayoutListener = object : ChatSwipeLayout.DrawerListener {
-        override fun onDrawerSlide(slideOffset: Float) {
+    private var swipeLayoutListener = object : ChatSwipeLayout.SwipeListener {
+
+        override fun onSwipe(slideOffset: Float) {
             Log.i(TAG, "onDrawerSlide: $slideOffset")
         }
 
-        override fun onDrawerStateChanged(newState: Int) {
-            Log.i(TAG, "onDrawerStateChanged newState=$newState")
+        override fun onSwipeStateChanged(newState: Int) {
+            Log.i(TAG, "onSwipeStateChanged newState=$newState")
         }
 
-        override fun onDrawerOpened() {
-            Log.i(TAG, "onDrawerOpened")
+        override fun onCompleteOpened() {
+            Log.i(TAG, "onCompleteOpened")
         }
 
-        override fun onDrawerClosed() {
-            Log.i(TAG, "onDrawerClosed")
+        override fun onCompleteClosed() {
+            Log.i(TAG, "onCompleteClosed")
         }
+
     }
 
     private fun initView() {
-        binding.drawerLayout.setDrawerListener(swipeLayoutListener)
+        binding.drawerLayout.setSwipeListener(swipeLayoutListener)
         binding.drawerLayout.setEnableSecondStage(true)
         initRotationAnimation()
     }
