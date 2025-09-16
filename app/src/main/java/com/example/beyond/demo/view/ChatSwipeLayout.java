@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.customview.widget.ViewDragHelper;
 
+import com.example.base.util.YWDeviceUtil;
+
 /**
  * 支持日常模式聊天室的容器。可以通过手势从左侧边缘滑动打开切换日常聊天室和普通聊天室
  */
@@ -19,23 +21,20 @@ public class ChatSwipeLayout extends ViewGroup {
     private final ViewDragHelper mDragHelper;
     // 唯一的子View
     private View mContentView;
-    // 屏幕宽度（用于计算滑动比例）
-    private int mScreenWidth;
     // 最小滑动速度（用于判断快速滑动）
     private final int mMinFlingVelocity;
-    // 第一阶段最大阈值（屏幕宽度的20%）
-    private int mFirstStageMax;
     // 第一阶段是否激活
     private boolean mInFirstStage = true;
-    // 初始触摸位置
-    private float mInitialTouchX;
-    // 是否已经处理第一阶段逻辑
-    private boolean mFirstStageHandled = false;
-    // 第二阶段开关（默认启用）
-    private boolean mEnableSecondStage = true;
-    // 标记是否处于第二阶段（已滑到最大位置）
-    private boolean mIsInSecondStage = false;
+
+    // 第一阶段最大滑动距离（缩放从1.0到0.8）
+    private int mFirstStageMaxDistance;
+    // 第二阶段最大滑动距离（屏幕宽度的50%）
+    private int mSecondStageMaxDistance;
+
     private float mInitialX, mLastX;
+    private float mLastScale = 1f;
+
+    private static final float MIN_SCALE = 0.8f;
 
     // 当前抽屉状态
     private int mDrawerState = STATE_CLOSED;
@@ -61,7 +60,8 @@ public class ChatSwipeLayout extends ViewGroup {
 
         /**
          * 抽屉状态改变时回调
-         * @param newState 新状态（STATE_*）
+         *
+         * @param newState 新状态
          */
         void onDrawerStateChanged(int newState);
 
@@ -105,14 +105,14 @@ public class ChatSwipeLayout extends ViewGroup {
         mDrawerListener = listener;
     }
 
-    // 设置是否启用第二阶段滑动
+    //TODO 首次拖动缩放到0.8，松手后自动到右边
     public void setEnableSecondStage(boolean enable) {
-        mEnableSecondStage = enable;
-        // 如果关闭第二阶段且当前在第二阶段，强制回弹到第一阶段最大位置
-        if (!enable && mContentView != null && mContentView.getLeft() > mFirstStageMax) {
-            mDragHelper.settleCapturedViewAt(mFirstStageMax, 0);
-            invalidate();
-        }
+//        mEnableSecondStage = enable;
+//        // 如果关闭第二阶段且当前在第二阶段，强制回弹到第一阶段最大位置
+//        if (!enable && mContentView != null && mContentView.getLeft() > mFirstStageMax) {
+//            mDragHelper.settleCapturedViewAt(mFirstStageMax, 0);
+//            invalidate();
+//        }
     }
 
     /**
@@ -133,13 +133,6 @@ public class ChatSwipeLayout extends ViewGroup {
         }
     }
 
-    /**
-     * 计算滑动偏移比例（0~1）
-     */
-    private float calculateSlideOffset(int left) {
-        return (float) left / (mScreenWidth / 2);
-    }
-
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -148,21 +141,16 @@ public class ChatSwipeLayout extends ViewGroup {
             throw new IllegalArgumentException("ChatSwipeLayout must have exactly one child");
         }
         mContentView = getChildAt(0);
-        mContentView.setLayoutParams(new LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT
-        ));
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // 强制容器为全屏
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
         setMeasuredDimension(width, height);
 
-        mScreenWidth = width;
-        mFirstStageMax = (int) (mScreenWidth * 0.2f);
+        mFirstStageMaxDistance = width / 2;
+        mSecondStageMaxDistance = width / 2;
         int childWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
         int childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
         mContentView.measure(childWidthSpec, childHeightSpec);
@@ -185,75 +173,11 @@ public class ChatSwipeLayout extends ViewGroup {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            mLastX = 0f;
             mInitialX = ev.getX();
-            Log.d(TAG, "onInterceptTouchEvent: down x=" + mInitialX);
         }
+        Log.d(TAG, "onInterceptTouchEvent: action=" + ev.getAction() + ", x=" + mInitialX);
         return mDragHelper.shouldInterceptTouchEvent(ev);
-//        if (mIsInSecondStage) {
-//            return mDragHelper.shouldInterceptTouchEvent(ev);
-//        }
-//        switch (ev.getAction()) {
-//            case MotionEvent.ACTION_DOWN:
-//                mInitialTouchX = ev.getX();
-//                mInFirstStage = true;
-//                mFirstStageHandled = false;
-//                //TODO 重置子View状态（确保初始状态正确）
-////                mContentView.setScaleX(1.0f);
-////                mContentView.setScaleY(1.0f);
-////                mContentView.layout(0, 0, mContentView.getWidth(), mContentView.getHeight());
-////                updateDrawerState(STATE_IDLE);
-//                break;
-//
-//            case MotionEvent.ACTION_MOVE:
-//                if (mInFirstStage) {
-//                    float currentX = ev.getX();
-//                    float dx = currentX - mInitialTouchX;
-//                    // 处理向右滑动（缩小）
-//                    if (dx > 0) {
-//                        // 计算第一阶段滑动比例
-//                        float ratio = Math.min(dx / mFirstStageMax, 1.0f);
-//                        // 应用缩放（1.0 -> 0.8）
-//                        float scale = 1.0f - (ratio * 0.2f);
-//                        mContentView.setScaleX(scale);
-//                        mContentView.setScaleY(scale);
-//
-//                        // 第一阶段滑动回调（偏移比例按总范围计算）
-//                        if (mDrawerListener != null) {
-//                            mDrawerListener.onDrawerSlide(ratio * 0.2f); // 第一阶段占总范围的20%
-//                        }
-//
-//                        // 如果超过第一阶段阈值，激活第二阶段
-//                        if (dx >= mFirstStageMax) {
-//                            mInFirstStage = false;
-//                            mFirstStageHandled = true;
-//                            updateDrawerState(STATE_DRAGGING);
-//                            return mDragHelper.shouldInterceptTouchEvent(ev);
-//                        }
-//                        // 第一阶段自己处理，不拦截
-//                        return false;
-//                    }
-//                    // 处理向左滑动（放大）
-//                    else if (dx < 0) {
-//                        // 计算第一阶段滑动比例
-//                        float ratio = Math.min(Math.abs(dx) / mFirstStageMax, 1.0f);
-//                        // 应用缩放（1.0 -> 1.1）
-//                        float scale = 1.0f + (ratio * 0.1f);
-//                        mContentView.setScaleX(scale);
-//                        mContentView.setScaleY(scale);
-//
-//                        // 第一阶段滑动回调（负的偏移比例）
-//                        if (mDrawerListener != null) {
-//                            mDrawerListener.onDrawerSlide(-ratio * 0.2f);
-//                        }
-//
-//                        // 第一阶段自己处理，不拦截
-//                        return false;
-//                    }
-//                }
-//                break;
-//        }
-//        // 第二阶段交给ViewDragHelper判断
-//        return mDragHelper.shouldInterceptTouchEvent(ev);
     }
 
     /**
@@ -261,156 +185,120 @@ public class ChatSwipeLayout extends ViewGroup {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mLastX = event.getX();
-        Log.d(TAG, "onTouchEvent: action=" + event.getAction() + ", x=" + mLastX);
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            mLastX = event.getX();
+            float deltaX = mLastX - mInitialX;
+            // 未拖动且最小缩放状态时，往左滑动保持第一阶段，往右滑动进入第二阶段
+            if (mContentView.getLeft() == 0 && mLastScale == MIN_SCALE) {
+                mInFirstStage = (deltaX < 0);
+            }
+            Log.w(TAG, "onTouchEvent start deltaX=" + deltaX + " mLastScale=" + mLastScale + " dragLeft=" + mContentView.getLeft() + " mInFirstStage=" + mInFirstStage);
+        }
+        Log.d(TAG, "onTouchEvent: action=" + event.getAction() + ", eventX=" + mLastX);
         mDragHelper.processTouchEvent(event);
         return true;
-//        if (mIsInSecondStage) {
-//            return true;
-//        }
-//        switch (event.getAction()) {
-//            case MotionEvent.ACTION_MOVE:
-//                if (mInFirstStage) {
-//                    float currentX = event.getX();
-//                    float dx = currentX - mInitialTouchX;
-//
-//                    // 处理向右滑动（缩小）
-//                    if (dx > 0) {
-//                        float ratio = Math.min(dx / mFirstStageMax, 1.0f);
-//                        float scale = 1.0f - (ratio * 0.2f);
-//                        mContentView.setScaleX(scale);
-//                        mContentView.setScaleY(scale);
-//
-//                        if (mDrawerListener != null) {
-//                            mDrawerListener.onDrawerSlide(ratio * 0.2f);
-//                        }
-//
-//                        if (dx >= mFirstStageMax) {
-//                            mInFirstStage = false;
-//                            mFirstStageHandled = true;
-//                            mDragHelper.processTouchEvent(event);
-//                            updateDrawerState(STATE_DRAGGING);
-//                        }
-//                        return true;
-//                    }
-//                    // 处理向左滑动（放大）
-//                    else if (dx < 0) {
-//                        float ratio = Math.min(Math.abs(dx) / mFirstStageMax, 1.0f);
-//                        float scale = 1.0f + (ratio * 0.1f);
-//                        mContentView.setScaleX(scale);
-//                        mContentView.setScaleY(scale);
-//
-//                        if (mDrawerListener != null) {
-//                            mDrawerListener.onDrawerSlide(-ratio * 0.2f);
-//                        }
-//                        return true;
-//                    }
-//                }
-//                break;
-//
-//            case MotionEvent.ACTION_UP:
-//            case MotionEvent.ACTION_CANCEL:
-//                if (mInFirstStage && !mFirstStageHandled) {
-//                    // 第一阶段释放，回弹到初始状态
-//                    mContentView.setScaleX(1.0f);
-//                    mContentView.setScaleY(1.0f);
-//                    if (mDrawerListener != null) {
-//                        mDrawerListener.onDrawerSlide(0);
-//                    }
-//                    updateDrawerState(STATE_CLOSED);
-//                    return true;
-//                }
-//                break;
-//        }
-//        // 第二阶段交给ViewDragHelper处理
-//        mDragHelper.processTouchEvent(event);
-//        return true;
+    }
+
+    private float getFirstStageScale() {
+        float deltaX = mLastX - mInitialX;
+        float slideRatio = Math.min(Math.abs(deltaX) / mFirstStageMaxDistance, 1);
+        float scale;
+        if (deltaX >= 0) {
+            // 从左往右滑动
+            scale = 1f - slideRatio * (1 - MIN_SCALE);
+        } else if (mLastScale == MIN_SCALE) {
+            // 从右往左滑动且已经到达最小缩放
+            scale = MIN_SCALE + slideRatio * (1 - MIN_SCALE);
+        } else {
+            scale = 1;
+        }
+
+        Log.i(TAG, "getFirstStageScale deltaX=" + deltaX + " slideRatio=" + slideRatio + " scale=" + scale + " mLastScale=" + mLastScale + " mInFirstStage=" + mInFirstStage);
+        return scale;
     }
 
     /**
      * ViewDragHelper回调实现：控制第二阶段滑动规则
      */
     private class DragCallback extends ViewDragHelper.Callback {
-
-        private int mOriginalLeft, mOriginalTop;
-
         @Override
         public boolean tryCaptureView(@NonNull View child, int pointerId) {
-            // 只允许捕获我们的内容View，且仅在第二阶段
             return child == mContentView;
         }
 
         @Override
         public int clampViewPositionHorizontal(@NonNull View child, int left, int dx) {
             if (mInFirstStage) {
-                return mOriginalLeft; // 第一阶段不允许拖动
+                // 第一阶段不允许拖动
+                return 0;
             } else {
-                int maxLeft = mEnableSecondStage ? mScreenWidth / 2 : mFirstStageMax;
-                return Math.max(0, Math.min(left, maxLeft));
+                return Math.max(0, Math.min(left, mSecondStageMaxDistance));
             }
         }
 
         @Override
         public int getViewHorizontalDragRange(@NonNull View child) {
             if (mInFirstStage) {
-                return mOriginalTop;
+                // 第一阶段不允许拖动
+                return 0;
+            } else {
+                return YWDeviceUtil.getScreenWidth();
             }
-            return mScreenWidth;
         }
 
         @Override
         public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
-            Log.i(TAG, "onViewPositionChanged: left=" + left + ", dx=" + dx);
-//            // 第二阶段保持缩放为0.8
-//            changedView.setScaleX(0.8f);
-//            changedView.setScaleY(0.8f);
-//
-//            // 更新第二阶段状态（滑动到95%以上视为已进入第二阶段）
-//            mIsInSecondStage = left >= mScreenWidth / 2 * 0.95f;
-//
-//            // 计算总偏移比例（第一阶段20% + 第二阶段80%）
-//            float totalOffset = 0.2f + (calculateSlideOffset(left) * 0.8f);
-//            if (mDrawerListener != null) {
-//                mDrawerListener.onDrawerSlide(totalOffset);
-//            }
+            float scale;
 
-            // 根据手指移动距离，计算缩放
-            float distance = Math.abs(mLastX - mInitialX);
-            float percent = distance / getWidth(); // 或自定义范围
-            float scale = 1f - percent;
-            Log.i(TAG, "onViewPositionChanged: percent=" + percent + ", scale=" + scale);
-            changedView.setScaleX(scale);
-            changedView.setScaleY(scale);
+            if (mInFirstStage) {
+                // 第一阶段：根据滑动缩放
+                scale = getFirstStageScale();
+                changedView.setScaleX(scale);
+                changedView.setScaleY(scale);
+                Log.i(TAG, "onViewPositionChanged mInFirstStage scale=" + scale);
+            } else {
+                // 第二阶段：不缩放，只平移
+                float slideRatio = (float) left / mSecondStageMaxDistance;
+                scale = MIN_SCALE;
+                changedView.setScaleX(scale);
+                changedView.setScaleY(scale);
+                Log.i(TAG, "onViewPositionChanged mInSecondStage left= " + left + " dx= " + dx + " scale=" + scale + " slideRatio=" + slideRatio);
+                if (mDrawerListener != null) {
+                    mDrawerListener.onDrawerSlide(slideRatio);
+                }
+            }
         }
 
         @Override
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
-            updateDrawerState(STATE_SETTLING);
+            int currentLeft = releasedChild.getLeft();
+            int finalLeft;
 
-            releasedChild.animate().scaleX(1f).scaleY(1f).start();
-
-//            int currentLeft = releasedChild.getLeft();
-//            int targetLeft;
-//
-//            // 根据第二阶段开关决定释放后的目标位置
-//            if (mEnableSecondStage) {
-//                // 启用第二阶段：正常判断是否滑到一半
-//                targetLeft = (currentLeft > mScreenWidth / 4 || xvel > mMinFlingVelocity)
-//                        ? mScreenWidth / 2
-//                        : 0;
-//            } else {
-//                // 关闭第二阶段：最多滑到第一阶段最大位置
-//                targetLeft = (currentLeft > mFirstStageMax / 2 || xvel > mMinFlingVelocity)
-//                        ? mFirstStageMax
-//                        : 0;
-//            }
-//
-//            // 释放后更新第二阶段状态
-//            mIsInSecondStage = (targetLeft == mScreenWidth / 2);
-//            mDragHelper.settleCapturedViewAt(targetLeft, 0);
-//            invalidate();
+            if (mInFirstStage) {
+                updateDrawerState(STATE_SETTLING);
+                float halfScale = (1 + MIN_SCALE) / 2;
+                float scale = getFirstStageScale();
+                Log.i(TAG, "onViewReleased mInFirstStage scale=" + scale + " xvel=" + xvel + " currentLeft=" + currentLeft);
+                if (scale > halfScale) {
+                    releasedChild.animate().scaleX(1).scaleY(1).start();
+                    mLastScale = 1f;
+                } else {
+                    releasedChild.animate().scaleX(MIN_SCALE).scaleY(MIN_SCALE).start();
+                    mLastScale = MIN_SCALE;
+                }
+            } else {
+                mLastScale = MIN_SCALE;
+                if (currentLeft > mSecondStageMaxDistance / 2 || xvel > mMinFlingVelocity) {
+                    finalLeft = mSecondStageMaxDistance;
+                } else {
+                    finalLeft = 0;
+                }
+                Log.i(TAG, "onViewReleased currentLeft=" + currentLeft + " xvel=" + xvel + " finalLeft=" + finalLeft);
+                mDragHelper.settleCapturedViewAt(finalLeft, 0);
+                invalidate();
+            }
         }
 
         @Override
@@ -418,7 +306,7 @@ public class ChatSwipeLayout extends ViewGroup {
             super.onViewDragStateChanged(state);
             if (state == ViewDragHelper.STATE_IDLE) {
                 // 空闲状态时判断最终状态
-                if (mContentView.getLeft() >= mScreenWidth / 2) {
+                if (mContentView.getLeft() >= mSecondStageMaxDistance) {
                     updateDrawerState(STATE_OPENED);
                 } else {
                     updateDrawerState(STATE_CLOSED);
@@ -437,30 +325,5 @@ public class ChatSwipeLayout extends ViewGroup {
         if (mDragHelper.continueSettling(true)) {
             invalidate();
         }
-    }
-
-    public static class LayoutParams extends ViewGroup.LayoutParams {
-        public LayoutParams(int width, int height) {
-            super(width, height);
-        }
-
-        public LayoutParams(Context c, AttributeSet attrs) {
-            super(c, attrs);
-        }
-    }
-
-    @Override
-    protected LayoutParams generateDefaultLayoutParams() {
-        return new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    }
-
-    @Override
-    protected LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
-        return new LayoutParams(p.width, p.height);
-    }
-
-    @Override
-    protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
-        return p instanceof LayoutParams;
     }
 }
