@@ -1,11 +1,16 @@
 package com.example.beyond.demo.ui.swipe
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import com.example.base.BaseFragment
 import com.example.base.util.ext.dpToPxFloat
 import com.example.beyond.demo.databinding.FragmentDrawerLayoutBinding
@@ -58,8 +63,7 @@ class DrawerLayoutFragment : BaseFragment() {
     }
 
     private fun initView() {
-        binding.drawerLayout.setSwipeListener(swipeLayoutListener)
-        binding.drawerLayout.setEnableSecondStage(true)
+        binding.swipeLayout.setSwipeListener(swipeLayoutListener)
         initRotationAnimation()
     }
 
@@ -68,13 +72,83 @@ class DrawerLayoutFragment : BaseFragment() {
      */
     private fun initRotationAnimation() {
         binding.openTv.setOnClickListener {
-            val rotationAnimatorY =
-                ObjectAnimator.ofFloat(binding.contentLayout, "rotationY", 0f, 180f)
-            rotationAnimatorY.setDuration(5000) // 设置动画时长1秒
-            rotationAnimatorY.start() // 启动动画
+            // 重置内容位置
+            binding.swipeLayout.resetContentLeft()
 
-            // 调整相机距离。如果不修改, 则会超出屏幕高度
-            binding.contentLayout.cameraDistance = 10000.dpToPxFloat()
+            // 1. 正面贴上截图
+            //TODO 异步截图
+            val screenShotView = generateScreenShotView(binding.contentLayout)
+            captureView(binding.contentLayout)?.let { bitmap ->
+                screenShotView.setImageBitmap(bitmap)
+                binding.swipeLayout.addView(screenShotView)
+            }
+
+            // 1. 截图视图旋转90度
+            binding.contentLayout.rotationY = -90f
+            rotationAnimation(screenShotView, 0f, 90f) {
+                // 移除截图视图
+                binding.swipeLayout.removeView(screenShotView)
+
+                // 2. 内容视图从-90度旋转到0度
+                rotationAnimation(binding.contentLayout, -90f, 0f) {
+
+                    // 3. 内容视图恢复未缩放态
+                    binding.contentLayout.animate().scaleX(1f).scaleY(1f).start()
+                    binding.swipeLayout.resetContentStatus()
+                }
+            }
+        }
+    }
+
+    /**
+     * 创建截图视图
+     */
+    private fun generateScreenShotView(view: View): ImageView {
+        val imageView = ImageView(context).apply {
+            scaleX = view.scaleX
+            scaleY = view.scaleY
+            rotationY = 0f
+            layoutParams = ViewGroup.LayoutParams(view.width, view.height)
+        }
+        return imageView
+    }
+
+    private fun captureView(view: View): Bitmap? {
+        if (view.width <= 0 || view.height <= 0) {
+            view.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            )
+            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+        }
+        if (view.width <= 0 || view.height <= 0) {
+            return null
+        }
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.RGB_565)
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+        return bitmap
+    }
+
+    private fun rotationAnimation(view: View, startRotation: Float = 0f, endRotation: Float = 90f, endInvoke: (() -> Unit)? = null) {
+        // 调整相机距离。如果不修改, 则会超出屏幕高度
+        view.cameraDistance = 10000.dpToPxFloat()
+        val rotationAnimator =
+            ObjectAnimator.ofFloat(view, "rotationY", startRotation, endRotation)
+        rotationAnimator.apply {
+            duration = 500
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    super.onAnimationEnd(animation)
+                    endInvoke?.invoke()
+                }
+
+                override fun onAnimationCancel(animation: Animator) {
+                    super.onAnimationCancel(animation)
+                    endInvoke?.invoke()
+                }
+            })
+            start()
         }
     }
 }
