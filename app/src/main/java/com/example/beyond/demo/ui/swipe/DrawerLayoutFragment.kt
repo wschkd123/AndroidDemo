@@ -44,8 +44,13 @@ class DrawerLayoutFragment : BaseFragment() {
 
     private var swipeLayoutListener = object : ChatSwipeLayout.SwipeListener {
 
-        override fun onSwipe(slideOffset: Float) {
-            Log.i(TAG, "onDrawerSlide: $slideOffset")
+        override fun onSwipe(swipeRatio: Float, inFirstStage: Boolean) {
+            if (inFirstStage) {
+                binding.contentLayout.setProgress(swipeRatio)
+                Log.i(TAG, "onDrawerSlide inFirstStage swipeRatio=$swipeRatio")
+            } else {
+                Log.i(TAG, "onDrawerSlide: swipeRatio=$swipeRatio")
+            }
         }
 
         override fun onSwipeStateChanged(newState: Int) {

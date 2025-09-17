@@ -15,6 +15,8 @@ import androidx.customview.widget.ViewDragHelper
  * 1. 第一阶段：从左向右滑动时，子View从1.0缩放到0.8，松手后根据缩放比例决定回弹还是继续缩放到0.8
  * 2. 第二阶段：从0.8开始平移，最大平移距离为屏幕宽度的50%，松手后根据位置和滑动速度决定打开还是关闭
  *
+ * @author wangshichao
+ * @date 2025/9/15
  */
 class ChatSwipeLayout @JvmOverloads constructor(
     context: Context,

@@ -3,7 +3,7 @@
     android:id="@+id/swipe_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#009688">
+    android:background="#B5E3DE">
 
     <TextView
         android:id="@+id/open_tv"
@@ -16,7 +16,7 @@
 
 
     <!-- 最上层内容视图 -->
-    <FrameLayout
+    <com.example.beyond.demo.ui.swipe.view.ClipView
         android:id="@+id/content_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -27,5 +27,16 @@
             android:scaleType="centerCrop"
             android:src="@drawable/character_bg" />
 
-    </FrameLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#009688"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_gravity="bottom"
+            android:background="#3F51B5"/>
+
+    </com.example.beyond.demo.ui.swipe.view.ClipView>
 </com.example.beyond.demo.view.ChatSwipeLayout>
