@@ -14,7 +14,8 @@ import android.widget.ImageView
 import com.example.base.BaseFragment
 import com.example.base.util.ext.dpToPxFloat
 import com.example.beyond.demo.databinding.FragmentDrawerLayoutBinding
-import com.example.beyond.demo.view.ChatSwipeLayout
+import com.example.beyond.demo.ui.swipe.view.ChatSwipeLayout
+import com.example.beyond.demo.ui.swipe.view.ChatView
 
 
 /**
@@ -27,6 +28,7 @@ class DrawerLayoutFragment : BaseFragment() {
 
     private var _binding: FragmentDrawerLayoutBinding? = null
     private val binding get() = _binding!!
+    private var chatView: ChatView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,66 +41,64 @@ class DrawerLayoutFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initView()
-    }
-
-    private var swipeLayoutListener = object : ChatSwipeLayout.SwipeListener {
-
-        override fun onSwipe(swipeRatio: Float, inFirstStage: Boolean) {
-            if (inFirstStage) {
-                binding.contentLayout.setProgress(swipeRatio)
-                Log.i(TAG, "onDrawerSlide inFirstStage swipeRatio=$swipeRatio")
-            } else {
-                Log.i(TAG, "onDrawerSlide: swipeRatio=$swipeRatio")
-            }
-        }
-
-        override fun onSwipeStateChanged(newState: Int) {
-            Log.i(TAG, "onSwipeStateChanged newState=$newState")
-        }
-
-        override fun onCompleteOpened() {
-            Log.i(TAG, "onCompleteOpened")
-        }
-
-        override fun onCompleteClosed() {
-            Log.i(TAG, "onCompleteClosed")
-        }
-
-    }
-
-    private fun initView() {
-        binding.swipeLayout.setSwipeListener(swipeLayoutListener)
-        initRotationAnimation()
+        initListener()
+        chatView = ChatView(requireContext())
+        binding.swipeLayout.setDragView(chatView, true)
     }
 
     /**
      * 旋转动画
      */
-    private fun initRotationAnimation() {
+    private fun initListener() {
+        binding.swipeLayout.setSwipeListener(object : ChatSwipeLayout.SwipeListener {
+
+            override fun onSwipe(swipeRatio: Float, inFirstStage: Boolean) {
+                if (inFirstStage) {
+                    chatView?.setProgress(swipeRatio)
+                    Log.i(TAG, "onDrawerSlide inFirstStage swipeRatio=$swipeRatio")
+                } else {
+                    Log.i(TAG, "onDrawerSlide: swipeRatio=$swipeRatio")
+                }
+            }
+
+            override fun onSwipeStateChanged(newState: Int) {
+                Log.i(TAG, "onSwipeStateChanged newState=$newState")
+            }
+
+            override fun onCompleteOpened() {
+                Log.i(TAG, "onCompleteOpened")
+            }
+
+            override fun onCompleteClosed() {
+                Log.i(TAG, "onCompleteClosed")
+            }
+
+        })
+
         binding.openTv.setOnClickListener {
             // 重置内容位置
             binding.swipeLayout.resetContentLeft()
 
+            val chatView = chatView!!
             // 1. 正面贴上截图
             //TODO 异步截图
-            val screenShotView = generateScreenShotView(binding.contentLayout)
-            captureView(binding.contentLayout)?.let { bitmap ->
+            val screenShotView = generateScreenShotView(chatView)
+            captureView(chatView)?.let { bitmap ->
                 screenShotView.setImageBitmap(bitmap)
                 binding.swipeLayout.addView(screenShotView)
             }
 
             // 1. 截图视图旋转90度
-            binding.contentLayout.rotationY = -90f
+            chatView.rotationY = -90f
             rotationAnimation(screenShotView, 0f, 90f) {
                 // 移除截图视图
                 binding.swipeLayout.removeView(screenShotView)
 
                 // 2. 内容视图从-90度旋转到0度
-                rotationAnimation(binding.contentLayout, -90f, 0f) {
+                rotationAnimation(chatView, -90f, 0f) {
 
                     // 3. 内容视图恢复未缩放态
-                    binding.contentLayout.animate().scaleX(1f).scaleY(1f).start()
+                    chatView.animate().scaleX(1f).scaleY(1f).start()
                     binding.swipeLayout.resetContentStatus()
                 }
             }

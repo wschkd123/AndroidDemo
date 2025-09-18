@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.example.base.BaseActivity
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.ui.trackanimation.DrawerLayoutFragment
+import com.example.beyond.demo.ui.swipe.DrawerLayoutFragment
 
 
 class MainActivity : BaseActivity() {

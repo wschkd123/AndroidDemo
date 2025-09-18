@@ -1,4 +1,4 @@
-package com.example.beyond.demo.view;
+package com.example.beyond.demo.ui.swipe.view;
 
 import android.content.Context;
 import android.graphics.Matrix;

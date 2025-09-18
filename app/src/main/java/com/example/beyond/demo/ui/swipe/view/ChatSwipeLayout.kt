@@ -1,4 +1,4 @@
-package com.example.beyond.demo.view
+package com.example.beyond.demo.ui.swipe.view
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -94,7 +94,7 @@ open class ChatSwipeLayout @JvmOverloads constructor(
         mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT)
     }
 
-    fun setContentView(view: View?, swipeEnable: Boolean = true) {
+    fun setDragView(view: View?, swipeEnable: Boolean = true) {
         Log.i(TAG, "setContentView view=$view swipeEnable=$swipeEnable")
         removeView(mContentView)
 

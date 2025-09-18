@@ -5,7 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.widget.RelativeLayout
+import android.widget.FrameLayout
 import com.example.base.util.ext.dpToPx
 import com.example.base.util.ext.dpToPxFloat
 
@@ -16,7 +16,7 @@ import com.example.base.util.ext.dpToPxFloat
  * @author wangshichao
  * @date 2025/9/18
  */
-class ClipView(context: Context, attrs: AttributeSet?) : RelativeLayout(context, attrs) {
+open class ClipView(context: Context, attrs: AttributeSet?) : FrameLayout(context, attrs) {
     private val topHideHeightPx = 48.dpToPx()
     private val bottomHideHeightPx = 60.dpToPx()
     private val radius = 16.dpToPxFloat()
