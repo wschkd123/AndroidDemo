@@ -1,5 +1,6 @@
 package com.example.beyond.demo.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
@@ -7,10 +8,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.FrameLayout
+import android.widget.RelativeLayout
 import androidx.customview.widget.ViewDragHelper
 
 /**
- * 支持日常模式聊天室的可滑动容器。可以从屏幕左侧边缘滑动出现切换聊天室按钮
+ * 聊天室可滑动容器，处理滑动相关逻辑。可以从屏幕左侧边缘滑动出现切换聊天室按钮
  * 滑动分两阶段：
  * 1. 第一阶段：从左向右滑动时，子View从1.0缩放到0.8，松手后根据缩放比例决定回弹还是继续缩放到0.8
  * 2. 第二阶段：从0.8开始平移，最大平移距离为屏幕宽度的50%，松手后根据位置和滑动速度决定打开还是关闭
@@ -18,7 +20,7 @@ import androidx.customview.widget.ViewDragHelper
  * @author wangshichao
  * @date 2025/9/15
  */
-class ChatSwipeLayout @JvmOverloads constructor(
+open class ChatSwipeLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : FrameLayout(context, attrs) {
@@ -26,7 +28,9 @@ class ChatSwipeLayout @JvmOverloads constructor(
     private val mDragHelper: ViewDragHelper
 
     // 最上层内容视图
-    private var mContentView: View? = null
+    protected var mContentView: View? = null
+
+    private var swipeEnable: Boolean = true
 
     // 最小滑动速度（用于判断快速滑动）
     private val mMinFlingVelocity: Int
@@ -41,6 +45,7 @@ class ChatSwipeLayout @JvmOverloads constructor(
     private var mSecondStageMaxDistance = 0
 
     private var mInitialX = 0f
+    private var mInitialY = 0f
     private var mLastX = 0f
     private var mReleaseScale = 1f
     private var mReleaseLeft = 0
@@ -56,9 +61,11 @@ class ChatSwipeLayout @JvmOverloads constructor(
      */
     interface SwipeListener {
         /**
-         * @param slideOffset 滑动偏移比例（0~1）
+         * @param swipeRatio 滑动偏移比例（0~1）
+         * @param inFirstStage 是否处于第一阶段
+         *
          */
-        fun onSwipe(slideOffset: Float)
+        fun onSwipe(swipeRatio: Float, inFirstStage: Boolean)
 
         /**
          * 状态改变时回调
@@ -81,10 +88,30 @@ class ChatSwipeLayout @JvmOverloads constructor(
     init {
         val config = ViewConfiguration.get(context)
         mMinFlingVelocity = config.scaledMinimumFlingVelocity
-        mDragHelper = ViewDragHelper.create(this, 100f, DragCallback())
+        mDragHelper = ViewDragHelper.create(this, 1f, DragCallback())
         mDragHelper.minVelocity = mMinFlingVelocity.toFloat()
         // 允许边缘滑动
         mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT)
+    }
+
+    fun setContentView(view: View?, swipeEnable: Boolean = true) {
+        Log.i(TAG, "setContentView view=$view swipeEnable=$swipeEnable")
+        removeView(mContentView)
+
+        mContentView = view
+        this.swipeEnable = swipeEnable
+
+        addView(
+            view,
+            LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        post {
+            updateSize()
+        }
     }
 
     /**
@@ -98,6 +125,7 @@ class ChatSwipeLayout @JvmOverloads constructor(
      * 重置内容位置到左侧
      */
     fun resetContentLeft() {
+        Log.w(TAG, "resetContentLeft")
         val contentLeft = mContentView?.left ?: 0
         if (mContentView != null && contentLeft > 0) {
             mContentView?.offsetLeftAndRight(-contentLeft)
@@ -114,28 +142,32 @@ class ChatSwipeLayout @JvmOverloads constructor(
         mReleaseScale = MAX_SCALE
     }
 
-    override fun onFinishInflate() {
-        super.onFinishInflate()
-        require(childCount > 0) { "ChatSwipeLayout must have at least one child" }
-        mContentView = getChildAt(childCount - 1)
-    }
-
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
-        Log.i(
-            TAG,
-            "onLayout changed=$changed left=$left width=${right - left} height=${bottom - top}"
-        )
-        updateSize()
-    }
-
     /**
      * 重写触摸事件拦截逻辑，处理第一阶段
      */
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.action == MotionEvent.ACTION_DOWN) {
-            mInitialX = ev.x
-            mLastX = 0f
+        if (!swipeEnable) {
+            return super.onInterceptTouchEvent(ev)
+        }
+
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                mLastX = 0f
+                mInitialX = ev.x
+                mInitialY = ev.y
+                // 通知 ViewDragHelper 开始检测
+                mDragHelper.processTouchEvent(ev);
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                val dx = Math.abs(ev.x - mInitialX)
+                val dy = Math.abs(ev.y - mInitialY)
+                // 如果水平滑动距离大于垂直滑动距离，则拦截事件，交给 ViewDragHelper 处理水平拖动
+                if (dx > dy && dx > mDragHelper.touchSlop) {
+                    Log.w(TAG, "onInterceptTouchEvent intercepted")
+                    return true
+                }
+            }
         }
         Log.d(TAG, "onInterceptTouchEvent: action=" + ev.action + ", x=" + mInitialX)
         return mDragHelper.shouldInterceptTouchEvent(ev)
@@ -144,7 +176,11 @@ class ChatSwipeLayout @JvmOverloads constructor(
     /**
      * 重写触摸事件处理，分离第一阶段逻辑
      */
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!swipeEnable) {
+            return super.onTouchEvent(event)
+        }
         if (event.action == MotionEvent.ACTION_MOVE) {
             mLastX = event.x
             val deltaX = mLastX - mInitialX
@@ -163,15 +199,20 @@ class ChatSwipeLayout @JvmOverloads constructor(
     }
 
     private fun updateSize() {
+        if (mContentView == null) {
+            Log.w(TAG, "updateSize mContentView is null")
+            return
+        }
+        val contentView = mContentView!!
         // 初始化阶段最大滑动距离
         mFirstStageMaxDistance = width / 2
         mSecondStageMaxDistance = width / 2
 
         // 设置缩放中心为子View中心
-        val centerX = mContentView!!.width / 2
-        val centerY = mContentView!!.height / 2
-        mContentView!!.pivotX = centerX.toFloat()
-        mContentView!!.pivotY = centerY.toFloat()
+        val centerX = contentView.width / 2
+        val centerY = contentView.height / 2
+        contentView.pivotX = centerX.toFloat()
+        contentView.pivotY = centerY.toFloat()
     }
 
     /**
@@ -220,9 +261,16 @@ class ChatSwipeLayout @JvmOverloads constructor(
      */
     private inner class DragCallback : ViewDragHelper.Callback() {
         override fun tryCaptureView(child: View, pointerId: Int): Boolean {
-            return child === mContentView
+            val isCaptureView = (child === mContentView)
+            if (!isCaptureView) {
+                Log.w(TAG, "tryCaptureView child=$child mContentView=$mContentView")
+            }
+            return isCaptureView
         }
 
+        /**
+         * 拖动过程中，限制子View水平移动的具体边界
+         */
         override fun clampViewPositionHorizontal(child: View, left: Int, dx: Int): Int {
             return if (mInFirstStage) {
                 // 第一阶段不允许拖动
@@ -232,6 +280,9 @@ class ChatSwipeLayout @JvmOverloads constructor(
             }
         }
 
+        /**
+         * 水平方向上总的可拖动的范围
+         */
         override fun getViewHorizontalDragRange(child: View): Int {
             return if (mInFirstStage) {
                 // 第一阶段不允许拖动
@@ -256,24 +307,25 @@ class ChatSwipeLayout @JvmOverloads constructor(
                 changedView.scaleX = scale
                 changedView.scaleY = scale
                 Log.i(TAG, "onViewPositionChanged scale=$scale")
+                val ratio = (1 - scale) / (MAX_SCALE - MIN_SCALE)
+                mSwipeListener?.onSwipe(ratio, true)
             } else {
                 // 第二阶段：不缩放，只平移
-                val slideRatio = left.toFloat() / mSecondStageMaxDistance
+                val ratio = left.toFloat() / mSecondStageMaxDistance
                 scale = MIN_SCALE
                 changedView.scaleX = scale
                 changedView.scaleY = scale
                 Log.i(
                     TAG,
-                    "onViewPositionChanged left=$left dx=$dx slideRatio=$slideRatio scale=$scale"
+                    "onViewPositionChanged left=$left dx=$dx ratio=$ratio scale=$scale"
                 )
-                mSwipeListener?.onSwipe(slideRatio)
+                mSwipeListener?.onSwipe(ratio, false)
             }
         }
 
         override fun onViewReleased(releasedChild: View, xvel: Float, yvel: Float) {
             super.onViewReleased(releasedChild, xvel, yvel)
             val currentLeft = releasedChild.left
-            val finalLeft: Int
             if (mInFirstStage) {
                 updateSwipeState(STATE_SETTLING)
                 val halfScale = (1 + MIN_SCALE) / 2
@@ -287,10 +339,12 @@ class ChatSwipeLayout @JvmOverloads constructor(
                     MIN_SCALE
                 }
                 mReleaseLeft = 0
-                Log.i(TAG, "onViewReleased firstStage mReleaseScale=$mReleaseScale")
+                val ratio = (1 - mReleaseScale) / (MAX_SCALE - MIN_SCALE)
+                mSwipeListener?.onSwipe(ratio, true)
+                Log.i(TAG, "onViewReleased firstStage ratio=$ratio mReleaseScale=$mReleaseScale")
             } else {
                 mReleaseScale = MIN_SCALE
-                finalLeft =
+                val finalLeft =
                     if (currentLeft > mSecondStageMaxDistance / 2 || xvel > mMinFlingVelocity) {
                         mSecondStageMaxDistance
                     } else {
@@ -298,6 +352,8 @@ class ChatSwipeLayout @JvmOverloads constructor(
                     }
                 mReleaseLeft = finalLeft
                 mDragHelper.settleCapturedViewAt(finalLeft, 0)
+                val ratio = finalLeft.toFloat() / mSecondStageMaxDistance
+                mSwipeListener?.onSwipe(ratio, false)
                 invalidate()
                 Log.i(
                     TAG,
