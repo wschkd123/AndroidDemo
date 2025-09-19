@@ -150,27 +150,30 @@ open class ChatSwipeLayout @JvmOverloads constructor(
             return super.onInterceptTouchEvent(ev)
         }
 
+        val shouldIntercept = mDragHelper.shouldInterceptTouchEvent(ev)
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 mLastX = 0f
                 mInitialX = ev.x
                 mInitialY = ev.y
                 // 通知 ViewDragHelper 开始检测
-                mDragHelper.processTouchEvent(ev);
+                mDragHelper.processTouchEvent(ev)
             }
 
             MotionEvent.ACTION_MOVE -> {
-                val dx = Math.abs(ev.x - mInitialX)
-                val dy = Math.abs(ev.y - mInitialY)
-                // 如果水平滑动距离大于垂直滑动距离，则拦截事件，交给 ViewDragHelper 处理水平拖动
-                if (dx > dy && dx > mDragHelper.touchSlop) {
-                    Log.w(TAG, "onInterceptTouchEvent intercepted")
-                    return true
+                if (shouldIntercept) {
+                    val dx = Math.abs(ev.x - mInitialX)
+                    val dy = Math.abs(ev.y - mInitialY)
+                    // 如果水平滑动距离大于垂直滑动距离，则拦截事件，交给 ViewDragHelper 处理水平拖动
+                    if (dx > dy && dx > mDragHelper.touchSlop) {
+                        Log.w(TAG, "onInterceptTouchEvent intercepted")
+                        return true
+                    }
                 }
             }
         }
         Log.d(TAG, "onInterceptTouchEvent: action=" + ev.action + ", x=" + mInitialX)
-        return mDragHelper.shouldInterceptTouchEvent(ev)
+        return super.onInterceptTouchEvent(ev)
     }
 
     /**
@@ -189,11 +192,11 @@ open class ChatSwipeLayout @JvmOverloads constructor(
                 mInFirstStage = deltaX < 0
                 Log.w(TAG, "onTouchEvent update stage, mInFirstStage=$mInFirstStage")
             }
-            Log.d(
-                TAG,
-                "onTouchEvent deltaX=$deltaX mReleaseScale=$mReleaseScale mReleaseScale=$mReleaseScale"
-            )
         }
+        Log.d(
+            TAG,
+            "onTouchEvent deltaX=${mLastX - mInitialX} mReleaseScale=$mReleaseScale mReleaseScale=$mReleaseScale"
+        )
         mDragHelper.processTouchEvent(event)
         return true
     }
@@ -203,16 +206,16 @@ open class ChatSwipeLayout @JvmOverloads constructor(
             Log.w(TAG, "updateSize mContentView is null")
             return
         }
-        val contentView = mContentView!!
+        val view = mContentView!!
         // 初始化阶段最大滑动距离
         mFirstStageMaxDistance = width / 2
         mSecondStageMaxDistance = width / 2
 
         // 设置缩放中心为子View中心
-        val centerX = contentView.width / 2
-        val centerY = contentView.height / 2
-        contentView.pivotX = centerX.toFloat()
-        contentView.pivotY = centerY.toFloat()
+        val centerX = view.width / 2
+        val centerY = view.height / 2
+        view.pivotX = centerX.toFloat()
+        view.pivotY = centerY.toFloat()
     }
 
     /**
