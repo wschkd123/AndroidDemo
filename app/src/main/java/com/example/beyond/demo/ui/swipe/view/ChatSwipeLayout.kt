@@ -27,8 +27,8 @@ open class ChatSwipeLayout @JvmOverloads constructor(
 
     private val mDragHelper: ViewDragHelper
 
-    // 最上层内容视图
-    protected var mContentView: View? = null
+    // 最上层被拖动视图
+    protected var mDragView: View? = null
 
     private var swipeEnable: Boolean = true
 
@@ -94,15 +94,15 @@ open class ChatSwipeLayout @JvmOverloads constructor(
         mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT)
     }
 
-    fun setDragView(view: View?, swipeEnable: Boolean = true) {
-        Log.i(TAG, "setContentView view=$view swipeEnable=$swipeEnable")
-        removeView(mContentView)
+    fun setDragView(dragView: View?, swipeEnable: Boolean = true) {
+        Log.i(TAG, "setContentView dragView=$dragView swipeEnable=$swipeEnable")
+        removeView(mDragView)
 
-        mContentView = view
+        mDragView = dragView
         this.swipeEnable = swipeEnable
 
         addView(
-            view,
+            dragView,
             LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT,
                 RelativeLayout.LayoutParams.MATCH_PARENT
@@ -126,9 +126,9 @@ open class ChatSwipeLayout @JvmOverloads constructor(
      */
     fun resetContentLeft() {
         Log.w(TAG, "resetContentLeft")
-        val contentLeft = mContentView?.left ?: 0
-        if (mContentView != null && contentLeft > 0) {
-            mContentView?.offsetLeftAndRight(-contentLeft)
+        val contentLeft = mDragView?.left ?: 0
+        if (mDragView != null && contentLeft > 0) {
+            mDragView?.offsetLeftAndRight(-contentLeft)
         }
     }
 
@@ -202,11 +202,11 @@ open class ChatSwipeLayout @JvmOverloads constructor(
     }
 
     private fun updateSize() {
-        if (mContentView == null) {
-            Log.w(TAG, "updateSize mContentView is null")
+        if (mDragView == null) {
+            Log.w(TAG, "updateSize mDragView is null")
             return
         }
-        val view = mContentView!!
+        val view = mDragView!!
         // 初始化阶段最大滑动距离
         mFirstStageMaxDistance = width / 2
         mSecondStageMaxDistance = width / 2
@@ -264,9 +264,9 @@ open class ChatSwipeLayout @JvmOverloads constructor(
      */
     private inner class DragCallback : ViewDragHelper.Callback() {
         override fun tryCaptureView(child: View, pointerId: Int): Boolean {
-            val isCaptureView = (child === mContentView)
+            val isCaptureView = (child === mDragView)
             if (!isCaptureView) {
-                Log.w(TAG, "tryCaptureView child=$child mContentView=$mContentView")
+                Log.w(TAG, "tryCaptureView child=$child mDragView=$mDragView")
             }
             return isCaptureView
         }

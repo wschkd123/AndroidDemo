@@ -79,26 +79,26 @@ class DrawerLayoutFragment : BaseFragment() {
             // 重置内容位置
             binding.swipeLayout.resetContentLeft()
 
-            val chatView = chatView!!
+            val dragView = chatView!!
             // 1. 正面贴上截图
             //TODO 异步截图
-            val screenShotView = generateScreenShotView(chatView)
-            captureView(chatView)?.let { bitmap ->
+            val screenShotView = generateScreenShotView(dragView)
+            captureView(dragView)?.let { bitmap ->
                 screenShotView.setImageBitmap(bitmap)
                 binding.swipeLayout.addView(screenShotView)
             }
 
             // 1. 截图视图旋转90度
-            chatView.rotationY = -90f
+            dragView.rotationY = -90f
             rotationAnimation(screenShotView, 0f, 90f) {
                 // 移除截图视图
                 binding.swipeLayout.removeView(screenShotView)
 
                 // 2. 内容视图从-90度旋转到0度
-                rotationAnimation(chatView, -90f, 0f) {
+                rotationAnimation(dragView, -90f, 0f) {
 
                     // 3. 内容视图恢复未缩放态
-                    chatView.animate().scaleX(1f).scaleY(1f).start()
+                    dragView.animate().scaleX(1f).scaleY(1f).start()
                     binding.swipeLayout.resetContentStatus()
                 }
             }
