@@ -61,8 +61,8 @@ open class ChatSwipeLayout @JvmOverloads constructor(
      */
     interface SwipeListener {
         /**
-         * @param swipeRatio 滑动偏移比例（0~1）
-         * @param inFirstStage 是否处于第一阶段
+         * @param swipeRatio 一个阶段滑动偏移比例（0~1）。左边为0，右边为1
+         * @param inFirstStage 是否处于第一阶段。是为第一阶段，否为第二阶段
          *
          */
         fun onSwipe(swipeRatio: Float, inFirstStage: Boolean)
@@ -193,10 +193,6 @@ open class ChatSwipeLayout @JvmOverloads constructor(
                 Log.w(TAG, "onTouchEvent update stage, mInFirstStage=$mInFirstStage")
             }
         }
-        Log.d(
-            TAG,
-            "onTouchEvent deltaX=${mLastX - mInitialX} mReleaseScale=$mReleaseScale mReleaseScale=$mReleaseScale"
-        )
         mDragHelper.processTouchEvent(event)
         return true
     }
@@ -333,18 +329,10 @@ open class ChatSwipeLayout @JvmOverloads constructor(
                 updateSwipeState(STATE_SETTLING)
                 val halfScale = (1 + MIN_SCALE) / 2
                 val scale: Float = releasedChild.scaleX
-                mReleaseScale = if (scale > halfScale) {
-                    releasedChild.animate().scaleX(MAX_SCALE).scaleY(MAX_SCALE).start()
-                    MAX_SCALE
-                } else {
-                    releasedChild.animate().scaleX(MIN_SCALE)
-                        .scaleY(MIN_SCALE).start()
-                    MIN_SCALE
-                }
+                mReleaseScale = if (scale > halfScale) MAX_SCALE else MIN_SCALE
+                releaseScaleAnimation(releasedChild, scale, mReleaseScale)
                 mReleaseLeft = 0
-                val ratio = (1 - mReleaseScale) / (MAX_SCALE - MIN_SCALE)
-                mSwipeListener?.onSwipe(ratio, true)
-                Log.i(TAG, "onViewReleased firstStage ratio=$ratio mReleaseScale=$mReleaseScale")
+                Log.i(TAG, "onViewReleased currentScale=$scale mReleaseScale=$mReleaseScale")
             } else {
                 mReleaseScale = MIN_SCALE
                 val finalLeft =
@@ -363,6 +351,22 @@ open class ChatSwipeLayout @JvmOverloads constructor(
                     "onViewReleased second currentLeft=$currentLeft mReleaseLeft=$mReleaseLeft"
                 )
             }
+        }
+
+        /**
+         * 松手后缩放动画
+         */
+        private fun releaseScaleAnimation(view: View, currentScale: Float = 0.91f, targetScale: Float = 1f) {
+            view.animate()
+                .scaleX(targetScale).scaleY(targetScale)
+                .setDuration(500)
+                .setUpdateListener {
+                    val progress = it.animatedValue as Float
+                    val scale = currentScale + progress * (targetScale - currentScale)
+                    val ratio = (1 - scale) / (MAX_SCALE - MIN_SCALE)
+                    Log.i(TAG, "releaseAnimation currentScale=$currentScale targetScale=$targetScale, progress=$progress scale=$scale ratio=$ratio")
+                    mSwipeListener?.onSwipe(ratio, true)
+                }.start()
         }
 
         override fun onViewDragStateChanged(state: Int) {

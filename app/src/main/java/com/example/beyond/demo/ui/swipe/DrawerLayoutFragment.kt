@@ -98,7 +98,13 @@ class DrawerLayoutFragment : BaseFragment() {
                 rotationAnimation(dragView, -90f, 0f) {
 
                     // 3. 内容视图恢复未缩放态
-                    dragView.animate().scaleX(1f).scaleY(1f).start()
+                    dragView.animate()
+                        .scaleX(1f).scaleY(1f)
+                        .setDuration(500)
+                        .setUpdateListener {
+                            val progress = it.animatedValue as Float
+                            chatView?.setProgress(1 - progress)
+                        }.start()
                     binding.swipeLayout.resetContentStatus()
                 }
             }
@@ -129,7 +135,7 @@ class DrawerLayoutFragment : BaseFragment() {
         if (view.width <= 0 || view.height <= 0) {
             return null
         }
-        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.RGB_565)
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         view.draw(canvas)
         return bitmap
@@ -141,7 +147,7 @@ class DrawerLayoutFragment : BaseFragment() {
         val rotationAnimator =
             ObjectAnimator.ofFloat(view, "rotationY", startRotation, endRotation)
         rotationAnimator.apply {
-            duration = 500
+            duration = 1000
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     super.onAnimationEnd(animation)
