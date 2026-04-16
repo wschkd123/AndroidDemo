@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import com.example.base.BaseActivity
 import com.example.beyond.demo.databinding.ActivityMainBinding
-import com.example.beyond.demo.ui.swipe.DrawerLayoutFragment2
+import com.example.beyond.demo.ui.alarm.AlarmFragment
 
 
 class MainActivity : BaseActivity() {
@@ -21,7 +21,7 @@ class MainActivity : BaseActivity() {
 //        showFragment(TransformerFragment())
 //        ConfessionAnimationDialog().show(supportFragmentManager)
 //        showFragment(AudioTrackFragment())
-        showFragment(DrawerLayoutFragment2())
+        showFragment(AlarmFragment())
     }
 
     private fun showFragment(fragment: Fragment, tag: String = "") {
