@@ -28,4 +28,9 @@ class DrawerLayoutFragment2 : BaseFragment() {
         return _binding?.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+    }
+
 }
