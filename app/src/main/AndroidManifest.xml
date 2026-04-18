@@ -6,12 +6,19 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+<!--    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />-->
+<!--    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />-->
 
     <!-- Android 11+ 包可见性声明 -->
     <queries>
+        <!-- 通用 intent 查询 -->
+        <intent>
+            <action android:name="android.intent.action.SET_ALARM" />
+        </intent>
         <package android:name="com.taobao.taobao" />
+        <package android:name="com.jingdong.app.mall" />
+        <package android:name="com.jd.jrapp" />
+        <package android:name="com.xunmeng.pinduoduo" />
     </queries>
 
     <application
@@ -69,6 +76,17 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_test" />
         </receiver>
+
+        <!-- FileProvider for sharing files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

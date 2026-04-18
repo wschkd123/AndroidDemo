@@ -3,6 +3,7 @@ package com.example.beyond.demo.ui.alarm
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -43,7 +44,7 @@ object RingtoneHelper {
 
             // 如果文件已存在,直接返回
             if (outputFile.exists()) {
-                return Uri.fromFile(outputFile)
+                return getUriForFile(context, outputFile)
             }
 
             FileOutputStream(outputFile).use { outputStream ->
@@ -56,7 +57,7 @@ object RingtoneHelper {
             }
             inputStream.close()
 
-            Uri.fromFile(outputFile)
+            getUriForFile(context, outputFile)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -76,7 +77,7 @@ object RingtoneHelper {
 
             // 如果文件已存在,直接返回
             if (outputFile.exists()) {
-                return Uri.fromFile(outputFile)
+                return getUriForFile(context, outputFile)
             }
 
             val url = URL(urlString)
@@ -105,10 +106,27 @@ object RingtoneHelper {
             }
 
             connection.disconnect()
-            Uri.fromFile(outputFile)
+            getUriForFile(context, outputFile)
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    /**
+     * 获取文件的URI（优先使用FileProvider）
+     */
+    private fun getUriForFile(context: Context, file: File): Uri {
+        return try {
+            // 尝试使用FileProvider获取content:// URI
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+        } catch (e: Exception) {
+            // 如果FileProvider失败，回退到file:// URI
+            Uri.fromFile(file)
         }
     }
 
