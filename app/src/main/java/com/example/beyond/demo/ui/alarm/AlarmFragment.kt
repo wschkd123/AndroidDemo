@@ -15,9 +15,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.example.base.BaseFragment
 import com.example.beyond.demo.databinding.FragmentAlarmBinding
-import java.net.URLEncoder
 import java.util.Calendar
 
 /**
@@ -100,17 +100,17 @@ class AlarmFragment : BaseFragment() {
 
         // 淘宝入口按钮
         binding.btnTaobao.setOnClickListener {
-            jumpToEcommerceApp("taobao", "女装", "com.taobao.taobao")
+            jumpToEcommerceApp("taobao", "com.taobao.taobao", "https://e.tb.cn/h.iJcbg27uhx7Xujo")
         }
 
         // 京东入口按钮
         binding.btnJd.setOnClickListener {
-            jumpToEcommerceApp("jd", "女装", "com.jingdong.app.mall")
+            jumpToEcommerceApp("jd", "com.jingdong.app.mall", "https://3.cn/2L2-YayJ")
         }
 
         // 拼多多入口按钮
         binding.btnPdd.setOnClickListener {
-            jumpToEcommerceApp("pdd", "女装", "com.xunmeng.pinduoduo")
+            jumpToEcommerceApp("pdd", "com.xunmeng.pinduoduo", "https://mobile.yangkeduo.com/goods.html?ps=jGcMGBGrNv")
         }
     }
 
@@ -233,7 +233,7 @@ class AlarmFragment : BaseFragment() {
      * @param keyword 搜索关键词
      * @param packageName 应用包名
      */
-    private fun jumpToEcommerceApp(appType: String, keyword: String, packageName: String) {
+    private fun jumpToEcommerceApp(appType: String, packageName: String, url: String) {
         val appName = when (appType) {
             "taobao" -> "淘宝"
             "jd" -> "京东"
@@ -242,10 +242,7 @@ class AlarmFragment : BaseFragment() {
         }
         
         Log.d(TAG, "========== 开始跳转$appName ==========")
-        Log.d(TAG, "应用类型: $appType, 关键词: $keyword, 包名: $packageName")
-        
-        val query = URLEncoder.encode(keyword, "UTF-8")
-        Log.d(TAG, "编码后的查询: $query")
+        Log.d(TAG, "应用类型: $appType, URL: $url, 包名: $packageName")
         
         // 检查APP是否安装
         val isInstalled = isAppInstalled(packageName)
@@ -253,7 +250,7 @@ class AlarmFragment : BaseFragment() {
         
         if (isInstalled) {
             // 尝试打开APP
-            val success = tryOpenEcommerceApp(appType, query, keyword, packageName)
+            val success = tryOpenEcommerceApp(appType, packageName, url)
             if (success) {
                 return
             }
@@ -262,7 +259,7 @@ class AlarmFragment : BaseFragment() {
         }
         
         // 降级方案：跳转 H5 页
-        openEcommerceH5(appType, query)
+        openEcommerceH5(appType, url)
         
         Log.d(TAG, "========== 跳转$appName 结束 ==========")
     }
@@ -271,11 +268,11 @@ class AlarmFragment : BaseFragment() {
      * 尝试多种方式打开电商APP
      * @return 是否成功打开
      */
-    private fun tryOpenEcommerceApp(appType: String, query: String, keyword: String, packageName: String): Boolean {
+    private fun tryOpenEcommerceApp(appType: String, packageName: String, url: String): Boolean {
         return when (appType) {
-            "taobao" -> tryOpenTaobaoApp(query, keyword, packageName)
-            "jd" -> tryOpenJdApp(query, keyword, packageName)
-            "pdd" -> tryOpenPddApp(query, keyword, packageName)
+            "taobao" -> tryOpenTaobaoApp(packageName, url)
+            "jd" -> tryOpenJdApp(packageName, url)
+            "pdd" -> tryOpenPddApp(packageName, url)
             else -> false
         }
     }
@@ -283,23 +280,22 @@ class AlarmFragment : BaseFragment() {
     /**
      * 打开淘宝APP (优先tbopen协议,失败后H5,都必须带搜索关键字)
      */
-    private fun tryOpenTaobaoApp(query: String, keyword: String, packageName: String): Boolean {
+    private fun tryOpenTaobaoApp(packageName: String, url: String): Boolean {
         // 方式1: 使用 tbopen:// 协议 (带搜索参数)
         try {
-            val encodedUrl = URLEncoder.encode("https://s.m.taobao.com/h5?q=$query", "UTF-8")
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("tbopen://m.taobao.com/tbopen/index.html?action=ali.open.nav&module=h5&h5Url=$encodedUrl")
+                data = Uri.parse(url)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             
             Log.d(TAG, "淘宝-方式1: 尝试 tbopen:// 协议(带搜索)")
             val resolveInfo = requireContext().packageManager.resolveActivity(intent, 0)
-            if (resolveInfo != null && resolveInfo.activityInfo.packageName == packageName) {
+            if (resolveInfo != null) {
                 startActivity(intent)
                 Log.d(TAG, "淘宝-方式1: 成功(tbopen,带搜索参数)")
                 return true
             } else {
-                Log.w(TAG, "淘宝-方式1: 未找到淘宝处理tbopen, resolveInfo=${resolveInfo?.activityInfo?.packageName}")
+                Log.w(TAG, "淘宝-方式1: 未找到淘宝处理tbopen, resolveInfo=${null}")
             }
         } catch (e: Exception) {
             Log.e(TAG, "淘宝-方式1失败: ${e.message}", e)
@@ -313,19 +309,17 @@ class AlarmFragment : BaseFragment() {
     /**
      * 打开京东APP (优先使用带搜索参数的协议)
      */
-    private fun tryOpenJdApp(query: String, keyword: String, packageName: String): Boolean {
+    private fun tryOpenJdApp(packageName: String, url: String): Boolean {
         // 方式1: 使用 openapp.jdmobile:// 协议 (京东deep link,带搜索)
         try {
-            val jsonParam = "{\"category\":\"jump\",\"des\":\"search\",\"keyWord\":\"$keyword\"}"
-            val encodedParam = URLEncoder.encode(jsonParam, "UTF-8")
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("openapp.jdmobile://virtual?params=$encodedParam")
+                data = Uri.parse(url)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             
             Log.d(TAG, "京东-方式1: 尝试 openapp.jdmobile:// (带搜索)")
             val resolveInfo = requireContext().packageManager.resolveActivity(intent, 0)
-            if (resolveInfo != null && resolveInfo.activityInfo.packageName == packageName) {
+            if (resolveInfo != null) {
                 startActivity(intent)
                 Log.d(TAG, "京东-方式1: 成功(openapp,带搜索参数)")
                 return true
@@ -339,13 +333,13 @@ class AlarmFragment : BaseFragment() {
         // 方式2: 使用 jd:// 协议 (带搜索)
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("jd://search?keyword=$query")
+                data = Uri.parse(url)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             
             Log.d(TAG, "京东-方式2: 尝试 jd:// 协议(带搜索)")
             val resolveInfo = requireContext().packageManager.resolveActivity(intent, 0)
-            if (resolveInfo != null && resolveInfo.activityInfo.packageName == packageName) {
+            if (resolveInfo != null) {
                 startActivity(intent)
                 Log.d(TAG, "京东-方式2: 成功(jd://,带搜索参数)")
                 return true
@@ -363,7 +357,7 @@ class AlarmFragment : BaseFragment() {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 Log.d(TAG, "京东-方式3: 使用LaunchIntent(不带搜索)")
                 startActivity(launchIntent)
-                Toast.makeText(context, "已打开京东,请手动搜索: $keyword", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "已打开京东", Toast.LENGTH_LONG).show()
                 return true
             }
         } catch (e: Exception) {
@@ -376,11 +370,11 @@ class AlarmFragment : BaseFragment() {
     /**
      * 打开拼多多APP (优先使用带搜索参数的协议)
      */
-    private fun tryOpenPddApp(query: String, keyword: String, packageName: String): Boolean {
+    private fun tryOpenPddApp(packageName: String, url: String): Boolean {
         // 方式1: 使用 pinduoduo:// 协议 (带搜索)
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("pinduoduo://com.xunmeng.pinduoduo/goods_detail.html?goods_id=193791252730")
+                data = url.toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             
@@ -404,7 +398,7 @@ class AlarmFragment : BaseFragment() {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 Log.d(TAG, "拼多多-方式2: 使用LaunchIntent(不带搜索)")
                 startActivity(launchIntent)
-                Toast.makeText(context, "已打开拼多多,请手动搜索: $keyword", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "已打开拼多多", Toast.LENGTH_LONG).show()
                 return true
             }
         } catch (e: Exception) {
@@ -576,13 +570,6 @@ class AlarmFragment : BaseFragment() {
             Log.e(TAG, "使用任意浏览器打开失败: ${e.message}")
             false
         }
-    }
-
-    /**
-     * 跳转到淘宝搜索 (保留兼容)
-     */
-    private fun jumpToTaobaoSearch(keyword: String) {
-        jumpToEcommerceApp("taobao", keyword, "com.taobao.taobao")
     }
     
     /**
