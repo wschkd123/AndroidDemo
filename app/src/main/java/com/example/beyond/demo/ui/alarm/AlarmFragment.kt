@@ -75,11 +75,6 @@ class AlarmFragment : BaseFragment() {
     }
 
     private fun setupViews() {
-        // 返回按钮
-        binding.btnBack.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-
         // 时间选择器 - 设置默认时间为当前时间后1小时
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.HOUR_OF_DAY, 1)
