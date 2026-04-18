@@ -1,8 +1,9 @@
 package com.example.beyond.demo.ui.alarm
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
-import android.media.RingtoneManager
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,9 +12,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import com.example.base.BaseFragment
 import com.example.beyond.demo.databinding.FragmentAlarmBinding
 import java.net.URLEncoder
@@ -32,6 +33,21 @@ class AlarmFragment : BaseFragment() {
 
     private var selectedRingtonePath: String? = null
     private var selectedRingtoneName: String = "默认铃声"
+
+    // 待下载的URL（用于权限请求后继续下载）
+    private var pendingDownloadUrl: String? = null
+
+    // 存储权限请求（Android 9及以下需要）
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingDownloadUrl?.let { executeDownload(it) }
+        } else {
+            Toast.makeText(context, "需要存储权限才能下载铃声", Toast.LENGTH_LONG).show()
+        }
+        pendingDownloadUrl = null
+    }
 
     // 文件选择器
     private val filePickerLauncher = registerForActivityResult(
@@ -75,10 +91,6 @@ class AlarmFragment : BaseFragment() {
         // 选择铃声按钮
         binding.btnSelectRingtone.setOnClickListener {
             showRingtoneSelectionDialog()
-//            val url = "https://zmdcharactercdn-new.zhumengdao.com/test/voice/20260417/mp3/57367262214076825692.mp3"
-//            if (url.isNotEmpty() && url.startsWith("http")) {
-//                downloadRingtoneFromUrl(url)
-//            }
         }
 
         // 设置闹钟按钮
@@ -102,118 +114,69 @@ class AlarmFragment : BaseFragment() {
         }
     }
 
+
     /**
      * 显示铃声选择对话框
      */
     private fun showRingtoneSelectionDialog() {
-        val options = arrayOf(
-            "使用系统铃声",
-            "使用内置MP3",
-            "从URL下载",
-            "选择本地文件"
-        )
+        val options = arrayOf("从URL下载", "选择本地文件")
 
         AlertDialog.Builder(requireContext())
             .setTitle("选择铃声来源")
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> selectSystemRingtone()
-                    1 -> selectBuiltInRingtone()
-                    2 -> inputUrlForRingtone()
-                    3 -> selectLocalFile()
+                    0 -> downloadDefaultRingtone()
+                    1 -> selectLocalFile()
                 }
             }
             .show()
     }
 
     /**
-     * 选择系统铃声
+     * 下载默认铃声
      */
-    private fun selectSystemRingtone() {
-        try {
-            val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
-                putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
-                putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "选择闹钟铃声")
-                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, selectedRingtonePath?.let { Uri.parse(it) })
-                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
-            }
-            startActivity(intent)
-            Toast.makeText(context, "请在系统界面选择铃声", Toast.LENGTH_LONG).show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(context, "打开系统铃声选择器失败", Toast.LENGTH_SHORT).show()
-        }
+    private fun downloadDefaultRingtone() {
+        downloadRingtone(RingtoneHelper.getDefaultRingtoneUrl())
     }
 
     /**
-     * 选择内置MP3铃声
+     * 下载铃声（带权限检查）
      */
-    private fun selectBuiltInRingtone() {
-        val ringtones = RingtoneHelper.getAvailableBuiltInRingtones()
-        val names = ringtones.map { it.displayName }.toTypedArray()
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("选择内置铃声")
-            .setItems(names) { _, which ->
-                val selectedRingtone = ringtones[which]
-                val uri = RingtoneHelper.copyAssetToStorage(requireContext(), selectedRingtone.fileName)
-                if (uri != null) {
-                    selectedRingtonePath = uri.toString()
-                    selectedRingtoneName = selectedRingtone.displayName
-                    binding.tvRingtone.text = selectedRingtoneName
-                    Toast.makeText(context, "已选择: ${selectedRingtone.displayName}", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "加载铃声失败", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .show()
-    }
-
-    /**
-     * 输入URL下载铃声
-     */
-    private fun inputUrlForRingtone() {
-        val editText = EditText(requireContext()).apply {
-            hint = "https://example.com/ringtone.mp3"
-            setText("https://")
+    private fun downloadRingtone(url: String) {
+        // Android 9及以下需要检查存储权限
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingDownloadUrl = url
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            return
         }
 
-        AlertDialog.Builder(requireContext())
-            .setTitle("输入音频URL")
-            .setMessage("请输入MP3音频文件的下载链接:")
-            .setView(editText)
-            .setPositiveButton("下载") { _, _ ->
-                val url = editText.text.toString().trim()
-                if (url.isNotEmpty() && url.startsWith("http")) {
-                    downloadRingtoneFromUrl(url)
-                } else {
-                    Toast.makeText(context, "请输入有效的URL", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("取消", null)
-            .show()
+        executeDownload(url)
     }
 
     /**
-     * 从URL下载铃声
+     * 执行下载
      */
-    private fun downloadRingtoneFromUrl(url: String) {
+    private fun executeDownload(url: String) {
         Toast.makeText(context, "正在下载...", Toast.LENGTH_SHORT).show()
 
-        // 在后台线程下载
         Thread {
-            val fileName = "ringtone_${System.currentTimeMillis()}.mp3"
-            val uri = RingtoneHelper.downloadFromUrl(requireContext(), url, fileName)
+            val fileName = RingtoneHelper.generateFileName()
+            val uri = RingtoneHelper.downloadToPublicDirectory(requireContext(), url, fileName)
 
             requireActivity().runOnUiThread {
                 if (uri != null) {
                     selectedRingtonePath = uri.toString()
                     selectedRingtoneName = "网络铃声"
                     binding.tvRingtone.text = selectedRingtoneName
-                    Toast.makeText(context, "下载成功: $selectedRingtoneName", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "下载成功", Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "铃声URI: $uri")
                 } else {
-                    Toast.makeText(context, "下载失败,请检查URL是否正确", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "下载失败", Toast.LENGTH_LONG).show()
                 }
             }
         }.start()
@@ -230,30 +193,21 @@ class AlarmFragment : BaseFragment() {
      * 设置系统闹钟
      */
     private fun setSystemAlarm() {
-        checkAlarmAppExists()
         val hour = binding.timePicker.hour
         val minute = binding.timePicker.minute
 
         try {
-            // 使用AlarmClock Intent直接调用系统闹钟APP
             val intent = Intent(AlarmClock.ACTION_SET_ALARM).apply {
                 putExtra(AlarmClock.EXTRA_HOUR, hour)
                 putExtra(AlarmClock.EXTRA_MINUTES, minute)
-                putExtra(AlarmClock.EXTRA_MESSAGE, "自定义闹钟1")
-                putExtra(AlarmClock.EXTRA_SKIP_UI, false) // 显示系统闹钟UI让用户确认
+                putExtra(AlarmClock.EXTRA_MESSAGE, "自定义闹钟")
                 putExtra(AlarmClock.EXTRA_VIBRATE, true) // 启用震动
-//                putExtra(AlarmClock.EXTRA_RINGTONE, VALUE_RINGTONE_SILENT)
-                // 设置自定义铃声（如果选择了）
-                selectedRingtonePath?.let { ringtoneUri ->
-                    try {
-                        val uri = Uri.parse(ringtoneUri)
-                        putExtra(AlarmClock.EXTRA_RINGTONE, uri)
-                        Log.d("AlarmManager", "设置自定义铃声: $ringtoneUri")
-                    } catch (e: Exception) {
-                        Log.e("AlarmManager", "解析铃声URI失败: ${e.message}")
-                    }
-                } ?: run {
-                    Log.d("AlarmManager", "使用默认铃声")
+                putExtra(AlarmClock.EXTRA_SKIP_UI, false) // 显示系统闹钟UI让用户确认
+
+                // 设置自定义铃声（如果已选择）
+                selectedRingtonePath?.let { path ->
+                    putExtra(AlarmClock.EXTRA_RINGTONE, Uri.parse(path))
+                    Log.d(TAG, "设置铃声: $path")
                 }
             }
 
@@ -265,25 +219,12 @@ class AlarmFragment : BaseFragment() {
                     Toast.LENGTH_LONG
                 ).show()
             } else {
-                // 处理无闹钟 App 的情况
+                Toast.makeText(context, "未找到闹钟应用", Toast.LENGTH_SHORT).show()
             }
-
         } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(context, "设置闹钟失败: ${e.message}", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "设置闹钟失败: ${e.message}")
+            Toast.makeText(context, "设置闹钟失败", Toast.LENGTH_LONG).show()
         }
-    }
-
-    fun checkAlarmAppExists(): Boolean {
-        val intent = Intent(AlarmClock.ACTION_SET_ALARM)
-        val activities = requireContext().packageManager.queryIntentActivities(intent, 0)
-
-        Log.d("AlarmTest", "找到 ${activities.size} 个闹钟应用")
-        activities.forEach {
-            Log.d(TAG, "checkAlarmAppExists 包名: ${it.activityInfo.packageName}")
-        }
-
-        return activities.isNotEmpty()
     }
 
     /**
