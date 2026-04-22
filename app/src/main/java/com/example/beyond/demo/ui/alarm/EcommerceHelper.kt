@@ -19,10 +19,15 @@ object EcommerceHelper {
     /**
      * 电商应用类型
      */
-    enum class AppType(val packageName: String, val displayName: String) {
-        TAOBAO("com.taobao.taobao", "淘宝"),
-        JD("com.jingdong.app.mall", "京东"),
-        PDD("com.xunmeng.pinduoduo", "拼多多")
+    enum class AppType(val packageName: String, val platform: String) {
+        TAOBAO("com.taobao.taobao", "taobao"),
+        JD("com.jingdong.app.mall", "jd"),
+        PDD("com.xunmeng.pinduoduo", "pdd");
+        companion object {
+            fun fromPlatform(platform: String?): AppType {
+                return entries.find { it.platform == platform }?:JD
+            }
+        }
     }
 
     /**
@@ -33,7 +38,7 @@ object EcommerceHelper {
      * @return 是否成功跳转
      */
     fun jumpToProductPage(context: Context, appType: AppType, url: String): Boolean {
-        Log.d(TAG, "跳转${appType.displayName}商品页: $url")
+        Log.d(TAG, "跳转${appType.platform}商品页: $url")
 
         // 检查APP是否安装
         if (isAppInstalled(context, appType.packageName)) {
