@@ -106,7 +106,7 @@ class AlarmFragment : BaseFragment() {
             EcommerceHelper.jumpToProductPage(
                 requireContext(),
                 EcommerceHelper.AppType.JD,
-                "https://3.cn/2L2-YayJ"
+                "https://item.m.jd.com/product/100209267857.html"
             )
         }
 

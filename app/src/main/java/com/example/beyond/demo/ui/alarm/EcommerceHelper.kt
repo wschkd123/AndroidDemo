@@ -5,11 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.core.net.toUri
 
 /**
  * 电商应用跳转工具类
- * 优先使用 scheme 跳转 APP，未安装则跳转 H5
  *
  * @author wangshichao
  * @date 2026/4/18
@@ -31,53 +29,29 @@ object EcommerceHelper {
      * 跳转到商品详情页
      * @param context 上下文
      * @param appType 应用类型
-     * @param url 商品URL（支持 https:// 和自定义 scheme）
+     * @param url 商品URL（支持 https:// 和自定义协议）
      * @return 是否成功跳转
      */
     fun jumpToProductPage(context: Context, appType: AppType, url: String): Boolean {
         Log.d(TAG, "跳转${appType.displayName}商品页: $url")
 
-        // 1. 先尝试通过 scheme 打开 APP
-        if (tryOpenWithScheme(context, url)) {
-            Log.d(TAG, "Scheme跳转成功")
-            return true
-        }
-
-        // 2. Scheme 失败，检查 APP 是否安装，尝试直接启动
-//        if (isAppInstalled(context, appType.packageName)) {
-//            if (tryLaunchApp(context, appType.packageName)) {
-//                Log.d(TAG, "直接启动${appType.displayName}成功")
-//                Toast.makeText(context, "已打开${appType.displayName}", Toast.LENGTH_SHORT).show()
+        // 检查APP是否安装
+        if (isAppInstalled(context, appType.packageName)) {
+            // 尝试通过 Deep Link 打开APP
+//            if (tryOpenWithDeepLink(context, url)) {
 //                return true
 //            }
-//        }
 
-        // 3. APP 未安装或打开失败，跳转 H5
-        Log.d(TAG, "${appType.displayName}未安装，跳转H5")
-        return openEcommerceH5(context, url)
-    }
-
-    /**
-     * 尝试通过 scheme 打开 APP
-     */
-    private fun tryOpenWithScheme(context: Context, url: String): Boolean {
-        return try {
-            val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-
-            val resolveInfo = context.packageManager.resolveActivity(intent, 0)
-            if (resolveInfo != null) {
-                context.startActivity(intent)
-                true
-            } else {
-                Log.d(TAG, "Scheme无响应: $url")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Scheme跳转失败: ${e.message}")
-            false
+            // Deep Link 失败，尝试直接启动APP
+//            if (tryLaunchApp(context, appType.packageName)) {
+//                Log.d(TAG, "Deep Link失败，已启动${appType.displayName}")
+//                return true
+//            }
         }
+
+        // 降级方案：跳转 H5 页
+        return openEcommerceH5(context, url)
+
     }
 
     /**
@@ -88,6 +62,31 @@ object EcommerceHelper {
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
             intent != null
         } catch (e: Exception) {
+            Log.e(TAG, "检查应用安装失败: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * 尝试通过 Deep Link 打开
+     */
+    private fun tryOpenWithDeepLink(context: Context, url: String): Boolean {
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            val resolveInfo = context.packageManager.resolveActivity(intent, 0)
+            if (resolveInfo != null) {
+                context.startActivity(intent)
+                Log.d(TAG, "Deep Link成功: $url")
+                true
+            } else {
+                Log.d(TAG, "Deep Link无响应: $url")
+                false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Deep Link失败: ${e.message}")
             false
         }
     }
